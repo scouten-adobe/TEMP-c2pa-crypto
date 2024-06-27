@@ -49,7 +49,7 @@ pub(crate) mod temp_signer;
 #[cfg(feature = "openssl")]
 pub(crate) use openssl_trust_handler::verify_trust;
 #[cfg(feature = "openssl")]
-pub(crate) use openssl_trust_handler::OpenSSLTrustHandlerConfig;
+pub use openssl_trust_handler::OpenSSLTrustHandlerConfig; // [scouten 2024-06-27: Hacking to make public.]
 
 #[cfg(test)]
 pub(crate) mod temp_signer_async;

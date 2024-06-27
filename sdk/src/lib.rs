@@ -146,7 +146,7 @@ pub(crate) mod builder;
 pub(crate) mod callback_signer;
 pub(crate) mod claim;
 pub(crate) mod claim_generator_info;
-pub(crate) mod cose_validator;
+pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
 pub(crate) mod external_manifest;
 pub(crate) mod hashed_uri;
@@ -159,7 +159,7 @@ pub(crate) mod manifest_store;
 pub(crate) mod manifest_store_report;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
-pub(crate) mod openssl;
+pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
 #[allow(dead_code)]
 // TODO: Remove this when the feature is released (used in tests only for some builds now)
 pub(crate) mod reader;
@@ -167,10 +167,10 @@ pub(crate) mod resource_store;
 pub(crate) mod salt;
 pub(crate) mod signer;
 pub(crate) mod signing_alg;
-pub(crate) mod status_tracker;
+pub mod status_tracker; // [scouten 2024-06-27]: Hacking to make this public.
 pub(crate) mod store;
 pub(crate) mod time_stamp;
-pub(crate) mod trust_handler;
+pub mod trust_handler; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod utils;
 pub(crate) use utils::{cbor_types, hash_utils};
-pub(crate) mod validator;
+pub mod validator; // [scouten 2024-06-27]: Hacking to make public.

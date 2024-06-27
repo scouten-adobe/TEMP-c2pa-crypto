@@ -403,7 +403,7 @@ impl crate::signer::RemoteSigner for TempRemoteSigner {
                 crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
 
             // this would happen on some remote server
-            crate::cose_sign::cose_sign_async(&signer, claim_bytes, self.reserve_size()).await
+            crate::cose_sign::cose_sign_async(&signer, claim_bytes, Some(self.reserve_size())).await
         }
         #[cfg(not(feature = "openssl_sign"))]
         {
@@ -549,7 +549,8 @@ impl crate::signer::AsyncSigner for TempAsyncRemoteSigner {
                 crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
 
             // this would happen on some remote server
-            crate::cose_sign::cose_sign_async(&signer, &claim_bytes, self.reserve_size()).await
+            crate::cose_sign::cose_sign_async(&signer, &claim_bytes, Some(self.reserve_size()))
+                .await
         }
         #[cfg(not(feature = "openssl_sign"))]
         {

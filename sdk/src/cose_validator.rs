@@ -924,7 +924,9 @@ fn extract_serial_from_cert(cert: &X509Certificate) -> BigUint {
 /// data:  data that was used to create the cose_bytes, these must match
 /// addition_data: additional optional data that may have been used during signing
 /// returns - Ok on success
-pub(crate) async fn verify_cose_async(
+///
+/// [scouten 2024-06-27]: Hacking this to make public.
+pub async fn verify_cose_async(
     cose_bytes: Vec<u8>,
     data: Vec<u8>,
     additional_data: Vec<u8>,
@@ -1099,7 +1101,8 @@ pub(crate) fn get_signing_info(
 /// addition_data: additional optional data that may have been used during signing
 /// returns - Ok on success
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn verify_cose(
+pub fn verify_cose(
+    // [scouten 2024-06-27]: Hack to make public
     cose_bytes: &[u8],
     data: &[u8],
     additional_data: &[u8],

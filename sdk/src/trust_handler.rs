@@ -31,7 +31,9 @@ pub(crate) static DOCUMENT_SIGNING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3
 //
 // `RefUnwindSafe` + `UnwindSafe` were added to ensure `Store` is unwind safe and to preserve
 // backwards compatbility.
-pub(crate) trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
+
+// [scouten 2024-06-27]: Hacking to make public
+pub trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
     fn new() -> Self
     where
         Self: Sized;

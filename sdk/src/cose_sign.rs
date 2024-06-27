@@ -65,9 +65,9 @@ pub fn sign_claim(claim_bytes: &[u8], signer: &dyn Signer, box_size: usize) -> R
     let _claim = Claim::from_data(label, claim_bytes)?;
 
     let signed_bytes = if _sync {
-        cose_sign(signer, claim_bytes, box_size)
+        cose_sign(signer, claim_bytes, Some(box_size))
     } else {
-        cose_sign_async(signer, claim_bytes, box_size).await
+        cose_sign_async(signer, claim_bytes, Some(box_size)).await
     };
 
     match signed_bytes {
@@ -117,9 +117,12 @@ fn signing_cert_valid(signing_cert: &[u8]) -> Result<()> {
 #[async_generic(async_signature(
     signer: &dyn AsyncSigner,
     data: &[u8],
-    box_size: usize
+    box_size: Option<usize>
 ))]
-pub(crate) fn cose_sign(signer: &dyn Signer, data: &[u8], box_size: usize) -> Result<Vec<u8>> {
+pub fn cose_sign(signer: &dyn Signer, data: &[u8], box_size: Option<usize>) -> Result<Vec<u8>> {
+    // [scouten 2024-06-27]: Hacked this to be public and make box_size an Option.
+    // If box_size == None, there is no padding.
+
     // 13.2.1. X.509 Certificates
     //
     // X.509 Certificates are stored in a header named x5chain draft-ietf-cose-x509.
@@ -275,12 +278,16 @@ const PAD_OFFSET: usize = 7;
 // There are some values lengths that are impossible to hit with a single padding so
 // when that happens a second padding is added to change the remaining needed padding.
 // The default initial guess works for almost all sizes, without the need for additional loops.
-fn pad_cose_sig(sign1: &mut CoseSign1, end_size: usize) -> Result<Vec<u8>> {
+fn pad_cose_sig(sign1: &mut CoseSign1, end_size: Option<usize>) -> Result<Vec<u8>> {
     let mut sign1_clone = sign1.clone();
     let cur_vec = sign1_clone
         .to_tagged_vec()
         .map_err(|_e| Error::CoseSignature)?;
     let cur_size = cur_vec.len();
+
+    let Some(end_size) = end_size else {
+        return Ok(cur_vec);
+    };
 
     if cur_size == end_size {
         return Ok(cur_vec);
@@ -316,7 +323,7 @@ fn pad_cose_sig(sign1: &mut CoseSign1, end_size: usize) -> Result<Vec<u8>> {
                 Label::Text(PAD.to_string()),
                 Value::Bytes(vec![0u8; target_guess]),
             ));
-            return pad_cose_sig(&mut sign1_clone, end_size);
+            return pad_cose_sig(&mut sign1_clone, Some(end_size));
         }
 
         // get current cbor vec to size if we reached target size
@@ -336,7 +343,7 @@ fn pad_cose_sig(sign1: &mut CoseSign1, end_size: usize) -> Result<Vec<u8>> {
         Label::Text(PAD2.to_string()),
         Value::Bytes(vec![0u8; last_pad - 10]),
     ));
-    pad_cose_sig(sign1, end_size)
+    pad_cose_sig(sign1, Some(end_size))
 }
 
 #[cfg(test)]

@@ -42,7 +42,8 @@ fn load_trust_from_pem_data(trust_data: &[u8]) -> Result<Vec<openssl::x509::X509
 }
 
 // Struct to handle verification of trust chains
-pub(crate) struct OpenSSLTrustHandlerConfig {
+// [scouten 2024-06-27]: Hacking to make public.
+pub struct OpenSSLTrustHandlerConfig {
     trust_anchors: Vec<openssl::x509::X509>,
     private_anchors: Vec<openssl::x509::X509>,
     allowed_cert_set: HashSet<String>,
