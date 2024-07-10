@@ -241,6 +241,7 @@ impl ResourceStore {
         let id = uri.to_string();
 
         // if it isn't jumbf, assume it's an external uri and use it as is
+        #[allow(clippy::collapsible_if)]
         if id.starts_with("self#jumbf=") {
             #[cfg(feature = "file_io")]
             if self.base_path.is_some() {
@@ -342,6 +343,8 @@ impl ResourceStore {
 
     /// Returns `true` if the resource has been added or exists as file.
     pub fn exists(&self, id: &str) -> bool {
+        #[allow(clippy::collapsible_if)]
+        #[allow(clippy::needless_bool)]
         if !self.resources.contains_key(id) {
             #[cfg(feature = "file_io")]
             match self.base_path.as_ref() {
