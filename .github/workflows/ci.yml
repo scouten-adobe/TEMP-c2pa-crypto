@@ -4,8 +4,8 @@ on:
   pull_request:
   push:
     branches: main
-  schedule:
-    - cron: "0 18 * * 1,4,6" # 1800 UTC every Monday, Thursday, Saturday
+  # schedule:
+  #   - cron: "0 18 * * 1,4,6" # 1800 UTC every Monday, Thursday, Saturday
 
 jobs:
   tests-cargo:
@@ -82,7 +82,6 @@ jobs:
 
       - name: Run Wasm tests
         run: wasm-pack test --chrome --headless
-        working-directory: ./sdk
 
   test-direct-minimal-versions:
     name: Unit tests with minimum versions of direct dependencies
@@ -132,7 +131,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Dry-run of crate publish
-        run: cargo publish -p c2pa --dry-run
+        run: cargo publish -p c2pa-crypto --dry-run
 
   clippy_check:
     name: Clippy
@@ -272,7 +271,7 @@ jobs:
       - name: "Bump crate version (NOTE: Not pushed back to repo!)"
         continue-on-error: true # If no change to crate version, ignore git commit error
         run: |
-          sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" sdk/Cargo.toml
+          sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
           git config user.email "nobody@example.com"
           git config --global user.name "PR validation bot"
           git add .
@@ -283,4 +282,4 @@ jobs:
       - name: If this step fails, change title of the PR to include (MINOR) tag
         uses: obi1kenobi/cargo-semver-checks-action@v2
         with:
-          package: c2pa
+          package: c2pa-crypto
