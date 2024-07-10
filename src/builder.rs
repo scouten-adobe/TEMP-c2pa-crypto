@@ -993,7 +993,7 @@ mod tests {
         builder.to_archive(&mut zipped).unwrap();
 
         // write the zipped stream to a file for debugging
-        std::fs::write("../target/test.zip", zipped.get_ref()).unwrap();
+        std::fs::write("./target/test.zip", zipped.get_ref()).unwrap();
 
         // unzip the manifest builder from the zipped stream
         zipped.rewind().unwrap();
