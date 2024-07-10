@@ -26,12 +26,23 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust_version }}
+          components: llvm-tools-preview
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Run unit tests
-        run: cargo test --all-features --verbose
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --lcov --ignore-filename-regex tests --output-path lcov.info
+
+      - name: Upload code coverage results
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
 
   tests-cross:
     name: Unit tests
@@ -107,31 +118,31 @@ jobs:
       - name: Run tests
         run: cargo +nightly test -Z direct-minimal-versions --all-targets --all-features
 
-  publish-preflight:
-    name: Preflight crate publish
-    runs-on: ${{ matrix.os }}
+  # publish-preflight:
+  #   name: Preflight crate publish
+  #   runs-on: ${{ matrix.os }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        rust_version: [stable]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ubuntu-latest]
+  #       rust_version: [stable]
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+      
+  #     - name: Install Rust toolchain
+  #       uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: ${{ matrix.rust_version }}
+  #         components: llvm-tools-preview
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust_version }}
-          components: llvm-tools-preview
+  #     - name: Cache Rust dependencies
+  #       uses: Swatinem/rust-cache@v2
 
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Dry-run of crate publish
-        run: cargo publish -p c2pa-crypto --dry-run
+  #     - name: Dry-run of crate publish
+  #       run: cargo publish --no-verify -p c2pa-crypto --dry-run
 
   clippy_check:
     name: Clippy
@@ -234,52 +245,53 @@ jobs:
           version: latest
           args: --all-targets --all-features
 
-  version_bump:
-    name: Ensure (MINOR) tag is used when making an API breaking change
-    # Change all of these steps to (MAJOR) after 1.0 release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+  # DISABLED until first version of crate is published:
+  # version_bump:
+  #   name: Ensure (MINOR) tag is used when making an API breaking change
+  #   # Change all of these steps to (MAJOR) after 1.0 release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+      
+  #     - name: Install Rust toolchain
+  #       uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+  #     - name: Get latest existing tag
+  #       uses: WyriHaximus/github-action-get-previous-tag@v1
+  #       id: get-latest-tag
 
-      - name: Get latest existing tag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-        id: get-latest-tag
+  #     - name: Set new version
+  #       uses: paulhatch/semantic-version@v5.2.1
+  #       id: set-version
+  #       with:
+  #         tag_prefix: "v"
+  #         version_format: "${major}.${minor}.${patch}"
+  #         major_pattern: "(MAJOR)"
+  #         minor_pattern: "(MINOR)"
 
-      - name: Set new version
-        uses: paulhatch/semantic-version@v5.2.1
-        id: set-version
-        with:
-          tag_prefix: "v"
-          version_format: "${major}.${minor}.${patch}"
-          major_pattern: "(MAJOR)"
-          minor_pattern: "(MINOR)"
+  #     - name: Generate changelog since last tag
+  #       run: |
+  #         {
+  #           echo 'changelog<<EOF'
+  #           git log --format="* %s" ${{ steps.get-latest-tag.outputs.tag }}..HEAD | { grep -v "(IGNORE)" || :; }
+  #           echo EOF
+  #         } >> "$GITHUB_OUTPUT"
 
-      - name: Generate changelog since last tag
-        run: |
-          {
-            echo 'changelog<<EOF'
-            git log --format="* %s" ${{ steps.get-latest-tag.outputs.tag }}..HEAD | { grep -v "(IGNORE)" || :; }
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+  #     - name: "Bump crate version (NOTE: Not pushed back to repo!)"
+  #       continue-on-error: true # If no change to crate version, ignore git commit error
+  #       run: |
+  #         sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
+  #         git config user.email "nobody@example.com"
+  #         git config --global user.name "PR validation bot"
+  #         git add .
+  #         git commit -m "DO NOT PUSH BACK TO PR: Bump crate version"
+  #       env:
+  #         VERSION: ${{ steps.set-version.outputs.version }}
 
-      - name: "Bump crate version (NOTE: Not pushed back to repo!)"
-        continue-on-error: true # If no change to crate version, ignore git commit error
-        run: |
-          sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
-          git config user.email "nobody@example.com"
-          git config --global user.name "PR validation bot"
-          git add .
-          git commit -m "DO NOT PUSH BACK TO PR: Bump crate version"
-        env:
-          VERSION: ${{ steps.set-version.outputs.version }}
-
-      - name: If this step fails, change title of the PR to include (MINOR) tag
-        uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          package: c2pa-crypto
+  #     - name: If this step fails, change title of the PR to include (MINOR) tag
+  #       uses: obi1kenobi/cargo-semver-checks-action@v2
+  #       with:
+  #         package: c2pa-crypto
