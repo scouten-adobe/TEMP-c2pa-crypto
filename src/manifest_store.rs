@@ -239,8 +239,8 @@ impl ManifestStore {
     /// Example:
     ///
     /// ```
-    /// # use c2pa::Result;
-    /// use c2pa::ManifestStore;
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::ManifestStore;
     /// # fn main() -> Result<()> {
     /// let manifest_store = ManifestStore::from_file("tests/fixtures/C.jpg")?;
     /// println!("{}", manifest_store);
@@ -260,8 +260,8 @@ impl ManifestStore {
     /// Example:
     ///
     /// ```
-    /// # use c2pa::Result;
-    /// use c2pa::ManifestStore;
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::ManifestStore;
     /// # fn main() -> Result<()> {
     /// let manifest_store = ManifestStore::from_file_with_resources(
     ///     "tests/fixtures/C.jpg",
@@ -327,7 +327,7 @@ impl ManifestStore {
     ///
     /// # Example: Creating a manifest store from a .c2pa manifest and validating it against an asset
     /// ```
-    /// use c2pa::{Result, ManifestStore};
+    /// use c2pa_crypto::{Result, ManifestStore};
     ///
     /// # fn main() -> Result<()> {
     /// #    async {
@@ -367,7 +367,7 @@ impl ManifestStore {
     ///
     /// # Example: Creating a manifest store from a .c2pa manifest and validating it against an asset
     /// ```
-    /// use c2pa::{Result, ManifestStore};
+    /// use c2pa_crypto::{Result, ManifestStore};
     ///
     /// # fn main() -> Result<()> {
     /// #    async {

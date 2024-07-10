@@ -17,7 +17,7 @@
 mod integration_1 {
     use std::path::PathBuf;
 
-    use c2pa::{
+    use c2pa_crypto::{
         assertions::{c2pa_action, Action, Actions},
         create_signer,
         settings::load_settings_from_str,

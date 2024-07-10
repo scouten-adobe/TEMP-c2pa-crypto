@@ -12,7 +12,7 @@
 // each license.
 
 mod common;
-use c2pa::{Error, Reader, Result};
+use c2pa_crypto::{Error, Reader, Result};
 use common::{assert_err, compare_to_known_good, fixture_stream};
 
 #[test]

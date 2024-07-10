@@ -36,8 +36,8 @@
 //! # Example: Reading a ManifestStore
 //!
 //! ```
-//! # use c2pa::Result;
-//! use c2pa::{assertions::Actions, Reader};
+//! # use c2pa_crypto::Result;
+//! use c2pa_crypto::{assertions::Actions, Reader};
 //!
 //! # fn main() -> Result<()> {
 //! let stream = std::fs::File::open("tests/fixtures/C.jpg")?;
@@ -57,10 +57,10 @@
 //! # Example: Adding a Manifest to a file
 //!
 //! ```
-//! # use c2pa::Result;
+//! # use c2pa_crypto::Result;
 //! use std::path::PathBuf;
 //!
-//! use c2pa::{create_signer, Builder, SigningAlg};
+//! use c2pa_crypto::{create_signer, Builder, SigningAlg};
 //! use serde::Serialize;
 //! use tempfile::tempdir;
 //!

@@ -353,8 +353,8 @@ impl Manifest {
     ///
     /// # Example: Creating a custom assertion from a serde_json object.
     ///```
-    /// # use c2pa::Result;
-    /// use c2pa::Manifest;
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::Manifest;
     /// use serde_json::json;
     /// # fn main() -> Result<()> {
     /// let mut manifest = Manifest::new("my_app");
@@ -389,8 +389,8 @@ impl Manifest {
     ///
     /// # Example: Creating a from an Actions object.
     ///```
-    /// # use c2pa::Result;
-    /// use c2pa::{
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::{
     ///     assertions::{c2pa_action, Action, Actions},
     ///     Manifest,
     /// };
@@ -411,8 +411,8 @@ impl Manifest {
     ///
     /// Example: Find an Actions Assertion
     /// ```
-    /// # use c2pa::Result;
-    /// use c2pa::{
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::{
     ///     assertions::{c2pa_action, Action, Actions},
     ///     Manifest,
     /// };
@@ -1028,8 +1028,8 @@ impl Manifest {
     /// # Example: Embed a manifest in a file
     ///
     /// ```
-    /// # use c2pa::Result;
-    /// use c2pa::{create_signer, Manifest, SigningAlg};
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::{create_signer, Manifest, SigningAlg};
     /// use serde::Serialize;
     ///
     /// #[derive(Serialize)]

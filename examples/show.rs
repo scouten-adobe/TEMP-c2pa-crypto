@@ -13,7 +13,7 @@
 
 //! Example App that generates a manifest store listing for a given file
 use anyhow::Result;
-use c2pa::Reader;
+use c2pa_crypto::Reader;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<()> {

@@ -23,7 +23,7 @@ fn main() -> Result<()> {
 fn main() -> Result<()> {
     use std::io::Read;
 
-    use c2pa::{format_from_path, Error, Reader};
+    use c2pa_crypto::{format_from_path, Error, Reader};
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 {

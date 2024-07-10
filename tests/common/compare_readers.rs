@@ -15,7 +15,7 @@
 use std::collections::HashMap;
 use std::{fs, path::Path};
 
-use c2pa::{Error, Reader, Result};
+use c2pa_crypto::{Error, Reader, Result};
 
 use super::reader_from_file;
 

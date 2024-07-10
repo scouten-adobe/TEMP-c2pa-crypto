@@ -3736,7 +3736,7 @@ pub mod tests {
 
         // TO DO: This generates a log spew when running this test.
         // I don't have time to fix this right now.
-        // [(date) ERROR c2pa::store] Signature that was just generated does not
+        // [(date) ERROR c2pa_crypto::store] Signature that was just generated does not
         // validate: CoseCbor
 
         store.save_to_asset(&ap, &signer, &op).unwrap_err();

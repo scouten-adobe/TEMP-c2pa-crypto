@@ -163,7 +163,7 @@ impl Ingredient {
     /// # Examples
     ///
     /// ```
-    /// use c2pa::Ingredient;
+    /// use c2pa_crypto::Ingredient;
     /// let ingredient = Ingredient::new("title", "image/jpeg", "ed610ae51f604002be3dbf0c589a2f1f");
     /// ```
     pub fn new<S>(title: S, format: S, instance_id: S) -> Self
@@ -189,7 +189,7 @@ impl Ingredient {
     /// # Examples
     ///
     /// ```
-    /// use c2pa::Ingredient;
+    /// use c2pa_crypto::Ingredient;
     /// let ingredient = Ingredient::new_v2("title", "image/jpeg");
     /// ```
     pub fn new_v2<S1, S2>(title: S1, format: S2) -> Self
@@ -1310,7 +1310,7 @@ impl Ingredient {
     ///
     /// # Example: Create an Ingredient from a binary manifest (.c2pa) and asset bytes
     /// ```
-    /// use c2pa::{Result, Ingredient};
+    /// use c2pa_crypto::{Result, Ingredient};
     ///
     /// # fn main() -> Result<()> {
     /// #    async {

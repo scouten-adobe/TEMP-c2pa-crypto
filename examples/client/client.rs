@@ -16,7 +16,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use c2pa::{
+use c2pa_crypto::{
     assertions::{c2pa_action, labels, Action, Actions, CreativeWork, Exif, SchemaDotOrgPerson},
     create_signer, Ingredient, Manifest, Reader as ManifestStore, SigningAlg,
 };

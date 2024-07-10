@@ -127,8 +127,8 @@ impl ManifestAssertion {
     /// # Example: Creating a custom assertion from a serde_json object.
     ///
     ///```
-    /// # use c2pa::Result;
-    /// use c2pa::ManifestAssertion;
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::ManifestAssertion;
     /// use serde_json::json;
     /// # fn main() -> Result<()> {
     /// let value = json!({"my_tag": "Anything I want"});
@@ -163,8 +163,8 @@ impl ManifestAssertion {
     /// # Example: Creating a custom assertion an Action assertion
     ///
     ///```
-    /// # use c2pa::Result;
-    /// use c2pa::{
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::{
     ///     assertions::{c2pa_action, Action, Actions},
     ///     ManifestAssertion,
     /// };
@@ -185,8 +185,8 @@ impl ManifestAssertion {
     ///
     /// # Example: extracting an Actions Assertion
     /// ```
-    /// # use c2pa::Result;
-    /// use c2pa::{
+    /// # use c2pa_crypto::Result;
+    /// use c2pa_crypto::{
     ///     assertions::{c2pa_action, Action, Actions},
     ///     ManifestAssertion,
     /// };

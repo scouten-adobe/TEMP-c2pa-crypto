@@ -146,10 +146,10 @@ impl AssertionDefinition {
 /// # Example: Building and signing a manifest
 ///
 /// ```
-/// # use c2pa::Result;
+/// # use c2pa_crypto::Result;
 /// use std::path::PathBuf;
 ///
-/// use c2pa::{create_signer, Builder, SigningAlg};
+/// use c2pa_crypto::{create_signer, Builder, SigningAlg};
 /// use serde::Serialize;
 /// use serde_json::json;
 /// use tempfile::tempdir;
@@ -1173,13 +1173,17 @@ mod tests {
 
         // check to make sure we have a remote url and no manifest data
         dest.set_position(0);
-        let _err = c2pa::Reader::from_stream("image/jpeg", &mut dest).expect_err("from_bytes");
+        let _err =
+            c2pa_crypto::Reader::from_stream("image/jpeg", &mut dest).expect_err("from_bytes");
 
         // now validate the manifest against the written asset
         dest.set_position(0);
-        let reader =
-            c2pa::Reader::from_manifest_data_and_stream(&manifest_data, "image/jpeg", &mut dest)
-                .expect("from_bytes");
+        let reader = c2pa_crypto::Reader::from_manifest_data_and_stream(
+            &manifest_data,
+            "image/jpeg",
+            &mut dest,
+        )
+        .expect("from_bytes");
 
         println!("{}", reader.json());
         assert!(reader.validation_status().is_none());

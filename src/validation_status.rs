@@ -493,7 +493,7 @@ pub(crate) const STATUS_PRERELEASE: &str = "com.adobe.prerelease";
 /// # Examples
 ///
 /// ```
-/// use c2pa::validation_status::*;
+/// use c2pa_crypto::validation_status::*;
 ///
 /// assert!(is_success(CLAIM_SIGNATURE_VALIDATED));
 /// assert!(!is_success(SIGNING_CREDENTIAL_REVOKED));

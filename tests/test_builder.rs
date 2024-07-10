@@ -13,7 +13,7 @@
 
 use std::io::Cursor;
 
-use c2pa::{Builder, Result};
+use c2pa_crypto::{Builder, Result};
 
 mod common;
 use common::{compare_stream_to_known_good, fixtures_path, test_signer};
@@ -33,7 +33,7 @@ fn test_builder_ca_jpg() -> Result<()> {
 
     // dest.set_position(0);
     // let path = common::known_good_path("CA_test.json");
-    // let reader = c2pa::Reader::from_stream(format, &mut dest)?;
+    // let reader = c2pa_crypto::Reader::from_stream(format, &mut dest)?;
     // std::fs::write(path, reader.json())?;
 
     dest.set_position(0);

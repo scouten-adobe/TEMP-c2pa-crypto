@@ -20,7 +20,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use c2pa::{format_from_path, Reader, Result};
+use c2pa_crypto::{format_from_path, Reader, Result};
 pub use compare_readers::compare_readers;
 #[allow(unused)]
 pub use test_signer::test_signer;
@@ -48,7 +48,7 @@ pub fn known_good_path<P: AsRef<Path>>(file_name: P) -> std::path::PathBuf {
 /// get a file from path without requiring file_io feature enabled in the c2pa
 /// crate
 pub fn reader_from_file<P: AsRef<Path>>(path: P) -> Result<Reader> {
-    let format = format_from_path(&path).ok_or(c2pa::Error::UnsupportedType)?;
+    let format = format_from_path(&path).ok_or(c2pa_crypto::Error::UnsupportedType)?;
     Reader::from_stream(&format, &mut fs::File::open(&path)?)
 }
 
@@ -93,7 +93,7 @@ pub fn compare_stream_to_known_good<P: AsRef<Path>, S: Read + Seek + Send>(
 #[allow(unused)]
 pub fn fixture_stream(name: &str) -> Result<(String, fs::File)> {
     let path = fixtures_path(name);
-    let format = format_from_path(&path).ok_or(c2pa::Error::UnsupportedType)?;
+    let format = format_from_path(&path).ok_or(c2pa_crypto::Error::UnsupportedType)?;
     let stream = fs::File::open(&path)?;
     Ok((format, stream))
 }

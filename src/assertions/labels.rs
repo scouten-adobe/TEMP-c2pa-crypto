@@ -148,7 +148,7 @@ pub const CREATIVE_WORK: &str = "stds.schema-org.CreativeWork";
 /// # Examples
 ///
 /// ```
-/// use c2pa::assertions::labels;
+/// use c2pa_crypto::assertions::labels;
 ///
 /// assert_eq!(labels::version("c2pa.ingredient"), None);
 /// assert_eq!(labels::version("c2pa.ingredient.v2"), Some(2));
@@ -178,7 +178,7 @@ pub fn version(label: &str) -> Option<usize> {
 /// # Examples
 ///
 /// ```
-/// use c2pa::assertions::labels;
+/// use c2pa_crypto::assertions::labels;
 ///
 /// assert_eq!(
 ///     labels::add_thumbnail_format(labels::CLAIM_THUMBNAIL, "image/jpeg"),

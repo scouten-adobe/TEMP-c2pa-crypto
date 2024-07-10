@@ -47,7 +47,7 @@ impl Reader {
     /// ```no_run
     /// use std::io::Cursor;
     ///
-    /// use c2pa::Reader;
+    /// use c2pa_crypto::Reader;
     /// let mut stream = Cursor::new(include_bytes!("../tests/fixtures/CA.jpg"));
     /// let reader = Reader::from_stream("image/jpeg", stream).unwrap();
     /// println!("{}", reader.json());
@@ -76,7 +76,7 @@ impl Reader {
     /// validation status should be checked for non severe errors.
     /// # Example
     /// ```no_run
-    /// use c2pa::Reader;
+    /// use c2pa_crypto::Reader;
     /// let reader = Reader::from_file("path/to/file.jpg").unwrap();
     /// ```
     /// # Note
@@ -165,7 +165,7 @@ impl Reader {
     /// already reported by the ingredient status. The uri field can be used
     /// to identify the associated manifest. # Example
     /// ```no_run
-    /// use c2pa::Reader;
+    /// use c2pa_crypto::Reader;
     /// let stream = std::io::Cursor::new(include_bytes!("../tests/fixtures/CA.jpg"));
     /// let reader = Reader::from_stream("image/jpeg", stream).unwrap();
     /// let status = reader.validation_status();
@@ -208,7 +208,7 @@ impl Reader {
     /// If the resource does not exist.
     /// # Example
     /// ```no_run
-    /// use c2pa::Reader;
+    /// use c2pa_crypto::Reader;
     /// let stream = std::io::Cursor::new(Vec::new());
     /// let reader = Reader::from_file("path/to/file.jpg").unwrap();
     /// let manifest = reader.active_manifest().unwrap();
