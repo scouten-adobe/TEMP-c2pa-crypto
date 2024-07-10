@@ -11,8 +11,9 @@
 // specific language governing permissions and limitations under
 // each license.
 
-// Example code (in unit test) for how you might use client DataHash values.  This allows clients
-// to perform the manifest embedding and optionally the hashing
+// Example code (in unit test) for how you might use client DataHash values.
+// This allows clients to perform the manifest embedding and optionally the
+// hashing
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::{
@@ -107,13 +108,15 @@ fn user_data_hash_with_sdk_hashing() {
         .add_assertion(&exif)
         .unwrap();
 
-    // get the composed manifest ready to insert into a file (returns manifest of same length as finished manifest)
+    // get the composed manifest ready to insert into a file (returns manifest of
+    // same length as finished manifest)
     let unfinished_manifest = manifest
         .data_hash_placeholder(signer.reserve_size(), "jpg")
         .unwrap();
 
-    // Figure out where you want to put the manifest, let's put it at the beginning of the JPEG as first segment
-    // generate new file inserting unfinished manifest into file
+    // Figure out where you want to put the manifest, let's put it at the beginning
+    // of the JPEG as first segment generate new file inserting unfinished
+    // manifest into file
     input_file.rewind().unwrap();
     let mut before = vec![0u8; 2];
     input_file.read_exact(before.as_mut_slice()).unwrap();
@@ -225,20 +228,23 @@ fn user_data_hash_with_user_hashing() {
         .add_assertion(&exif)
         .unwrap();
 
-    // get the composed manifest ready to insert into a file (returns manifest of same length as finished manifest)
+    // get the composed manifest ready to insert into a file (returns manifest of
+    // same length as finished manifest)
     let unfinished_manifest = manifest
         .data_hash_placeholder(signer.reserve_size(), "jpg")
         .unwrap();
 
-    // Figure out where you want to put the manifest, let's put it at the beginning of the JPEG as first segment
-    // we will need to add a data hash that excludes the manifest
+    // Figure out where you want to put the manifest, let's put it at the beginning
+    // of the JPEG as first segment we will need to add a data hash that
+    // excludes the manifest
     let mut dh = DataHash::new("my_manifest", "sha265");
     let hr = HashRange::new(2, unfinished_manifest.len());
     dh.add_exclusion(hr);
 
-    // since the only thing we are excluding in this example is the manifest we can just hash all the bytes
-    // if you have additional exclusions you can add them to the DataHash and pass them to this function to be '
-    // excluded from the hash generation
+    // since the only thing we are excluding in this example is the manifest we can
+    // just hash all the bytes if you have additional exclusions you can add
+    // them to the DataHash and pass them to this function to be ' excluded from
+    // the hash generation
     let hash = hash_stream_by_alg("sha256", &mut input_file, None, true).unwrap();
     dh.set_hash(hash);
 

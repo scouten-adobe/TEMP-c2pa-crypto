@@ -52,12 +52,14 @@ pub struct Manifest {
     #[serde(skip_serializing_if = "Option::is_none")]
     vendor: Option<String>,
 
-    /// A User Agent formatted string identifying the software/hardware/system produced this claim
-    /// Spaces are not allowed in names, versions can be specified with product/1.0 syntax
+    /// A User Agent formatted string identifying the software/hardware/system
+    /// produced this claim Spaces are not allowed in names, versions can be
+    /// specified with product/1.0 syntax
     #[serde(default = "default_claim_generator")]
     pub claim_generator: String,
 
-    /// A list of claim generator info data identifying the software/hardware/system produced this claim
+    /// A list of claim generator info data identifying the
+    /// software/hardware/system produced this claim
     #[serde(skip_serializing_if = "Option::is_none")]
     pub claim_generator_info: Option<Vec<ClaimGeneratorInfo>>,
 
@@ -148,12 +150,14 @@ impl Manifest {
         }
     }
 
-    /// Returns a User Agent formatted string identifying the software/hardware/system produced this claim
+    /// Returns a User Agent formatted string identifying the
+    /// software/hardware/system produced this claim
     pub fn claim_generator(&self) -> &str {
         self.claim_generator.as_str()
     }
 
-    /// returns the manifest label for this Manifest, as referenced in a ManifestStore
+    /// returns the manifest label for this Manifest, as referenced in a
+    /// ManifestStore
     pub fn label(&self) -> Option<&str> {
         self.label.as_deref()
     }
@@ -213,7 +217,8 @@ impl Manifest {
     }
 
     /// Returns the remote_manifest Url if there is one
-    /// This is only used when creating a manifest, it will always be None when reading
+    /// This is only used when creating a manifest, it will always be None when
+    /// reading
     pub fn remote_manifest_url(&self) -> Option<&str> {
         match self.remote_manifest.as_ref() {
             Some(RemoteManifest::Remote(url)) => Some(url.as_str()),
@@ -224,7 +229,8 @@ impl Manifest {
 
     /// Sets the vendor prefix to be used when generating manifest labels
     /// Optional prefix added to the generated Manifest Label
-    /// This is typically a lower case Internet domain name for the vendor (i.e. `adobe`)
+    /// This is typically a lower case Internet domain name for the vendor (i.e.
+    /// `adobe`)
     pub fn set_vendor<S: Into<String>>(&mut self, vendor: S) -> &mut Self {
         self.vendor = Some(vendor.into());
         self
@@ -289,22 +295,22 @@ impl Manifest {
         Ok(self)
     }
 
-    /// If set, the embed calls will create a sidecar .c2pa manifest file next to the output file
-    /// No change will be made to the output file
+    /// If set, the embed calls will create a sidecar .c2pa manifest file next
+    /// to the output file No change will be made to the output file
     pub fn set_sidecar_manifest(&mut self) -> &mut Self {
         self.remote_manifest = Some(RemoteManifest::SideCar);
         self
     }
 
-    /// If set, the embed calls will put the remote url into the output file xmp provenance
-    /// and create a c2pa manifest file next to the output file
+    /// If set, the embed calls will put the remote url into the output file xmp
+    /// provenance and create a c2pa manifest file next to the output file
     pub fn set_remote_manifest<S: Into<String>>(&mut self, remote_url: S) -> &mut Self {
         self.remote_manifest = Some(RemoteManifest::Remote(remote_url.into()));
         self
     }
 
-    /// If set, the embed calls will put the remote url into the output file xmp provenance
-    /// and will embed the manifest into the output file
+    /// If set, the embed calls will put the remote url into the output file xmp
+    /// provenance and will embed the manifest into the output file
     pub fn set_embedded_manifest_with_remote_ref<S: Into<String>>(
         &mut self,
         remote_url: S,
@@ -322,7 +328,8 @@ impl Manifest {
         self.ingredients.iter().find(|i| i.is_parent())
     }
 
-    /// Sets the parent ingredient, assuring it is first and setting the is_parent flag
+    /// Sets the parent ingredient, assuring it is first and setting the
+    /// is_parent flag
     pub fn set_parent(&mut self, mut ingredient: Ingredient) -> Result<&mut Self> {
         // there should only be one parent so return an error if we already have one
         if self.parent().is_some() {
@@ -429,7 +436,8 @@ impl Manifest {
         }
     }
 
-    /// Retrieves an assertion by label and instance if it exists or Error::NotFound
+    /// Retrieves an assertion by label and instance if it exists or
+    /// Error::NotFound
     pub fn find_assertion_with_instance<T: DeserializeOwned>(
         &self,
         label: &str,
@@ -446,8 +454,8 @@ impl Manifest {
         }
     }
 
-    /// Redacts an assertion from the parent [Ingredient] of this manifest using the provided
-    /// assertion label.
+    /// Redacts an assertion from the parent [Ingredient] of this manifest using
+    /// the provided assertion label.
     pub fn add_redaction<S: Into<String>>(&mut self, label: S) -> Result<&mut Self> {
         // todo: any way to verify if this assertion exists in the parent claim here?
         match self.redactions.as_mut() {
@@ -500,7 +508,8 @@ impl Manifest {
         serde_json::from_slice(json.as_bytes()).map_err(Error::JsonError)
     }
 
-    /// Setting a base path will make the manifest use resource files instead of memory buffers
+    /// Setting a base path will make the manifest use resource files instead of
+    /// memory buffers
     ///
     /// The files will be relative to the given base path
     /// Ingredients resources will also be relative to this path
@@ -715,8 +724,8 @@ impl Manifest {
     }
 
     /// Sets the asset field from data in a file
-    /// the information in the claim should reflect the state of the asset it is embedded in
-    /// this method can be used to ensure that data is correct
+    /// the information in the claim should reflect the state of the asset it is
+    /// embedded in this method can be used to ensure that data is correct
     /// it will extract filename,format and xmp info and generate a thumbnail
     #[cfg(feature = "file_io")]
     pub fn set_asset_from_path<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
@@ -860,7 +869,8 @@ impl Manifest {
                                         action.set_parameter(ingredients_key, hash_url.clone())
                                     }
                                     _ => {
-                                        // we only support on instanceId for actions, so only one ingredient on writing
+                                        // we only support on instanceId for actions, so only one
+                                        // ingredient on writing
                                         action.set_parameter(ingredients_key, [hash_url.clone()])
                                     }
                                 }?;
@@ -1190,7 +1200,8 @@ impl Manifest {
         Ok((output_asset, output_manifest))
     }
 
-    /// Embed a signed manifest into the target file using a supplied [`AsyncSigner`].
+    /// Embed a signed manifest into the target file using a supplied
+    /// [`AsyncSigner`].
     #[cfg(feature = "file_io")]
     pub async fn embed_async_signed<P: AsRef<Path>>(
         &mut self,
@@ -1208,7 +1219,8 @@ impl Manifest {
             .await
     }
 
-    /// Embed a signed manifest into the target file using a supplied [`RemoteSigner`].
+    /// Embed a signed manifest into the target file using a supplied
+    /// [`RemoteSigner`].
     #[cfg(feature = "file_io")]
     pub async fn embed_remote_signed<P: AsRef<Path>>(
         &mut self,
@@ -1228,8 +1240,8 @@ impl Manifest {
 
     /// Removes any existing manifest from a file
     ///
-    /// This should only be used for special cases, such as converting an embedded manifest
-    /// to a cloud manifest
+    /// This should only be used for special cases, such as converting an
+    /// embedded manifest to a cloud manifest
     #[cfg(feature = "file_io")]
     pub fn remove_manifest<P: AsRef<Path>>(asset_path: P) -> Result<()> {
         use crate::jumbf_io::remove_jumbf_from_file;
@@ -1238,11 +1250,12 @@ impl Manifest {
 
     /// Generates a data hashed placeholder manifest for a file
     ///
-    /// The return value is pre-formatted for insertion into a file of the given format
-    /// For JPEG it is a series of App11 JPEG segments containing space for a manifest
-    /// This is used to create a properly formatted file ready for signing.
-    /// The reserve_size is the amount of space to reserve for the signature box.  This
-    /// value is fixed once set and must be sufficient to hold the completed signature
+    /// The return value is pre-formatted for insertion into a file of the given
+    /// format For JPEG it is a series of App11 JPEG segments containing
+    /// space for a manifest This is used to create a properly formatted
+    /// file ready for signing. The reserve_size is the amount of space to
+    /// reserve for the signature box.  This value is fixed once set and
+    /// must be sufficient to hold the completed signature
     pub fn data_hash_placeholder(&mut self, reserve_size: usize, format: &str) -> Result<Vec<u8>> {
         let dh: Result<DataHash> = self.find_assertion(DataHash::LABEL);
         if dh.is_err() {
@@ -1260,11 +1273,12 @@ impl Manifest {
 
     /// Generates an data hashed embeddable manifest for a file
     ///
-    /// The return value is pre-formatted for insertion into a file of the given format
-    /// For JPEG it is a series of App11 JPEG segments containing a signed manifest
-    /// This can directly replace a placeholder manifest to create a properly signed asset
-    /// The data hash must contain exclusions and may contain pre-calculated hashes
-    /// if an asset reader is provided, it will be used to calculate the data hash
+    /// The return value is pre-formatted for insertion into a file of the given
+    /// format For JPEG it is a series of App11 JPEG segments containing a
+    /// signed manifest This can directly replace a placeholder manifest to
+    /// create a properly signed asset The data hash must contain exclusions
+    /// and may contain pre-calculated hashes if an asset reader is
+    /// provided, it will be used to calculate the data hash
     #[async_generic(async_signature(
         &mut self,
         dh: &DataHash,
@@ -1294,11 +1308,12 @@ impl Manifest {
 
     /// Generates an data hashed embeddable manifest for a file
     ///
-    /// The return value is pre-formatted for insertion into a file of the given format
-    /// For JPEG it is a series of App11 JPEG segments containing a signed manifest
-    /// This can directly replace a placeholder manifest to create a properly signed asset
-    /// The data hash must contain exclusions and may contain pre-calculated hashes
-    /// if an asset reader is provided, it will be used to calculate the data hash
+    /// The return value is pre-formatted for insertion into a file of the given
+    /// format For JPEG it is a series of App11 JPEG segments containing a
+    /// signed manifest This can directly replace a placeholder manifest to
+    /// create a properly signed asset The data hash must contain exclusions
+    /// and may contain pre-calculated hashes if an asset reader is
+    /// provided, it will be used to calculate the data hash
     pub async fn data_hash_embeddable_manifest_remote(
         &mut self,
         dh: &DataHash,
@@ -1315,7 +1330,8 @@ impl Manifest {
             .await
     }
 
-    /// Generates a signed box hashed manifest, optionally preformatted for embedding
+    /// Generates a signed box hashed manifest, optionally preformatted for
+    /// embedding
     ///
     /// The manifest must include a box hash assertion with correct hashes
     #[async_generic(async_signature(
@@ -1342,7 +1358,8 @@ impl Manifest {
 
     /// Formats a signed manifest for embedding in the given format
     ///
-    /// For instance, this would return one or JPEG App11 segments containing the manifest
+    /// For instance, this would return one or JPEG App11 segments containing
+    /// the manifest
     pub fn composed_manifest(manifest_bytes: &[u8], format: &str) -> Result<Vec<u8>> {
         Store::get_composed_manifest(manifest_bytes, format)
     }
@@ -1366,11 +1383,12 @@ impl Manifest {
         ))
     }
 
-    /// Signs and embeds the manifest specified by manifest_bytes into output_stream. format
-    /// specifies the format of the asset. The input_stream should point to the same asset
-    /// used in get_placed_manifest.  The caller can supply list of ManifestPathCallback
-    /// traits to make any modifications to assertions.  The callbacks are processed before
-    /// the manifest is signed.  
+    /// Signs and embeds the manifest specified by manifest_bytes into
+    /// output_stream. format specifies the format of the asset. The
+    /// input_stream should point to the same asset
+    /// used in get_placed_manifest.  The caller can supply list of
+    /// ManifestPathCallback traits to make any modifications to assertions.
+    /// The callbacks are processed before the manifest is signed.  
     pub fn embed_placed_manifest(
         manifest_bytes: &[u8],
         format: &str,
@@ -1745,7 +1763,8 @@ pub(crate) mod tests {
 
         // assert!(!claim2.get_verifiable_credentials().is_empty());
 
-        // test that the redaction is in the new claim and the assertion is removed from the first one
+        // test that the redaction is in the new claim and the assertion is removed from
+        // the first one
 
         assert!(claim2.redactions().is_some());
         assert!(!claim2.redactions().unwrap().is_empty());
@@ -1779,7 +1798,8 @@ pub(crate) mod tests {
             .embed(&parent_output, &parent_output, signer.as_ref())
             .expect("embed");
 
-        // Add parent_manifest as an ingredient of the new manifest and redact the assertion `c2pa.actions`.
+        // Add parent_manifest as an ingredient of the new manifest and redact the
+        // assertion `c2pa.actions`.
         let mut manifest = test_manifest();
         manifest
             .set_parent(Ingredient::from_file(&parent_output).expect("from_file"))
@@ -1818,7 +1838,8 @@ pub(crate) mod tests {
         .expect("from_store");
         println!("{manifest2}");
 
-        // now check to see if we have three separate assertions with different instances
+        // now check to see if we have three separate assertions with different
+        // instances
         let action2: Result<Actions> = manifest2.find_assertion_with_instance(Actions::LABEL, 2);
         assert!(action2.is_ok());
         assert_eq!(action2.unwrap().actions()[0].action(), c2pa_action::EDITED);
@@ -2103,7 +2124,8 @@ pub(crate) mod tests {
 
     #[cfg(feature = "file_io")]
     #[actix::test]
-    /// Verify that an ingredient with error is reported on the ingredient and not on the manifest_store
+    /// Verify that an ingredient with error is reported on the ingredient and
+    /// not on the manifest_store
     async fn test_embed_with_ingredient_error() {
         let temp_dir = tempdir().expect("temp dir");
         let output = temp_fixture_path(&temp_dir, TEST_SMALL_JPEG);
@@ -2156,7 +2178,8 @@ pub(crate) mod tests {
 
         assert_eq!(manifest.remote_manifest_url().unwrap(), url.to_string());
 
-        //let manifest_store = crate::ManifestStore::from_file(&sidecar).expect("from_file");
+        //let manifest_store =
+        // crate::ManifestStore::from_file(&sidecar).expect("from_file");
         let manifest_store = Reader::from_file(&output).expect("from_file");
         assert_eq!(
             manifest_store.active_manifest().unwrap().title().unwrap(),
@@ -2302,12 +2325,14 @@ pub(crate) mod tests {
 
     #[test]
     #[cfg(feature = "openssl_sign")]
-    /// tests and illustrates how to add assets to a non-file based manifest by using a stream
+    /// tests and illustrates how to add assets to a non-file based manifest by
+    /// using a stream
     fn from_json_with_stream() {
         use crate::assertions::Relationship;
 
         let mut manifest = Manifest::from_json(MANIFEST_JSON).unwrap();
-        // add binary resources to manifest and ingredients giving matching the identifiers given in JSON
+        // add binary resources to manifest and ingredients giving matching the
+        // identifiers given in JSON
         manifest
             .resources_mut()
             .add("IMG_0003.jpg", *b"my value")
@@ -2361,12 +2386,14 @@ pub(crate) mod tests {
 
     #[test]
     #[cfg(feature = "openssl_sign")]
-    /// tests and illustrates how to add assets to a non-file based manifest by using a memory buffer
+    /// tests and illustrates how to add assets to a non-file based manifest by
+    /// using a memory buffer
     fn from_json_with_memory() {
         use crate::assertions::Relationship;
 
         let mut manifest = Manifest::from_json(MANIFEST_JSON).unwrap();
-        // add binary resources to manifest and ingredients giving matching the identifiers given in JSON
+        // add binary resources to manifest and ingredients giving matching the
+        // identifiers given in JSON
         manifest
             .resources_mut()
             .add("IMG_0003.jpg", *b"my value")
@@ -2595,7 +2622,8 @@ pub(crate) mod tests {
             .open(&output)
             .unwrap();
 
-        // write a jpeg file with a placeholder for the manifest (returns offset of the placeholder)
+        // write a jpeg file with a placeholder for the manifest (returns offset of the
+        // placeholder)
         let offset =
             write_jpeg_placeholder_file(&placeholder, &ap, &mut output_file, None).unwrap();
 
@@ -2652,7 +2680,8 @@ pub(crate) mod tests {
             .open(&output)
             .unwrap();
 
-        // write a jpeg file with a placeholder for the manifest (returns offset of the placeholder)
+        // write a jpeg file with a placeholder for the manifest (returns offset of the
+        // placeholder)
         let offset =
             write_jpeg_placeholder_file(&placeholder, &ap, &mut output_file, None).unwrap();
 

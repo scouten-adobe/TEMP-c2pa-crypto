@@ -318,7 +318,8 @@ pub(crate) async fn async_validate(
     }
 }
 
-// This interface is called from CoseValidator. RSA validation not supported here.
+// This interface is called from CoseValidator. RSA validation not supported
+// here.
 pub async fn validate_async(alg: SigningAlg, sig: &[u8], data: &[u8], pkey: &[u8]) -> Result<bool> {
     web_sys::console::debug_2(&"Validating with algorithm".into(), &alg.to_string().into());
 

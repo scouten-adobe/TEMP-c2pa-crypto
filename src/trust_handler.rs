@@ -27,10 +27,11 @@ pub(crate) static TIMESTAMPING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .8)
 pub(crate) static OCSP_SIGNING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .9);
 pub(crate) static DOCUMENT_SIGNING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .36);
 
-// Trait for supply configuration and handling of trust lists and EKU configuration store
+// Trait for supply configuration and handling of trust lists and EKU
+// configuration store
 //
-// `RefUnwindSafe` + `UnwindSafe` were added to ensure `Store` is unwind safe and to preserve
-// backwards compatbility.
+// `RefUnwindSafe` + `UnwindSafe` were added to ensure `Store` is unwind safe
+// and to preserve backwards compatbility.
 
 // [scouten 2024-06-27]: Hacking to make public
 pub trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
@@ -126,8 +127,9 @@ pub(crate) fn load_trust_from_data(trust_data: &[u8]) -> Result<Vec<Vec<u8>>> {
     Ok(certs)
 }
 
-// Pass through trust for the case of claim signer usage since it has known trust with context
-// configured to all email protection, timestamping, ocsp signing and document signing
+// Pass through trust for the case of claim signer usage since it has known
+// trust with context configured to all email protection, timestamping, ocsp
+// signing and document signing
 #[derive(Debug)]
 pub(crate) struct TrustPassThrough {
     allowed_cert_set: HashSet<String>,

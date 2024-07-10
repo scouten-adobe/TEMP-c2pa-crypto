@@ -26,7 +26,8 @@ use crate::{
 /// The EXIF assertion as defined in the C2PA spec section 17.13
 ///  See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_exif_information>
 ///
-/// This does not yet define or validate individual fields, but will ensure the correct assertion structure
+/// This does not yet define or validate individual fields, but will ensure the
+/// correct assertion structure
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Exif {
     #[serde(rename = "@context", skip_serializing_if = "Option::is_none")]
@@ -60,8 +61,8 @@ impl Exif {
     /// This return T is owned, not a reference
     /// # Errors
     ///
-    /// This conversion can fail if the structure of the field at key does not match the
-    /// structure expected by `T`
+    /// This conversion can fail if the structure of the field at key does not
+    /// match the structure expected by `T`
     pub fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.value
             .get(key)
@@ -71,8 +72,8 @@ impl Exif {
     /// insert key / value pair of instance of type `T`
     /// # Errors
     ///
-    /// This conversion can fail if `T`'s implementation of `Serialize` decides to
-    /// fail, or if `T` contains a map with non-string keys.
+    /// This conversion can fail if `T`'s implementation of `Serialize` decides
+    /// to fail, or if `T` contains a map with non-string keys.
     pub fn insert<S: Into<String>, T: Serialize>(mut self, key: S, value: T) -> Result<Self> {
         self.value.insert(key.into(), serde_json::to_value(value)?);
         Ok(self)

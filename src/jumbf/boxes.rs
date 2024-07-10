@@ -36,7 +36,8 @@ use thiserror::Error;
 
 use crate::jumbf::{boxio, labels};
 
-/// `JumbfParseError` enumerates errors detected while parsing JUMBF data structures.
+/// `JumbfParseError` enumerates errors detected while parsing JUMBF data
+/// structures.
 #[derive(Debug, Error)]
 pub enum JumbfParseError {
     // TODO before merging PR: Add doc comments for these.
@@ -2388,7 +2389,8 @@ pub mod tests {
         );
 
         let expected_len = compute_desc_box_size(box_label);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
+        assert_eq!(mem_box.len(), expected_len); // make sure the length is
+                                                 // correct
     }
 
     // ANCHOR: SuperBox

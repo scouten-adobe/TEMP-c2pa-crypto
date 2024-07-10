@@ -118,7 +118,8 @@ pub fn load_jumbf_from_stream(asset_type: &str, input_stream: &mut dyn CAIRead) 
     Ok(cai_block)
 }
 /// writes the jumbf data in store_bytes
-/// reads an asset of asset_type from reader, adds jumbf data and then writes to writer
+/// reads an asset of asset_type from reader, adds jumbf data and then writes to
+/// writer
 pub fn save_jumbf_to_stream(
     asset_type: &str,
     input_stream: &mut dyn CAIRead,
@@ -131,7 +132,8 @@ pub fn save_jumbf_to_stream(
     }
 }
 
-/// writes the jumbf data in store_bytes into an asset in data and returns the newly created asset
+/// writes the jumbf data in store_bytes into an asset in data and returns the
+/// newly created asset
 pub fn save_jumbf_to_memory(asset_type: &str, data: &[u8], store_bytes: &[u8]) -> Result<Vec<u8>> {
     let mut input_stream = Cursor::new(data);
     let output_vec: Vec<u8> = Vec::with_capacity(data.len() + store_bytes.len() + 1024);
@@ -195,8 +197,9 @@ pub(crate) fn get_supported_file_extension(path: &Path) -> Option<String> {
 /// save_jumbf to a file
 /// in_path - path is source file
 /// out_path - path to the output file
-/// If no output file is given an new file will be created with "-c2pa" appending to file name e.g. "test.jpg" => "test-c2pa.jpg"
-/// If input == output then the input file will be overwritten.
+/// If no output file is given an new file will be created with "-c2pa"
+/// appending to file name e.g. "test.jpg" => "test-c2pa.jpg" If input == output
+/// then the input file will be overwritten.
 pub fn save_jumbf_to_file(data: &[u8], in_path: &Path, out_path: Option<&Path>) -> Result<()> {
     let ext = get_file_extension(in_path).ok_or(Error::UnsupportedType)?;
 
@@ -233,11 +236,13 @@ pub fn save_jumbf_to_file(data: &[u8], in_path: &Path, out_path: Option<&Path>) 
     }
 }
 
-/// Updates jumbf content in a file, this will directly patch the contents no other processing is done.
-/// The search for content to replace only occurs over the jumbf content.
-/// Note: it is recommended that the replace contents be <= length of the search content so that the length of the
-/// file does not change. If it does that could make the new file unreadable. This function is primarily useful for
-/// generating test data since depending on how the file is rewritten the hashing mechanism should detect any tampering of the data.
+/// Updates jumbf content in a file, this will directly patch the contents no
+/// other processing is done. The search for content to replace only occurs over
+/// the jumbf content. Note: it is recommended that the replace contents be <=
+/// length of the search content so that the length of the file does not change.
+/// If it does that could make the new file unreadable. This function is
+/// primarily useful for generating test data since depending on how the file is
+/// rewritten the hashing mechanism should detect any tampering of the data.
 ///
 /// out_path - path to file to be updated
 /// search_bytes - bytes to be replaced
@@ -536,7 +541,8 @@ pub mod tests {
         let mut reader = std::fs::File::open("tests/fixtures/sample1.svg").unwrap();
         test_jumbf("svg", &mut reader);
         //reader.rewind().unwrap();
-        //test_remote_ref("svg", &mut reader); // svg doesn't support remote refs
+        //test_remote_ref("svg", &mut reader); // svg doesn't support remote
+        // refs
     }
 
     #[test]

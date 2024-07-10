@@ -47,7 +47,8 @@ use crate::{
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(feature = "json_schema", derive(JsonSchema))]
-/// An `Ingredient` is any external asset that has been used in the creation of an image.
+/// An `Ingredient` is any external asset that has been used in the creation of
+/// an image.
 pub struct Ingredient {
     /// A human-readable title, generally source filename.
     title: String,
@@ -71,7 +72,8 @@ pub struct Ingredient {
 
     /// A thumbnail image capturing the visual state at the time of import.
     ///
-    /// A tuple of thumbnail MIME format (i.e. `image/jpeg`) and binary bits of the image.
+    /// A tuple of thumbnail MIME format (i.e. `image/jpeg`) and binary bits of
+    /// the image.
     #[serde(skip_serializing_if = "Option::is_none")]
     thumbnail: Option<ResourceRef>,
 
@@ -118,11 +120,13 @@ pub struct Ingredient {
     #[serde(skip_serializing_if = "Option::is_none")]
     metadata: Option<Metadata>,
 
-    /// Additional information about the data's type to the ingredient V2 structure.
+    /// Additional information about the data's type to the ingredient V2
+    /// structure.
     #[serde(skip_serializing_if = "Option::is_none")]
     data_types: Option<Vec<AssetType>>,
 
-    /// A [`ManifestStore`] from the source asset extracted as a binary C2PA blob.
+    /// A [`ManifestStore`] from the source asset extracted as a binary C2PA
+    /// blob.
     ///
     /// [`ManifestStore`]: crate::ManifestStore
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -150,9 +154,11 @@ impl Ingredient {
     ///
     /// # Arguments
     ///
-    /// * `title` - A user-displayable name for this ingredient (often a filename).
+    /// * `title` - A user-displayable name for this ingredient (often a
+    ///   filename).
     /// * `format` - The MIME media type of the ingredient - i.e. `image/jpeg`.
-    /// * `instance_id` - A unique identifier, such as the value of the ingredient's `xmpMM:InstanceID`.
+    /// * `instance_id` - A unique identifier, such as the value of the
+    ///   ingredient's `xmpMM:InstanceID`.
     ///
     /// # Examples
     ///
@@ -176,7 +182,8 @@ impl Ingredient {
     ///
     /// # Arguments
     ///
-    /// * `title` - A user-displayable name for this ingredient (often a filename).
+    /// * `title` - A user-displayable name for this ingredient (often a
+    ///   filename).
     /// * `format` - The MIME media type of the ingredient - i.e. `image/jpeg`.
     ///
     /// # Examples
@@ -212,7 +219,8 @@ impl Ingredient {
         self.title.as_str()
     }
 
-    /// Returns a MIME content_type for this asset associated with this ingredient.
+    /// Returns a MIME content_type for this asset associated with this
+    /// ingredient.
     pub fn format(&self) -> &str {
         self.format.as_str()
     }
@@ -589,7 +597,8 @@ impl Ingredient {
                             .iter()
                             .find(|hashed_uri| hashed_uri.url().contains(labels::CLAIM_THUMBNAIL))
                         {
-                            // We found a valid claim thumbnail so just reference it, we don't need to copy it
+                            // We found a valid claim thumbnail so just reference it, we don't need
+                            // to copy it
                             let thumb_manifest = manifest_label_from_uri(&hashed_uri.url())
                                 .unwrap_or_else(|| claim.label().to_string());
                             let uri =
@@ -607,8 +616,9 @@ impl Ingredient {
                             thumb.hash = Some(hash);
                             self.set_thumbnail_ref(thumb)?;
 
-                            // add a resource to give clients access, but don't directly reference it.
-                            // this way a client can view the thumbnail without needing to load the manifest
+                            // add a resource to give clients access, but don't directly reference
+                            // it. this way a client can view the
+                            // thumbnail without needing to load the manifest
                             // but the the embedded thumbnail is still the primary reference
                             let claim_assertion = store.get_claim_assertion_from_uri(&uri)?;
                             let thumbnail = Thumbnail::from_assertion(claim_assertion.assertion())?;
@@ -652,7 +662,8 @@ impl Ingredient {
                 Ok(())
             }
             Err(e) => {
-                // we can ignore the error here because it should have a log entry corresponding to it
+                // we can ignore the error here because it should have a log entry corresponding
+                // to it
                 debug!("ingredient {:?}", e);
                 // convert any other error to a validation status
                 let statuses: Vec<ValidationStatus> = validation_log
@@ -738,7 +749,8 @@ impl Ingredient {
 
         let mut validation_log = DetailedStatusTracker::new();
 
-        // retrieve the manifest bytes from embedded, sidecar or remote and convert to store if found
+        // retrieve the manifest bytes from embedded, sidecar or remote and convert to
+        // store if found
         let (result, manifest_bytes) = match Store::load_jumbf_from_path(path) {
             Ok(manifest_bytes) => {
                 (
@@ -767,7 +779,8 @@ impl Ingredient {
         // set validation status from result and log
         ingredient.update_validation_status(result, manifest_bytes, &validation_log)?;
 
-        // create a thumbnail if we don't already have a manifest with a thumb we can use
+        // create a thumbnail if we don't already have a manifest with a thumb we can
+        // use
         if ingredient.thumbnail.is_none() {
             if let Some((format, image)) = options.thumbnail(path) {
                 ingredient.set_thumbnail(format, image)?;
@@ -779,7 +792,8 @@ impl Ingredient {
     /// Creates an `Ingredient` from a memory buffer.
     ///
     /// This does not set title or hash
-    /// Thumbnail will be set only if one can be retrieved from a previous valid manifest
+    /// Thumbnail will be set only if one can be retrieved from a previous valid
+    /// manifest
     pub fn from_memory(format: &str, buffer: &[u8]) -> Result<Self> {
         let mut stream = Cursor::new(buffer);
         Self::from_stream(format, &mut stream)
@@ -788,7 +802,8 @@ impl Ingredient {
     /// Creates an `Ingredient` from a stream.
     ///
     /// This does not set title or hash
-    /// Thumbnail will be set only if one can be retrieved from a previous valid manifest
+    /// Thumbnail will be set only if one can be retrieved from a previous valid
+    /// manifest
     pub fn from_stream(format: &str, stream: &mut dyn CAIRead) -> Result<Self> {
         let ingredient = Self::from_stream_info(stream, format, "untitled");
         stream.rewind()?;
@@ -804,9 +819,10 @@ impl Ingredient {
     ///
     /// This allows you to predefine fields before adding the stream.
     /// Sets manifest_data if the stream contains a manifest_store.
-    /// Sets thumbnail if not defined and a valid claim thumbnail is found or add_thumbnails is enabled.
-    /// Instance_id, document_id, and provenance will be overridden if found in the stream.
-    /// Format will be overridden only if it is the default (application/octet-stream).
+    /// Sets thumbnail if not defined and a valid claim thumbnail is found or
+    /// add_thumbnails is enabled. Instance_id, document_id, and provenance
+    /// will be overridden if found in the stream. Format will be overridden
+    /// only if it is the default (application/octet-stream).
     #[cfg(feature = "unstable_api")]
     pub(crate) fn with_stream<S: Into<String>>(
         mut self,
@@ -848,7 +864,8 @@ impl Ingredient {
     fn add_stream_internal(mut self, format: &str, stream: &mut dyn CAIRead) -> Result<Self> {
         let mut validation_log = DetailedStatusTracker::new();
 
-        // retrieve the manifest bytes from embedded, sidecar or remote and convert to store if found
+        // retrieve the manifest bytes from embedded, sidecar or remote and convert to
+        // store if found
         let (result, manifest_bytes) = match load_jumbf_from_stream(format, stream) {
             Ok(manifest_bytes) => {
                 (
@@ -876,7 +893,8 @@ impl Ingredient {
         // set validation status from result and log
         self.update_validation_status(result, manifest_bytes, &validation_log)?;
 
-        // create a thumbnail if we don't already have a manifest with a thumb we can use
+        // create a thumbnail if we don't already have a manifest with a thumb we can
+        // use
         #[cfg(feature = "add_thumbnails")]
         if self.thumbnail.is_none() {
             stream.rewind()?;
@@ -896,7 +914,8 @@ impl Ingredient {
     /// Creates an `Ingredient` from a memory buffer (async version).
     ///
     /// This does not set title or hash
-    /// Thumbnail will be set only if one can be retrieved from a previous valid manifest
+    /// Thumbnail will be set only if one can be retrieved from a previous valid
+    /// manifest
     pub async fn from_memory_async(format: &str, buffer: &[u8]) -> Result<Self> {
         let mut stream = Cursor::new(buffer);
         Self::from_stream_async(format, &mut stream).await
@@ -905,14 +924,16 @@ impl Ingredient {
     /// Creates an `Ingredient` from a stream (async version).
     ///
     /// This does not set title or hash
-    /// Thumbnail will be set only if one can be retrieved from a previous valid manifest
+    /// Thumbnail will be set only if one can be retrieved from a previous valid
+    /// manifest
     pub async fn from_stream_async(format: &str, stream: &mut dyn CAIRead) -> Result<Self> {
         let mut ingredient = Self::from_stream_info(stream, format, "untitled");
         stream.rewind()?;
 
         let mut validation_log = DetailedStatusTracker::new();
 
-        // retrieve the manifest bytes from embedded, sidecar or remote and convert to store if found
+        // retrieve the manifest bytes from embedded, sidecar or remote and convert to
+        // store if found
         let (result, manifest_bytes) = match Store::load_jumbf_from_stream(format, stream) {
             Ok(manifest_bytes) => {
                 (
@@ -949,7 +970,8 @@ impl Ingredient {
         // set validation status from result and log
         ingredient.update_validation_status(result, manifest_bytes, &validation_log)?;
 
-        // create a thumbnail if we don't already have a manifest with a thumb we can use
+        // create a thumbnail if we don't already have a manifest with a thumb we can
+        // use
         #[cfg(feature = "add_thumbnails")]
         if ingredient.thumbnail.is_none() {
             stream.rewind()?;
@@ -1015,8 +1037,9 @@ impl Ingredient {
         if let Some(hashed_uri) = ingredient_assertion.thumbnail.as_ref() {
             // This could be a relative or absolute thumbnail reference to another manifest
             let target_claim_label = match manifest_label_from_uri(&hashed_uri.url()) {
-                Some(label) => label,           // use the manifest from the thumbnail uri
-                None => claim_label.to_owned(), /* relative so use the whole url from the thumbnail assertion */
+                Some(label) => label, // use the manifest from the thumbnail uri
+                None => claim_label.to_owned(), /* relative so use the whole url from the
+                                        * thumbnail assertion */
             };
             let maybe_resource_ref = match hashed_uri.url() {
                 uri if uri.contains(jumbf::labels::ASSERTIONS) => {
@@ -1085,7 +1108,8 @@ impl Ingredient {
         Ok(ingredient)
     }
 
-    /// Converts a higher level Ingredient into the appropriate components in a claim
+    /// Converts a higher level Ingredient into the appropriate components in a
+    /// claim
     pub(crate) fn add_to_claim(
         &self,
         claim: &mut Claim,
@@ -1111,7 +1135,8 @@ impl Ingredient {
                     .clone()
                     .ok_or(Error::IngredientNotFound)?;
 
-                //if this is the parent ingredient then apply any redactions, converting from labels to uris
+                //if this is the parent ingredient then apply any redactions, converting from
+                // labels to uris
                 let redactions = match self.is_parent() {
                     true => redactions.as_ref().map(|redactions| {
                         redactions
@@ -1146,7 +1171,8 @@ impl Ingredient {
 
                             let uri = jumbf::labels::to_manifest_uri(&manifest_label);
 
-                            // if there are validations and they have all passed, then use the parent claim thumbnail if available
+                            // if there are validations and they have all passed, then use the
+                            // parent claim thumbnail if available
                             if let Some(validation_status) = self.validation_status.as_ref() {
                                 if validation_status.iter().all(|r| r.passed()) {
                                     thumbnail = ingredient_active_claim
@@ -1268,7 +1294,8 @@ impl Ingredient {
         claim.add_assertion(&ingredient_assertion)
     }
 
-    /// Setting a base path will make the ingredient use resource files instead of memory buffers
+    /// Setting a base path will make the ingredient use resource files instead
+    /// of memory buffers
     ///
     /// The files will be relative to the given base path
     #[cfg(feature = "file_io")]
@@ -1278,7 +1305,8 @@ impl Ingredient {
         Ok(self)
     }
 
-    /// Asynchronously create an Ingredient from a binary manifest (.c2pa) and asset bytes
+    /// Asynchronously create an Ingredient from a binary manifest (.c2pa) and
+    /// asset bytes
     ///
     /// # Example: Create an Ingredient from a binary manifest (.c2pa) and asset bytes
     /// ```
@@ -1308,7 +1336,8 @@ impl Ingredient {
         Self::from_manifest_and_asset_stream_async(manifest_bytes, format, &mut stream).await
     }
 
-    /// Asynchronously create an Ingredient from a binary manifest (.c2pa) and asset
+    /// Asynchronously create an Ingredient from a binary manifest (.c2pa) and
+    /// asset
     pub async fn from_manifest_and_asset_stream_async<M: Into<Vec<u8>>>(
         manifest_bytes: M,
         format: &str,
@@ -1344,7 +1373,8 @@ impl Ingredient {
         // set validation status from result and log
         ingredient.update_validation_status(result, Some(manifest_bytes), &validation_log)?;
 
-        // create a thumbnail if we don't already have a manifest with a thumb we can use
+        // create a thumbnail if we don't already have a manifest with a thumb we can
+        // use
         #[cfg(feature = "add_thumbnails")]
         if ingredient.thumbnail.is_none() {
             stream.rewind()?;
@@ -1368,20 +1398,23 @@ impl std::fmt::Display for Ingredient {
     }
 }
 
-/// This defines optional operations when creating [`Ingredient`] structs from files.
+/// This defines optional operations when creating [`Ingredient`] structs from
+/// files.
 #[cfg(feature = "file_io")]
 pub trait IngredientOptions {
     /// This allows setting the title for the ingredient.
     ///
-    /// If it returns `None`, then the default behavior is to use the file's name.
+    /// If it returns `None`, then the default behavior is to use the file's
+    /// name.
     fn title(&self, _path: &Path) -> Option<String> {
         None
     }
 
     /// Returns an optional hash value for the ingredient
     ///
-    /// This can be used to test for duplicate ingredients or if a source file has changed.
-    /// If hash is_some() Manifest.add_ingredient will dedup matching hashes
+    /// This can be used to test for duplicate ingredients or if a source file
+    /// has changed. If hash is_some() Manifest.add_ingredient will dedup
+    /// matching hashes
     fn hash(&self, _path: &Path) -> Option<String> {
         None
     }
@@ -1390,7 +1423,8 @@ pub trait IngredientOptions {
     ///
     /// The first value is the content type of the thumbnail, i.e. image/jpeg
     /// The second value is bytes of the thumbnail image
-    /// The default is to have no thumbnail, so you must provide an override to have a thumbnail image
+    /// The default is to have no thumbnail, so you must provide an override to
+    /// have a thumbnail image
     fn thumbnail(&self, _path: &Path) -> Option<(String, Vec<u8>)> {
         #[cfg(feature = "add_thumbnails")]
         return crate::utils::thumbnail::make_thumbnail(_path).ok();
@@ -1406,7 +1440,8 @@ pub trait IngredientOptions {
     }
 }
 
-/// DefaultOptions returns None for Title and Hash and generates thumbnail for supported thumbnails
+/// DefaultOptions returns None for Title and Hash and generates thumbnail for
+/// supported thumbnails
 ///
 /// This can be use with Ingredient::from_file_with_options
 #[cfg(feature = "file_io")]

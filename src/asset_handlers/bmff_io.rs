@@ -584,7 +584,8 @@ where
     }
 
     // add remaining top level offsets to be included when generating BMFF V2 hashes
-    // note: this is technically not an exclusion but a replacement with a new range of bytes to be hashed
+    // note: this is technically not an exclusion but a replacement with a new range
+    // of bytes to be hashed
     if bmff_v2 {
         for tl_start in tl_offsets {
             let mut exclusion = HashRange::new(tl_start as usize, 1);
@@ -597,8 +598,10 @@ where
     Ok(exclusions)
 }
 
-// `iloc`, `stco` and `co64` elements contain absolute file offsets so they need to be adjusted based on whether content was added or removed.
-// todo: when fragment support is added adjust these (/moof/iloc, /moof/mfro, /moof/traf/saio, /sidx)
+// `iloc`, `stco` and `co64` elements contain absolute file offsets so they need
+// to be adjusted based on whether content was added or removed. todo: when
+// fragment support is added adjust these (/moof/iloc, /moof/mfro,
+// /moof/traf/saio, /sidx)
 fn adjust_known_offsets<W: Write + CAIRead + ?Sized>(
     output: &mut W,
     bmff_tree: &Arena<BoxInfo>,
@@ -1442,7 +1445,8 @@ impl CAIWriter for BmffIO {
         input_stream.seek(SeekFrom::Start(end as u64))?;
         std::io::copy(input_stream, output_stream)?;
 
-        // Manipulating the UUID box means we may need some patch offsets if they are file absolute offsets.
+        // Manipulating the UUID box means we may need some patch offsets if they are
+        // file absolute offsets.
 
         // create root node
         let root_box = BoxInfo {
@@ -1559,7 +1563,8 @@ impl CAIWriter for BmffIO {
         input_stream.seek(SeekFrom::Start(end as u64))?;
         std::io::copy(input_stream, output_stream)?;
 
-        // Manipulating the UUID box means we may need some patch offsets if they are file absolute offsets.
+        // Manipulating the UUID box means we may need some patch offsets if they are
+        // file absolute offsets.
 
         // create root node
         let root_box = BoxInfo {
@@ -1806,7 +1811,8 @@ impl RemoteRefEmbed for BmffIO {
                 input_stream.seek(SeekFrom::Start(end as u64))?;
                 std::io::copy(input_stream, output_stream)?;
 
-                // Manipulating the UUID box means we may need some patch offsets if they are file absolute offsets.
+                // Manipulating the UUID box means we may need some patch offsets if they are
+                // file absolute offsets.
 
                 // create root node
                 let root_box = BoxInfo {

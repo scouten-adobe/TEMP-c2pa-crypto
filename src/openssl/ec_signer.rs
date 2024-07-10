@@ -64,7 +64,8 @@ impl ConfigurableSigner for EcSigner {
             signcerts,
             pkey,
             certs_size,
-            timestamp_size: 10000, /* todo: call out to TSA to get actual timestamp and use that size */
+            timestamp_size: 10000, /* todo: call out to TSA to get actual timestamp and use that
+                                    * size */
             alg,
             tsa_url,
         })
@@ -108,7 +109,10 @@ impl Signer for EcSigner {
     }
 
     fn reserve_size(&self) -> usize {
-        1024 + self.certs_size + self.timestamp_size // the Cose_Sign1 contains complete certs and timestamps so account for size
+        1024 + self.certs_size + self.timestamp_size // the Cose_Sign1 contains
+                                                     // complete certs and
+                                                     // timestamps so account
+                                                     // for size
     }
 }
 

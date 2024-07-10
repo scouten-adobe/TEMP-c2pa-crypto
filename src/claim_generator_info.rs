@@ -20,7 +20,8 @@ use serde_json::Value;
 
 use crate::resource_store::UriOrResource;
 
-/// Description of the claim generator, or the software used in generating the claim.
+/// Description of the claim generator, or the software used in generating the
+/// claim.
 ///
 /// This structure is also used for actions softwareAgent
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]

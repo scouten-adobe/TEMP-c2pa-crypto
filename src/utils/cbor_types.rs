@@ -81,7 +81,8 @@ impl<'de> Deserialize<'de> for UriT {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let tagged = Tagged::<String>::deserialize(deserializer)?;
         match tagged.tag {
-            // allow deserialization even if there is no tag. Allows roundtrip via other formats such as json
+            // allow deserialization even if there is no tag. Allows roundtrip via other formats
+            // such as json
             Some(32) | None => Ok(UriT(tagged.value)),
             Some(_) => Err(serde::de::Error::custom("unexpected tag")),
         }

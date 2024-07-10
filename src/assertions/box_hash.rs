@@ -92,7 +92,8 @@ impl BoxHash {
         let source_bms = bhp.get_box_map(reader)?;
         let mut source_index = 0;
 
-        // check to see we source index starts at PNGh and skip if not included in the hash list
+        // check to see we source index starts at PNGh and skip if not included in the
+        // hash list
         if let Some(first_expected_bms) = source_bms.get(source_index) {
             if first_expected_bms.names[0] == "PNGh" && self.boxes[0].names[0] != "PNGh" {
                 source_index += 1;

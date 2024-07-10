@@ -45,7 +45,8 @@ pub fn known_good_path<P: AsRef<Path>>(file_name: P) -> std::path::PathBuf {
     PathBuf::from("tests/known_good").join(file_name)
 }
 
-/// get a file from path without requiring file_io feature enabled in the c2pa crate
+/// get a file from path without requiring file_io feature enabled in the c2pa
+/// crate
 pub fn reader_from_file<P: AsRef<Path>>(path: P) -> Result<Reader> {
     let format = format_from_path(&path).ok_or(c2pa::Error::UnsupportedType)?;
     Reader::from_stream(&format, &mut fs::File::open(&path)?)

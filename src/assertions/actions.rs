@@ -43,7 +43,8 @@ pub mod c2pa_action {
     pub const EDITED: &str = "c2pa.edited";
     /// Changes to appearance with applied filters, styles, etc.
     pub const FILTERED: &str = "c2pa.filtered";
-    /// An existing asset was opened and is being set as the `parentOf` ingredient.
+    /// An existing asset was opened and is being set as the `parentOf`
+    /// ingredient.
     pub const OPENED: &str = "c2pa.opened";
     /// Changes to the direction and position of content.
     pub const ORIENTATION: &str = "c2pa.orientation";
@@ -51,19 +52,23 @@ pub mod c2pa_action {
     pub const PLACED: &str = "c2pa.placed";
     /// Asset is released to a wider audience.
     pub const PUBLISHED: &str = "c2pa.published";
-    /// A conversion of one packaging or container format to another. Content may be repackaged without transcoding.
-    /// Does not include any adjustments that would affect the "editorial" meaning of the content.
+    /// A conversion of one packaging or container format to another. Content
+    /// may be repackaged without transcoding. Does not include any
+    /// adjustments that would affect the "editorial" meaning of the content.
     pub const REPACKAGED: &str = "c2pa.repackaged";
     /// Changes to content dimensions and/or file size
     pub const RESIZED: &str = "c2pa.resized";
-    /// A direct conversion of one encoding to another, including resolution scaling, bitrate adjustment and encoding format change.
-    /// Does not include any adjustments that would affect the "editorial" meaning of the content.
+    /// A direct conversion of one encoding to another, including resolution
+    /// scaling, bitrate adjustment and encoding format change.
+    /// Does not include any adjustments that would affect the "editorial"
+    /// meaning of the content.
     pub const TRANSCODED: &str = "c2pa.transcoded";
     /// Something happened, but the claim_generator cannot specify what.
     pub const UNKNOWN: &str = "c2pa.unknown";
 }
 
-/// We use this to allow SourceAgent to be either a string or a ClaimGeneratorInfo
+/// We use this to allow SourceAgent to be either a string or a
+/// ClaimGeneratorInfo
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum SoftwareAgent {
@@ -103,19 +108,21 @@ pub struct Action {
     #[serde(rename = "softwareAgent", skip_serializing_if = "Option::is_none")]
     software_agent: Option<SoftwareAgent>,
 
-    /// A semicolon-delimited list of the parts of the resource that were changed since the previous event history.
+    /// A semicolon-delimited list of the parts of the resource that were
+    /// changed since the previous event history.
     #[serde(skip_serializing_if = "Option::is_none")]
     changed: Option<String>,
 
     /// A list of the regions of interest of the resource that were changed.
     ///
     /// If not present, presumed to be undefined.
-    /// When tracking changes and the scope of the changed components is unknown,
-    /// it should be assumed that anything might have changed.
+    /// When tracking changes and the scope of the changed components is
+    /// unknown, it should be assumed that anything might have changed.
     #[serde(skip_serializing_if = "Option::is_none")]
     changes: Option<Vec<serde_json::Value>>,
 
-    /// The value of the `xmpMM:InstanceID` property for the modified (output) resource.
+    /// The value of the `xmpMM:InstanceID` property for the modified (output)
+    /// resource.
     #[serde(rename = "instanceId", skip_serializing_if = "Option::is_none")]
     instance_id: Option<String>,
 

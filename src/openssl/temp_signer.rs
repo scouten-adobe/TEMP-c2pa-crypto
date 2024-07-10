@@ -47,7 +47,8 @@ use crate::{
 ///
 /// * `path` - A directory (which must already exist) to receive the temporary
 ///   private key / certificate pair.
-/// * `alg` - A format for signing. Must be one of the `SigningAlg::Es*` variants.
+/// * `alg` - A format for signing. Must be one of the `SigningAlg::Es*`
+///   variants.
 /// * `tsa_url` - Optional URL for a timestamp authority.
 ///
 /// # Returns
@@ -90,8 +91,8 @@ pub fn get_ec_signer<P: AsRef<Path>>(
 ///
 /// # Arguments
 ///
-/// * `path` - A directory (which must already exist) to look for
-///   private key / certificate pair.
+/// * `path` - A directory (which must already exist) to look for private key /
+///   certificate pair.
 /// * `alg` - A format for signing. Must be `ed25519`.
 /// * `tsa_url` - Optional URL for a timestamp authority.
 ///

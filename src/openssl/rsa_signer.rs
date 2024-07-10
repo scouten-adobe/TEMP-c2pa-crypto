@@ -40,9 +40,10 @@ pub struct RsaSigner {
 }
 
 impl RsaSigner {
-    // Sample of OCSP stapling while signing. This code is only for demo purposes and not for
-    // production use since there is no caching in the SDK and fetching is expensive. This is behind the
-    // feature flag 'psxxx_ocsp_stapling_experimental'
+    // Sample of OCSP stapling while signing. This code is only for demo purposes
+    // and not for production use since there is no caching in the SDK and
+    // fetching is expensive. This is behind the feature flag
+    // 'psxxx_ocsp_stapling_experimental'
     fn update_ocsp(&self) {
         // do we need an update
         let now = chrono::offset::Utc::now();
@@ -127,7 +128,8 @@ impl ConfigurableSigner for RsaSigner {
             signcerts,
             pkey,
             certs_size: signcert.len(),
-            timestamp_size: 10000, /* todo: call out to TSA to get actual timestamp and use that size */
+            timestamp_size: 10000, /* todo: call out to TSA to get actual timestamp and use that
+                                    * size */
             ocsp_size: Cell::new(0),
             alg,
             tsa_url,
@@ -268,12 +270,14 @@ mod tests {
 
     // #[test]
     // fn sign_rs256() {
-    //     let cert_bytes = include_bytes!("../../tests/fixtures/temp_cert.data");
-    //     let key_bytes = include_bytes!("../../tests/fixtures/temp_priv_key.data");
+    //     let cert_bytes =
+    // include_bytes!("../../tests/fixtures/temp_cert.data");
+    //     let key_bytes =
+    // include_bytes!("../../tests/fixtures/temp_priv_key.data");
 
     //     let signer =
-    //         RsaSigner::from_signcert_and_pkey(cert_bytes, key_bytes, "rs256".to_string(), None)
-    //             .unwrap();
+    //         RsaSigner::from_signcert_and_pkey(cert_bytes, key_bytes,
+    // "rs256".to_string(), None)             .unwrap();
 
     //     let data = b"some sample content to sign";
 

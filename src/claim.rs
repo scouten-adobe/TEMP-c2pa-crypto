@@ -59,7 +59,8 @@ use crate::{
 
 const BUILD_HASH_ALG: &str = "sha256";
 
-/// JSON structure representing an Assertion reference in a Claim's "assertions" list
+/// JSON structure representing an Assertion reference in a Claim's "assertions"
+/// list
 use HashedUri as C2PAAssertion;
 
 const GH_FULL_VERSION_LIST: &str = "Sec-CH-UA-Full-Version-List";
@@ -76,10 +77,11 @@ pub enum ClaimAssetData<'a> {
     StreamFragment(&'a mut dyn CAIRead, &'a mut dyn CAIRead, &'a str),
 }
 
-// helper struct to allow arbitrary order for assertions stored in jumbf.  The instance is
-// stored separate from the Assertion to allow for late binding to the label.  Also,
-// we can load assertions in any order and know the position without re-parsing label. We also
-// save on parsing the cbor assertion each time we need its contents
+// helper struct to allow arbitrary order for assertions stored in jumbf.  The
+// instance is stored separate from the Assertion to allow for late binding to
+// the label.  Also, we can load assertions in any order and know the position
+// without re-parsing label. We also save on parsing the cbor assertion each
+// time we need its contents
 #[derive(PartialEq, Eq, Clone)]
 pub struct ClaimAssertion {
     assertion: Assertion,
@@ -229,7 +231,8 @@ pub struct Claim {
 
     claim_generator: String, // generator of this claim
 
-    pub(crate) claim_generator_info: Option<Vec<ClaimGeneratorInfo>>, /* detailed generator info of this claim */
+    pub(crate) claim_generator_info: Option<Vec<ClaimGeneratorInfo>>, /* detailed generator info
+                                                                       * of this claim */
 
     signature: String,              // link to signature box
     assertions: Vec<C2PAAssertion>, // list of assertion hashed URIs
@@ -258,7 +261,8 @@ pub struct Claim {
     metadata: Option<Vec<Metadata>>,
 
     #[serde(skip_deserializing, skip_serializing)]
-    data_boxes: Vec<(HashedUri, DataBox)>, /* list of the data boxes and their hashed URIs found for this manifest */
+    data_boxes: Vec<(HashedUri, DataBox)>, /* list of the data boxes and their hashed URIs found
+                                            * for this manifest */
 }
 
 /// Enum to define how assertions are are stored when output to json
@@ -270,13 +274,17 @@ pub enum AssertionStoreJsonFormat {
     OrderedListNoBinary, // list of Assertions as json objects omitting binaries results
 }
 
-/// Remote manifest options. Use 'set_remote_manifest' to generate external manifests.
+/// Remote manifest options. Use 'set_remote_manifest' to generate external
+/// manifests.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RemoteManifest {
-    NoRemote,                // No external manifest (default)
-    SideCar,        // Manifest will be saved as a side car file, output asset is untouched.
-    Remote(String), /* Manifest will be saved as a side car file, output asset will contain remote reference */
-    EmbedWithRemote(String), /* Manifest will be embedded with a remote reference, sidecar will be generated */
+    NoRemote, // No external manifest (default)
+    SideCar,  /* Manifest will be saved as a side car file, output asset is
+               * untouched. */
+    Remote(String), /* Manifest will be saved as a side car file, output asset will contain
+                     * remote reference */
+    EmbedWithRemote(String), /* Manifest will be embedded with a remote reference, sidecar will
+                              * be generated */
 }
 
 impl Default for RemoteManifest {
@@ -301,8 +309,9 @@ impl Claim {
     pub const LABEL: &'static str = assertions::labels::CLAIM;
 
     /// Create a new claim.
-    /// vendor: name used to label the claim (unique instance number is automatically calculated)
-    /// claim_generator: User agent see c2pa spec for format
+    /// vendor: name used to label the claim (unique instance number is
+    /// automatically calculated) claim_generator: User agent see c2pa spec
+    /// for format
     pub fn new<S: Into<String>>(claim_generator: S, vendor: Option<&str>) -> Self {
         let urn = Uuid::new_v4();
         let l = match vendor {
@@ -349,8 +358,8 @@ impl Claim {
     }
 
     /// Create a new claim with a user supplied GUID.
-    /// user_guid: is user supplied guid conforming the C2PA spec for manifest names
-    /// claim_generator: User agent see c2pa spec for format
+    /// user_guid: is user supplied guid conforming the C2PA spec for manifest
+    /// names claim_generator: User agent see c2pa spec for format
     pub fn new_with_user_guid<S: Into<String>>(claim_generator: S, user_guid: S) -> Self {
         Claim {
             remote_manifest: RemoteManifest::NoRemote,
@@ -557,7 +566,8 @@ impl Claim {
         }
 
         if let Some(map) = &mut self.claim_generator_hints {
-            // if the key is already there do we need to merge the new value, so get its value
+            // if the key is already there do we need to merge the new value, so get its
+            // value
             let curr_val = match hint_key {
                 // keys where new values should be merges
                 GH_UA | GH_FULL_VERSION_LIST => {
@@ -649,7 +659,8 @@ impl Claim {
     }
 
     /// Add an assertion to this claim and verify with a salted assertion store
-    /// This version should be used if the assertion may be redacted for addition protection.
+    /// This version should be used if the assertion may be redacted for
+    /// addition protection.
     pub fn add_assertion_with_salt(
         &mut self,
         assertion_builder: &impl AssertionBase,
@@ -1229,7 +1240,8 @@ impl Claim {
             validation_log.log(log_item, Some(Error::UpdateManifestInvalid))?;
         }
 
-        // verify assertion structure comparing hashes from assertion list to contents of assertion store
+        // verify assertion structure comparing hashes from assertion list to contents
+        // of assertion store
         for assertion in claim.assertions() {
             let (label, instance) = Claim::assertion_label_from_link(&assertion.url());
             match claim.get_claim_assertion(&label, instance) {
@@ -1326,7 +1338,8 @@ impl Claim {
                             ClaimAssetData::Stream(stream_data, _) => {
                                 dh.verify_stream_hash(*stream_data, Some(claim.alg()))
                             }
-                            _ => return Err(Error::UnsupportedType), /* this should never happen (coding error) */
+                            _ => return Err(Error::UnsupportedType), /* this should never happen
+                                                                      * (coding error) */
                         };
 
                         match hash_result {
@@ -1557,13 +1570,14 @@ impl Claim {
         &self.ingredients_store
     }
 
-    /// Return reference to the internal claim ingredient store matching this guid.
-    /// Used during generation
+    /// Return reference to the internal claim ingredient store matching this
+    /// guid. Used during generation
     pub fn claim_ingredient(&self, claim_guid: &str) -> Option<&Vec<Claim>> {
         self.ingredients_store.get(claim_guid)
     }
 
-    /// Adds ingredients, this data will be written out during commit of the Claim
+    /// Adds ingredients, this data will be written out during commit of the
+    /// Claim
     pub(crate) fn add_ingredient_data(
         &mut self,
         provenance_label: &str,
@@ -2035,8 +2049,8 @@ pub mod tests {
         // NOTE: I added a separate mirror of original data because a third-party's
         // JSON serialization could differ from our re-serialization of that same data.
         // When reading claims from assets and verifying signatures of those claims,
-        // we need the exact original bytes of the signed JSON or the signature verification
-        // will fail.
+        // we need the exact original bytes of the signed JSON or the signature
+        // verification will fail.
         assert_eq!(orig_binary, restored_claim.original_bytes.unwrap());
 
         // JSON examples

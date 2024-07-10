@@ -19,8 +19,8 @@
 
 /// Label for the C2PA manifest store.
 ///
-/// This value should be used when possible, since it may contain a version suffix
-/// when needed to support a future version of the spec.
+/// This value should be used when possible, since it may contain a version
+/// suffix when needed to support a future version of the spec.
 ///
 /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_c2pa_box_details>.
 pub const MANIFEST_STORE: &str = "c2pa";
@@ -122,7 +122,8 @@ pub(crate) fn to_normalized_uri(uri: &str) -> String {
     }
 }
 
-// Converts a possibly relative JUMBF URI to an absolute URI to the manifest store.
+// Converts a possibly relative JUMBF URI to an absolute URI to the manifest
+// store.
 pub(crate) fn to_absolute_uri(manifest_label: &str, uri: &str) -> String {
     let raw_uri = to_normalized_uri(uri);
     let parts: Vec<&str> = raw_uri.split('/').collect();

@@ -49,7 +49,8 @@ pub struct DataHash {
     #[serde(with = "serde_bytes")]
     pub pad: Vec<u8>,
 
-    // must use explicit ByteBuf here because  #[serde(with = "serde_bytes")] does not working if Option<Vec<u8>>
+    // must use explicit ByteBuf here because  #[serde(with = "serde_bytes")] does not working if
+    // Option<Vec<u8>>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pad2: Option<serde_bytes::ByteBuf>,
 
@@ -107,7 +108,8 @@ impl DataHash {
         Ok(())
     }
 
-    /// generate the hash value for the Asset stream using the range from the DataHash
+    /// generate the hash value for the Asset stream using the range from the
+    /// DataHash
     pub fn gen_hash_from_stream<R>(&mut self, stream: &mut R) -> Result<()>
     where
         R: Read + Seek + ?Sized,
@@ -189,7 +191,8 @@ impl DataHash {
         }
     }
 
-    // verify data using currently set algorithm or default alg is none currently set
+    // verify data using currently set algorithm or default alg is none currently
+    // set
     pub fn verify_in_memory_hash(&self, data: &[u8], alg: Option<&str>) -> Result<()> {
         if self.is_remote_hash() {
             return Err(Error::BadParam("asset hash is remote".to_owned()));
@@ -230,7 +233,8 @@ impl DataHash {
         }
     }
 
-    // verify data using currently set algorithm or default alg is none currently set
+    // verify data using currently set algorithm or default alg is none currently
+    // set
     pub fn verify_stream_hash(&self, reader: &mut dyn CAIRead, alg: Option<&str>) -> Result<()> {
         if self.is_remote_hash() {
             return Err(Error::BadParam("asset hash is remote".to_owned()));

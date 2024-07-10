@@ -82,13 +82,15 @@ pub trait StatusTracker {
     // Log an item.  Returns err if available
     // and stop_on_error is true.  Otherwise success OK(())
     // log_item - LogItem to be recorded
-    // err - optional Error value to be returned if stop_on_error is true and item contain an error,
-    // otherwise if None, Error:LogStop will be returned if stop_on_err is true.
-    // The actual error is always available in the log_item.  This allows the caller
-    // to return an error even when the error does not implement Clone.
+    // err - optional Error value to be returned if stop_on_error is true and item
+    // contain an error, otherwise if None, Error:LogStop will be returned if
+    // stop_on_err is true. The actual error is always available in the
+    // log_item.  This allows the caller to return an error even when the error
+    // does not implement Clone.
     fn log(&mut self, log_item: LogItem, err: Option<Error>) -> Result<()>;
 
-    // Log an item. No special consideration are given to the contents of the log item.
+    // Log an item. No special consideration are given to the contents of the log
+    // item.
     fn log_silent(&mut self, log_item: LogItem);
 }
 
@@ -104,7 +106,8 @@ impl fmt::Debug for dyn StatusTracker {
     }
 }
 
-// Logger that returns success regardless of if LogItem was for an error condition
+// Logger that returns success regardless of if LogItem was for an error
+// condition
 #[derive(Default, Debug)]
 pub struct DetailedStatusTracker {
     logged_items: Vec<LogItem>,
@@ -271,7 +274,8 @@ pub mod tests {
             .error(Error::NotFound); // add arbitrary error
         assert!(tracker.log(item2, None).is_err());
 
-        // item with error with caller specified error response, testing macro for generation
+        // item with error with caller specified error response, testing macro for
+        // generation
         let item3 = log_item!("test3", "test item 3 from macro", "test func")
             .error(Error::UnsupportedType)
             .validation_status(validation_status::ALGORITHM_UNSUPPORTED);
@@ -294,12 +298,14 @@ pub mod tests {
             .error(Error::NotFound); // add arbitrary error
         assert!(tracker.log(item2, None).is_ok());
 
-        // item with error with caller specified error response, testing macro for generation
+        // item with error with caller specified error response, testing macro for
+        // generation
         let item3 =
             log_item!("test3", "test item 3 from macro", "test func").error(Error::UnsupportedType);
         assert!(tracker.log(item3, Some(Error::NotFound)).is_ok());
 
-        // item with error with caller specified error response, testing macro for generation, test validation_status
+        // item with error with caller specified error response, testing macro for
+        // generation, test validation_status
         let item4 = log_item!("test3", "test item 3 from macro", "test func")
             .error(Error::UnsupportedType)
             .validation_status(validation_status::ALGORITHM_UNSUPPORTED);

@@ -64,8 +64,8 @@ fn manifest_def(title: &str, format: &str) -> String {
     }).to_string()
 }
 
-/// This example demonstrates how to use the new v2 API to create a manifest store
-/// It uses only streaming apis, showing how to avoid file i/o
+/// This example demonstrates how to use the new v2 API to create a manifest
+/// store It uses only streaming apis, showing how to avoid file i/o
 /// This example uses the `ed25519` signing algorithm
 fn main() -> Result<()> {
     let title = "v2_edited.jpg";
@@ -116,8 +116,9 @@ fn main() -> Result<()> {
     builder.to_archive(&mut zipped)?;
 
     // write the zipped stream to a file for debugging
-    //let debug_path = format!("{}/../target/test.zip", env!("CARGO_MANIFEST_DIR"));
-    // std::fs::write(debug_path, zipped.get_ref())?;
+    //let debug_path = format!("{}/../target/test.zip",
+    // env!("CARGO_MANIFEST_DIR")); std::fs::write(debug_path,
+    // zipped.get_ref())?;
 
     // unzip the manifest builder from the zipped stream
     zipped.rewind()?;
@@ -162,7 +163,8 @@ fn ed_sign(data: &[u8], private_key: &[u8]) -> c2pa::Result<Vec<u8>> {
 
     // Parse the PEM data to get the private key
     let pem = parse(private_key).map_err(|e| c2pa::Error::OtherError(Box::new(e)))?;
-    // For Ed25519, the key is 32 bytes long, so we skip the first 16 bytes of the PEM data
+    // For Ed25519, the key is 32 bytes long, so we skip the first 16 bytes of the
+    // PEM data
     let key_bytes = &pem.contents()[16..];
     let signing_key =
         SigningKey::try_from(key_bytes).map_err(|e| c2pa::Error::OtherError(Box::new(e)))?;
@@ -175,8 +177,8 @@ fn ed_sign(data: &[u8], private_key: &[u8]) -> c2pa::Result<Vec<u8>> {
 // #[cfg(feature = "openssl")]
 // use openssl::{error::ErrorStack, pkey::PKey};
 // #[cfg(feature = "openssl")]
-// fn ed_sign(data: &[u8], pkey: &[u8]) -> std::result::Result<Vec<u8>, ErrorStack> {
-//     let pkey = PKey::private_key_from_pem(pkey)?;
+// fn ed_sign(data: &[u8], pkey: &[u8]) -> std::result::Result<Vec<u8>,
+// ErrorStack> {     let pkey = PKey::private_key_from_pem(pkey)?;
 //     let mut signer = openssl::sign::Signer::new_without_digest(&pkey)?;
 //     signer.sign_oneshot_to_vec(data)
 // }

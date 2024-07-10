@@ -23,7 +23,8 @@ use crate::{
     error::{Error, Result},
 };
 
-/// Check to see if this a label whose string can vary, if so return the root of the label and version if available
+/// Check to see if this a label whose string can vary, if so return the root of
+/// the label and version if available
 fn get_mutable_label(var_label: &str) -> (String, Option<usize>) {
     if var_label.starts_with(labels::SCHEMA_ORG) {
         (var_label.to_string(), None)
@@ -79,7 +80,8 @@ pub fn get_thumbnail_image_type(thumbnail_label: &str) -> String {
 
 pub fn get_thumbnail_instance(label: &str) -> Option<usize> {
     let label_type = get_thumbnail_type(label);
-    // only ingredients thumbs store ids in the label, so use placeholder ids for the others
+    // only ingredients thumbs store ids in the label, so use placeholder ids for
+    // the others
     match label_type.as_ref() {
         labels::INGREDIENT_THUMBNAIL => {
             // extract id from underscore separated part of the full label
@@ -216,7 +218,8 @@ impl fmt::Debug for AssertionData {
 /// Each assertion type will
 /// contain its AssertionData.  For the User Assertion type we
 /// allow a String to set the label. The AssertionData contains
-/// the data payload for the assertion and the version number for its schema (if supported).
+/// the data payload for the assertion and the version number for its schema (if
+/// supported).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Assertion {
     label: String,
@@ -255,8 +258,8 @@ impl Assertion {
         self.version
     }
 
-    // pub fn check_version(&self, max_version: usize) -> AssertionDecodeResult<()> {
-    //     match self.version {
+    // pub fn check_version(&self, max_version: usize) -> AssertionDecodeResult<()>
+    // {     match self.version {
     //         Some(version) if version > max_version => Err(AssertionDecodeError {
     //             label: self.label.clone(),
     //             version: self.version,
@@ -322,8 +325,9 @@ impl Assertion {
     }
 
     /// Return assertion as serde_json Object
-    /// this may have loss of cbor structure if unsupported in conversion to json
-    /// It should always do the correct thing when using the correct tagged CBOR types
+    /// this may have loss of cbor structure if unsupported in conversion to
+    /// json It should always do the correct thing when using the correct
+    /// tagged CBOR types
     pub(crate) fn as_json_object(&self) -> AssertionDecodeResult<Value> {
         match self.decode_data() {
             AssertionData::Json(x) => serde_json::from_str(x)
@@ -607,7 +611,8 @@ pub enum AssertionDecodeErrorCause {
     #[error("the assertion had an unexpected data type: expected {expected}, found {found}")]
     UnexpectedDataType { expected: String, found: String },
 
-    /// The assertion has a version that is newer that this toolkit can understand.
+    /// The assertion has a version that is newer that this toolkit can
+    /// understand.
     #[error("the assertion version is too new: expected no later than {max}, found {found}")]
     AssertionTooNew { max: usize, found: usize },
 

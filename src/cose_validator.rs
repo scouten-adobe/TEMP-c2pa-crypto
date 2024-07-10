@@ -141,7 +141,8 @@ pub(crate) fn check_cert(
 
     // check for cert expiration
     if let Some(tst_info) = _tst_info_opt {
-        // was there a time stamp association with this signature, is verify against that time
+        // was there a time stamp association with this signature, is verify against
+        // that time
         let signing_time = gt_to_datetime(tst_info.gen_time.clone());
         if !signcert.validity().is_valid_at(
             x509_parser::time::ASN1Time::from_timestamp(signing_time.timestamp())
@@ -706,7 +707,8 @@ pub(crate) fn check_ocsp_status(
         if let Ok(tst_info) = &time_stamp_info {
             let signing_time = gt_to_datetime(tst_info.gen_time.clone());
 
-            // Check the OCSP response, only use if not malformed.  Revocation errors are reported in the validation log
+            // Check the OCSP response, only use if not malformed.  Revocation errors are
+            // reported in the validation log
             if let Ok(ocsp_data) =
                 check_ocsp_response(&ocsp_response_der, Some(signing_time), validation_log)
             {
@@ -740,7 +742,8 @@ pub(crate) fn check_ocsp_status(
                             Err(_) => None,
                         };
 
-                        // Check the OCSP response, only use if not malformed.  Revocation errors are reported in the validation log
+                        // Check the OCSP response, only use if not malformed.  Revocation errors
+                        // are reported in the validation log
                         if let Ok(ocsp_data) =
                             check_ocsp_response(&ocsp_response_der, signing_time, validation_log)
                         {
@@ -775,7 +778,8 @@ fn dump_cert_chain(certs: &[Vec<u8>]) -> Result<Vec<u8>> {
     Ok(out_buf)
 }
 
-// Note: this function is only used to get the display string and not for cert validation.
+// Note: this function is only used to get the display string and not for cert
+// validation.
 fn get_signing_time(
     sign1: &coset::CoseSign1,
     data: &[u8],
@@ -808,7 +812,8 @@ fn get_timestamp_info(sign1: &coset::CoseSign1, data: &[u8]) -> Result<TstInfo> 
         let tst_infos =
             crate::time_stamp::cose_sigtst_to_tstinfos(&time_cbor, data, &sign1.protected)?;
 
-        // there should only be one but consider handling more in the future since it is technically ok
+        // there should only be one but consider handling more in the future since it is
+        // technically ok
         if !tst_infos.is_empty() {
             return Ok(tst_infos[0].clone());
         }
@@ -919,11 +924,11 @@ fn extract_serial_from_cert(cert: &X509Certificate) -> BigUint {
     cert.serial.clone()
 }
 
-/// Asynchronously validate a COSE_SIGN1 byte vector and verify against expected data
-/// cose_bytes - byte array containing the raw COSE_SIGN1 data
+/// Asynchronously validate a COSE_SIGN1 byte vector and verify against expected
+/// data cose_bytes - byte array containing the raw COSE_SIGN1 data
 /// data:  data that was used to create the cose_bytes, these must match
-/// addition_data: additional optional data that may have been used during signing
-/// returns - Ok on success
+/// addition_data: additional optional data that may have been used during
+/// signing returns - Ok on success
 ///
 /// [scouten 2024-06-27]: Hacking this to make public.
 pub async fn verify_cose_async(
@@ -1013,8 +1018,8 @@ pub async fn verify_cose_async(
         // todo: check TSA certs against trust list
     }
 
-    // Check the signature, which needs to have the same `additional_data` provided, by
-    // providing a closure that can do the verify operation.
+    // Check the signature, which needs to have the same `additional_data` provided,
+    // by providing a closure that can do the verify operation.
     sign1.payload = Some(data.clone()); // restore payload
 
     let p_header = sign1.protected.clone();
@@ -1098,8 +1103,8 @@ pub(crate) fn get_signing_info(
 /// Validate a COSE_SIGN1 byte vector and verify against expected data
 /// cose_bytes - byte array containing the raw COSE_SIGN1 data
 /// data:  data that was used to create the cose_bytes, these must match
-/// addition_data: additional optional data that may have been used during signing
-/// returns - Ok on success
+/// addition_data: additional optional data that may have been used during
+/// signing returns - Ok on success
 #[cfg(not(target_arch = "wasm32"))]
 pub fn verify_cose(
     // [scouten 2024-06-27]: Hack to make public
@@ -1186,8 +1191,8 @@ pub fn verify_cose(
         // todo: check TSA certs against trust list
     }
 
-    // Check the signature, which needs to have the same `additional_data` provided, by
-    // providing a closure that can do the verify operation.
+    // Check the signature, which needs to have the same `additional_data` provided,
+    // by providing a closure that can do the verify operation.
     sign1.verify_signature(additional_data, |sig, verify_data| -> Result<()> {
         if let Ok(CertInfo {
             subject,
@@ -1207,7 +1212,8 @@ pub fn verify_cose(
 
             result.revocation_status = Some(true);
         }
-        // Note: not adding validation_log entry here since caller will supply claim specific info to log
+        // Note: not adding validation_log entry here since caller will supply claim
+        // specific info to log
         Ok(())
     })?;
 

@@ -32,7 +32,8 @@ pub enum Error {
     #[error("assertion missing: url = {url}")]
     AssertionMissing { url: String },
 
-    /// The attempt to serialize the assertion (typically to JSON or CBOR) failed.
+    /// The attempt to serialize the assertion (typically to JSON or CBOR)
+    /// failed.
     #[error("unable to encode assertion data")]
     AssertionEncoding,
 
@@ -103,7 +104,8 @@ pub enum Error {
                                         * and can't because coset is nostd. */
     },
 
-    /// The COSE signature uses an algorithm that is not supported by this crate.
+    /// The COSE signature uses an algorithm that is not supported by this
+    /// crate.
     #[error("COSE signature algorithm is not supported")]
     CoseSignatureAlgorithmNotSupported,
 
@@ -248,7 +250,8 @@ pub enum Error {
     #[error("The Verifiable Content structure is not valid")]
     VerifiableCredentialInvalid,
 
-    /// Could not parse ECDSA signature. (Only appears when using WASM web crypto.)
+    /// Could not parse ECDSA signature. (Only appears when using WASM web
+    /// crypto.)
     #[error("could not parse ECDSA signature")]
     InvalidEcdsaSignature,
 

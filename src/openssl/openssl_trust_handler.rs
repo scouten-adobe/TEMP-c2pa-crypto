@@ -145,7 +145,8 @@ impl TrustHandlerConfig for OpenSSLTrustHandlerConfig {
             }
         }
 
-        // try to load the of base64 encoded encoding of the sha256 hash of the certificate DER encoding
+        // try to load the of base64 encoded encoding of the sha256 hash of the
+        // certificate DER encoding
         let reader = Cursor::new(buffer);
         let buf_reader = BufReader::new(reader);
 

@@ -95,7 +95,8 @@ pub fn compare_files<P: AsRef<Path>, Q: AsRef<Path>>(m1: P, m2: Q) -> Result<Vec
 
 /// Compares two manifest stores and returns a list of issues.
 pub fn compare_readers(reader1: &Reader, reader2: &Reader) -> Result<Vec<String>> {
-    // first we need to gather all the manifests in the order they are first seen recursively
+    // first we need to gather all the manifests in the order they are first seen
+    // recursively
     let mut labels1 = Vec::new();
     if let Some(label) = reader1.active_label() {
         gather_manifests(reader1, label, &mut labels1);
@@ -123,7 +124,8 @@ pub fn compare_readers(reader1: &Reader, reader2: &Reader) -> Result<Vec<String>
     Ok(issues)
 }
 
-// creates list of manifests in the order they are first seen from the active manifest
+// creates list of manifests in the order they are first seen from the active
+// manifest
 fn gather_manifests(manifest_store: &Reader, manifest_label: &str, labels: &mut Vec<String>) {
     if !labels.contains(&manifest_label.to_string()) {
         labels.push(manifest_label.to_string());

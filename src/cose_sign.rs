@@ -41,17 +41,18 @@ use crate::{
 /// claim structure.
 ///
 /// Should only be used when the underlying signature mechanism is detached
-/// from the generation of the C2PA manifest (and thus the claim embedded in it).
+/// from the generation of the C2PA manifest (and thus the claim embedded in
+/// it).
 ///
 /// ## Actions taken
 ///
 /// 1. Verifies that the data supplied is a valid C2PA claim. The function will
 ///    respond with [`Error::ClaimDecoding`] if not.
 /// 2. Signs the data using the provided [`Signer`] instance. Will ensure that
-///    the signature is padded to match `box_size`, which should be the number of
-///    bytes reserved for the `c2pa.signature` JUMBF box in this claim's manifest.
-///    (If `box_size` is too small for the generated signature, this function
-///    will respond with an error.)
+///    the signature is padded to match `box_size`, which should be the number
+///    of bytes reserved for the `c2pa.signature` JUMBF box in this claim's
+///    manifest. (If `box_size` is too small for the generated signature, this
+///    function will respond with an error.)
 /// 3. Verifies that the signature is valid COSE. Will respond with an error
 ///    [`Error::CoseSignature`] if unable to validate.
 #[async_generic(async_signature(
@@ -126,12 +127,13 @@ pub fn cose_sign(signer: &dyn Signer, data: &[u8], box_size: Option<usize>) -> R
     // 13.2.1. X.509 Certificates
     //
     // X.509 Certificates are stored in a header named x5chain draft-ietf-cose-x509.
-    // The value is a CBOR array of byte strings, each of which contains the certificate
-    // encoded as ASN.1 distinguished encoding rules (DER). This array must contain at
-    // least one element. The first element of the array must be the certificate of
-    // the signer, and the subjectPublicKeyInfo element of the certificate will be the
-    // public key used to validate the signature. The Validity member of the TBSCertificate
-    // sequence provides the time validity period of the certificate.
+    // The value is a CBOR array of byte strings, each of which contains the
+    // certificate encoded as ASN.1 distinguished encoding rules (DER). This
+    // array must contain at least one element. The first element of the array
+    // must be the certificate of the signer, and the subjectPublicKeyInfo
+    // element of the certificate will be the public key used to validate the
+    // signature. The Validity member of the TBSCertificate sequence provides
+    // the time validity period of the certificate.
 
     /*
        This header parameter allows for a single X.509 certificate or a
@@ -225,7 +227,8 @@ fn build_headers(signer: &dyn Signer, data: &[u8], alg: SigningAlg) -> Result<(H
         }
     };
 
-    // add certs to protected header (spec 1.3 now requires integer 33(X5Chain) in favor of string "x5chain" going forward)
+    // add certs to protected header (spec 1.3 now requires integer 33(X5Chain) in
+    // favor of string "x5chain" going forward)
     protected_h = protected_h.value(
         iana::HeaderParameter::X5Chain.to_i64(),
         sc_der_array_or_bytes.clone(),
@@ -275,9 +278,10 @@ const PAD2: &str = "pad2";
 const PAD_OFFSET: usize = 7;
 
 // Pad the CoseSign1 structure with 0s to match the reserved box size.
-// There are some values lengths that are impossible to hit with a single padding so
-// when that happens a second padding is added to change the remaining needed padding.
-// The default initial guess works for almost all sizes, without the need for additional loops.
+// There are some values lengths that are impossible to hit with a single
+// padding so when that happens a second padding is added to change the
+// remaining needed padding. The default initial guess works for almost all
+// sizes, without the need for additional loops.
 fn pad_cose_sig(sign1: &mut CoseSign1, end_size: Option<usize>) -> Result<Vec<u8>> {
     let mut sign1_clone = sign1.clone();
     let cur_vec = sign1_clone

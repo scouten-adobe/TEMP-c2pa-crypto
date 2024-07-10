@@ -41,7 +41,8 @@ fn default_type() -> String {
 }
 
 impl SchemaDotOrg {
-    /// constructs an empty Schema.org object of the specified @type with @context
+    /// constructs an empty Schema.org object of the specified @type with
+    /// @context
     pub fn new(object_type: String) -> Self {
         Self {
             object_context: None,
@@ -71,8 +72,8 @@ impl SchemaDotOrg {
     /// This return T is owned, not a reference
     /// # Errors
     ///
-    /// This conversion can fail if the structure of the field at key does not match the
-    /// structure expected by `T`
+    /// This conversion can fail if the structure of the field at key does not
+    /// match the structure expected by `T`
     pub fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.value
             .get(key)
@@ -82,8 +83,8 @@ impl SchemaDotOrg {
     /// insert key / value pair of instance of type `T`
     /// # Errors
     ///
-    /// This conversion can fail if `T`'s implementation of `Serialize` decides to
-    /// fail, or if `T` contains a map with non-string keys.
+    /// This conversion can fail if `T`'s implementation of `Serialize` decides
+    /// to fail, or if `T` contains a map with non-string keys.
     pub fn insert<T: Serialize>(mut self, key: String, value: T) -> Result<Self> {
         self.value.insert(key, serde_json::to_value(value)?);
         Ok(self)

@@ -126,7 +126,8 @@ pub trait CAIWriter: Sync + Send {
         store_bytes: &[u8],
     ) -> Result<()>;
 
-    // Finds location where the C2PA manifests will be placed in the asset specified by input_stream
+    // Finds location where the C2PA manifests will be placed in the asset specified
+    // by input_stream
     fn get_object_locations_from_stream(
         &self,
         input_stream: &mut dyn CAIRead,
@@ -167,8 +168,9 @@ pub trait AssetIO: Sync + Send {
 
     /// List of standard object offsets
     /// If the offsets exist return the start of those locations other it should
-    /// return the calculated location of when it should start.  There may still be a
-    /// length if the format contains extra header information for example.
+    /// return the calculated location of when it should start.  There may still
+    /// be a length if the format contains extra header information for
+    /// example.
     #[allow(dead_code)] // this here for wasm builds to pass clippy  (todo: remove)
     fn get_object_locations(&self, asset_path: &Path) -> Result<Vec<HashObjectPositions>>;
 
@@ -187,7 +189,8 @@ pub trait AssetIO: Sync + Send {
         None
     }
 
-    // Returns [`RemoteRefEmbed`] trait if this I/O handler supports remote reference embedding.
+    // Returns [`RemoteRefEmbed`] trait if this I/O handler supports remote
+    // reference embedding.
     fn remote_ref_writer_ref(&self) -> Option<&dyn RemoteRefEmbed> {
         None
     }
@@ -197,7 +200,8 @@ pub trait AssetIO: Sync + Send {
         None
     }
 
-    // Returns [`ComposedManifestRefEmbed`] trait if this I/O handler supports composed data.
+    // Returns [`ComposedManifestRefEmbed`] trait if this I/O handler supports
+    // composed data.
     fn composed_data_ref(&self) -> Option<&dyn ComposedManifestRef> {
         None
     }
@@ -215,13 +219,13 @@ pub trait AssetPatch {
     fn patch_cai_store(&self, asset_path: &Path, store_bytes: &[u8]) -> Result<()>;
 }
 
-// `AssetBoxHash` provides interfaces needed to support C2PA BoxHash functionality.
-//  This trait is only implemented for supported types
+// `AssetBoxHash` provides interfaces needed to support C2PA BoxHash
+// functionality.  This trait is only implemented for supported types
 pub trait AssetBoxHash {
     // Returns Vec containing all BoxMap level objects in the asset in the order
     // they occur in the asset.  The hashes do not need to be calculated, only the
-    // name and the positional information.  The list should be flat with each BoxMap
-    // representing a single entry.
+    // name and the positional information.  The list should be flat with each
+    // BoxMap representing a single entry.
     fn get_box_map(&self, input_stream: &mut dyn CAIRead) -> Result<Vec<BoxMap>>;
 }
 
@@ -235,9 +239,9 @@ pub enum RemoteRefEmbedType {
     Watermark(String),
 }
 
-// `RemoteRefEmbed` is used to embed remote references to external manifests.  The
-// technique used to embed a reference varies bases on the type of embedding.  Not
-// all embedding choices need be supported.
+// `RemoteRefEmbed` is used to embed remote references to external manifests.
+// The technique used to embed a reference varies bases on the type of
+// embedding.  Not all embedding choices need be supported.
 pub trait RemoteRefEmbed {
     // Embed RemoteRefEmbedType into the asset
     #[allow(dead_code)] // this here for wasm builds to pass clippy  (todo: remove)
@@ -259,11 +263,12 @@ pub trait ComposedManifestRef {
     fn compose_manifest(&self, manifest_data: &[u8], format: &str) -> Result<Vec<u8>>;
 }
 
-/// Utility function to rename a file or, if the provided paths are on separate mounting points,
-/// move a file from a temporary location to its final location.
+/// Utility function to rename a file or, if the provided paths are on separate
+/// mounting points, move a file from a temporary location to its final
+/// location.
 ///
-/// If the rename is not possible due to cross volume references, the file will be copied to the
-/// final and then the temp file we be deleted.
+/// If the rename is not possible due to cross volume references, the file will
+/// be copied to the final and then the temp file we be deleted.
 pub fn rename_or_move<P>(temp_file: NamedTempFile, asset_path: P) -> Result<()>
 where
     P: AsRef<Path>,

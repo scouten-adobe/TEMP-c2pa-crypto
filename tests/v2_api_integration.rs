@@ -101,8 +101,9 @@ mod integration_v2 {
         builder.to_archive(&mut zipped)?;
 
         // write the zipped stream to a file for debugging
-        //let debug_path = format!("{}/../target/test.zip", env!("CARGO_MANIFEST_DIR"));
-        // std::fs::write(debug_path, zipped.get_ref())?;
+        //let debug_path = format!("{}/../target/test.zip",
+        // env!("CARGO_MANIFEST_DIR")); std::fs::write(debug_path,
+        // zipped.get_ref())?;
 
         // unzip the manifest builder from the zipped stream
         zipped.rewind()?;
@@ -148,7 +149,8 @@ mod integration_v2 {
 
         // Parse the PEM data to get the private key
         let pem = parse(private_key).map_err(|e| c2pa::Error::OtherError(Box::new(e)))?;
-        // For Ed25519, the key is 32 bytes long, so we skip the first 16 bytes of the PEM data
+        // For Ed25519, the key is 32 bytes long, so we skip the first 16 bytes of the
+        // PEM data
         let key_bytes = &pem.contents()[16..];
         let signing_key =
             SigningKey::try_from(key_bytes).map_err(|e| c2pa::Error::OtherError(Box::new(e)))?;

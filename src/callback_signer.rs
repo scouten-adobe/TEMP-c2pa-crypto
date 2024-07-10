@@ -13,8 +13,8 @@
 
 #![deny(missing_docs)]
 
-//! The `callback_signer` module provides a way to obtain a [`Signer`] or [`AsyncSigner`]
-//! using a callback and public signing certificates.
+//! The `callback_signer` module provides a way to obtain a [`Signer`] or
+//! [`AsyncSigner`] using a callback and public signing certificates.
 
 use crate::{
     error::{Error, Result},
@@ -83,7 +83,8 @@ impl CallbackSigner {
     ///
     /// This can be used to store any necessary state for the callback.
     /// Safety: The context must be valid for the lifetime of the signer.
-    /// There is no Rust memory management for the context since it may also come from FFI.    
+    /// There is no Rust memory management for the context since it may also
+    /// come from FFI.
     pub fn set_context(mut self, context: *const ()) -> Self {
         self.context = context;
         self

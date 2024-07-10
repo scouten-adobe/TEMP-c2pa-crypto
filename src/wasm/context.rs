@@ -16,8 +16,9 @@ use web_sys::{Crypto, SubtleCrypto, Window, WorkerGlobalScope};
 
 use crate::{Error, Result};
 
-// Adapted from gloo's implementation, since there doesn't seem to be a great way to do context checking using
-// wasm-bindgen/web-sys without using something like `js_sys::eval`. References:
+// Adapted from gloo's implementation, since there doesn't seem to be a great
+// way to do context checking using wasm-bindgen/web-sys without using something
+// like `js_sys::eval`. References:
 // - Issue: https://github.com/rustwasm/wasm-bindgen/issues/1046
 // - Issue: https://github.com/rustwasm/wasm-bindgen/issues/2148#issuecomment-638606446
 // - Code reference: https://git.io/J9crn

@@ -26,8 +26,8 @@
 //! It will be supported in all language bindings and build environments.
 //! To try these out, you need to enable the `unstable_api` feature.
 //!
-//! To read with file based methods, you must add the `file_io` dependency to your Cargo.toml.
-//! For example:
+//! To read with file based methods, you must add the `file_io` dependency to
+//! your Cargo.toml. For example:
 //!
 //! ```text
 //! c2pa = {version="0.32.0", features=["file_io"]}

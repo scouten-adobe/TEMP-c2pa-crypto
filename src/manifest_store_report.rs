@@ -129,7 +129,8 @@ impl ManifestStoreReport {
     }
 
     #[cfg(feature = "v1_api")]
-    /// Creates a ManifestStoreReport from an existing Store and a validation log
+    /// Creates a ManifestStoreReport from an existing Store and a validation
+    /// log
     pub(crate) fn from_store_with_log(
         store: &Store,
         validation_log: &impl StatusTracker,
@@ -283,17 +284,18 @@ impl ManifestReport {
             let hashlink = claim_assertion.label();
             let (label, instance) = Claim::assertion_label_from_link(&hashlink);
             let label = Claim::label_with_instance(&label, instance);
-            let value = match claim_assertion.assertion().decode_data() {
-                AssertionData::Json(_) | AssertionData::Cbor(_) => {
-                    claim_assertion.assertion().as_json_object()? // todo:  this may cause data loss
-                }
-                AssertionData::Binary(x) => {
-                    serde_json::to_value(format!("<omitted> len = {}", x.len()))?
-                }
-                AssertionData::Uuid(s, x) => {
-                    serde_json::to_value(format!("uuid: {}, data: {}", s, base64::encode(x)))?
-                }
-            };
+            let value =
+                match claim_assertion.assertion().decode_data() {
+                    AssertionData::Json(_) | AssertionData::Cbor(_) => {
+                        claim_assertion.assertion().as_json_object()? // todo:  this may cause data loss
+                    }
+                    AssertionData::Binary(x) => {
+                        serde_json::to_value(format!("<omitted> len = {}", x.len()))?
+                    }
+                    AssertionData::Uuid(s, x) => {
+                        serde_json::to_value(format!("uuid: {}, data: {}", s, base64::encode(x)))?
+                    }
+                };
             assertion_store.insert(label, value);
         }
 
@@ -356,7 +358,8 @@ struct SignatureReport {
     time: Option<String>,
 }
 
-// replace the value of any field in the json string with a given key with the string <omitted>
+// replace the value of any field in the json string with a given key with the
+// string <omitted>
 fn omit_tag(mut json: String, tag: &str) -> String {
     while let Some(index) = json.find(&format!("\"{tag}\": [")) {
         if let Some(idx2) = json[index..].find(']') {
@@ -371,7 +374,8 @@ fn omit_tag(mut json: String, tag: &str) -> String {
     json
 }
 
-// make a base64 hash from the value of any field in the json string with key base64 hash
+// make a base64 hash from the value of any field in the json string with key
+// base64 hash
 fn b64_tag(mut json: String, tag: &str) -> String {
     while let Some(index) = json.find(&format!("\"{tag}\": [")) {
         if let Some(idx2) = json[index..].find(']') {

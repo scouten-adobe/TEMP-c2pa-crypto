@@ -94,8 +94,8 @@ pub(crate) fn cose_sigtst_to_tstinfos(
     }
 }
 
-/// internal only function to work around bug in serialization of TimeStampResponse
-/// so we just return the data directly
+/// internal only function to work around bug in serialization of
+/// TimeStampResponse so we just return the data directly
 #[cfg(not(target_arch = "wasm32"))]
 fn time_stamp_request_http(
     url: &str,
@@ -170,8 +170,8 @@ fn time_stamp_request_http(
 
 /// Send a Time-Stamp request for a given message to an HTTP URL.
 ///
-/// This is a wrapper around [time_stamp_request_http] that constructs the low-level
-/// ASN.1 request object with reasonable defaults.
+/// This is a wrapper around [time_stamp_request_http] that constructs the
+/// low-level ASN.1 request object with reasonable defaults.
 
 pub(crate) fn time_stamp_message_http(
     message: &[u8],
@@ -264,7 +264,8 @@ impl TimeStampResponse {
     }
 }
 
-/// Generate TimeStamp based on rfc3161 using "data" as MessageImprint and return raw TimeStampRsp bytes
+/// Generate TimeStamp based on rfc3161 using "data" as MessageImprint and
+/// return raw TimeStampRsp bytes
 #[async_generic(async_signature(signer: &dyn AsyncSigner, data: &[u8]))]
 pub fn timestamp_data(signer: &dyn Signer, data: &[u8]) -> Option<Result<Vec<u8>>> {
     if _sync {

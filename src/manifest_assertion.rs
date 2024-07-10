@@ -37,7 +37,8 @@ pub struct ManifestAssertion {
     /// There can be more than one assertion for any label
     #[serde(skip_serializing_if = "Option::is_none")]
     instance: Option<usize>,
-    /// The [ManifestAssertionKind] for this assertion (as stored in c2pa content)
+    /// The [ManifestAssertionKind] for this assertion (as stored in c2pa
+    /// content)
     #[serde(skip_serializing_if = "Option::is_none")]
     kind: Option<ManifestAssertionKind>,
 }
@@ -58,9 +59,10 @@ impl ManifestAssertion {
         &self.label
     }
 
-    /// An assertion label in reverse domain format with appended instance number
-    /// The instance number follows two underscores and is only added when the instance is > 1
-    /// This is a c2pa spec internal standard format
+    /// An assertion label in reverse domain format with appended instance
+    /// number The instance number follows two underscores and is only added
+    /// when the instance is > 1 This is a c2pa spec internal standard
+    /// format
     pub fn label_with_instance(&self) -> String {
         match self.instance {
             Some(i) if i > 1 => format!("{}__{}", self.label, i),
@@ -87,8 +89,9 @@ impl ManifestAssertion {
     }
 
     /// The instance number of this assertion
-    /// If the same label is used for multiple assertions, incremental instances are added
-    /// The first instance is always 1 and increased by 1 per duplicated label
+    /// If the same label is used for multiple assertions, incremental instances
+    /// are added The first instance is always 1 and increased by 1 per
+    /// duplicated label
     pub fn instance(&self) -> usize {
         self.instance.unwrap_or(1)
     }
@@ -103,8 +106,9 @@ impl ManifestAssertion {
         }
     }
 
-    /// This can be used to set an instance number, but generally should not be used
-    /// Instance numbers will be assigned automatically when the assertions are embedded
+    /// This can be used to set an instance number, but generally should not be
+    /// used Instance numbers will be assigned automatically when the
+    /// assertions are embedded
     pub(crate) fn set_instance(mut self, instance: usize) -> Self {
         self.instance = if instance > 0 { Some(instance) } else { None };
         self
@@ -117,7 +121,8 @@ impl ManifestAssertion {
         self
     }
 
-    /// Creates a ManifestAssertion with the given label and any serde serializable object
+    /// Creates a ManifestAssertion with the given label and any serde
+    /// serializable object
     ///
     /// # Example: Creating a custom assertion from a serde_json object.
     ///

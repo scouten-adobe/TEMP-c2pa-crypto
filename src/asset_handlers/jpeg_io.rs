@@ -205,8 +205,9 @@ impl CAIReader for JpegIO {
                             if cai_seg_cnt > 0 && is_cai_continuation {
                                 // make sure this is a cai segment for additional segments,
                                 if z <= cai_seg_cnt {
-                                    // this a non contiguous segment with same "en" so a bad set of data
-                                    // reset and continue to search
+                                    // this a non contiguous segment with same "en" so a bad set of
+                                    // data reset and continue
+                                    // to search
                                     cai_en = Vec::new();
                                     continue;
                                 }
@@ -318,7 +319,8 @@ impl CAIWriter for JpegIO {
 
             let seg_bytes = Bytes::from(seg_data);
             let app11_segment = JpegSegment::new_with_contents(markers::APP11, seg_bytes);
-            jpeg.segments_mut().insert(seg, app11_segment); // we put this in the beginning...
+            jpeg.segments_mut().insert(seg, app11_segment); // we put this in
+                                                            // the beginning...
         }
 
         output_stream.rewind()?;
@@ -341,7 +343,8 @@ impl CAIWriter for JpegIO {
 
         let output_vec: Vec<u8> = Vec::new();
         let mut output_stream = Cursor::new(output_vec);
-        // make sure the file has the required segments so we can generate all the required offsets
+        // make sure the file has the required segments so we can generate all the
+        // required offsets
         add_required_segs_to_stream(input_stream, &mut output_stream)?;
 
         let buf: Vec<u8> = output_stream.into_inner();
@@ -409,7 +412,8 @@ impl CAIWriter for JpegIO {
                                 length: seg.len_with_entropy(),
                                 htype: HashBlockObjectType::Xmp,
                             };
-                            // todo: pick the app1 that is the xmp (not crucial as it gets hashed either way)
+                            // todo: pick the app1 that is the xmp (not crucial as it gets hashed
+                            // either way)
                             positions.push(v);
                         }
                         _ => {
@@ -633,13 +637,13 @@ fn in_entropy(marker: u8) -> bool {
     matches!(marker, RST0..=RST7 | Z)
 }
 
-// img-parts does not correctly return the true size of the SOS segment.  This utility
-// finds the correct break point for single image JPEGs.  We will need a new JPEG decoder
-// to handle those.  Also this function can be removed if img-parts ever addresses this issue
-// and support MPF JPEGs.
+// img-parts does not correctly return the true size of the SOS segment.  This
+// utility finds the correct break point for single image JPEGs.  We will need a
+// new JPEG decoder to handle those.  Also this function can be removed if
+// img-parts ever addresses this issue and support MPF JPEGs.
 fn get_entropy_size(input_stream: &mut dyn CAIRead) -> Result<usize> {
-    // Search the entropy data looking for non entropy segment marker.  The first valid seg marker before we hit
-    // end of the file.
+    // Search the entropy data looking for non entropy segment marker.  The first
+    // valid seg marker before we hit end of the file.
 
     let mut buf_reader = BufReader::new(input_stream);
 
@@ -1211,7 +1215,8 @@ pub mod tests {
 
         output_stream.set_position(0);
 
-        //std::fs::write("../target/xmp_write.jpg", output_stream.into_inner()).unwrap();
+        //std::fs::write("../target/xmp_write.jpg",
+        // output_stream.into_inner()).unwrap();
 
         assert!(read_xmp.contains(test_msg));
     }

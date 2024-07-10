@@ -29,7 +29,8 @@ lazy_static! {
         RwLock::new(Config::try_from(&Settings::default()).unwrap_or_default());
 }
 
-// trait used to validate user input to make sure user supplied configurations are valid
+// trait used to validate user input to make sure user supplied configurations
+// are valid
 pub(crate) trait SettingsValidate {
     // returns error if settings are invalid
     fn validate(&self) -> Result<()> {
@@ -68,7 +69,8 @@ impl Trust {
             }
         }
 
-        // try to load the of base64 encoded encoding of the sha256 hash of the certificate DER encoding
+        // try to load the of base64 encoded encoding of the sha256 hash of the
+        // certificate DER encoding
         let reader = Cursor::new(allowed_list);
         let buf_reader = BufReader::new(reader);
         let mut found_der_hash = false;
@@ -311,7 +313,8 @@ pub(crate) fn load_settings<P: AsRef<Path>>(settings_path: P) -> Result<()> {
     load_settings_from_str(&String::from_utf8_lossy(&setting_buf), &ext)
 }
 
-/// Load settings form string representation of the configuration.  Format of configuration must be supplied.
+/// Load settings form string representation of the configuration.  Format of
+/// configuration must be supplied.
 #[allow(unused)]
 pub fn load_settings_from_str(settings_str: &str, format: &str) -> Result<()> {
     Settings::from_string(settings_str, format).map(|_| ())
@@ -329,9 +332,10 @@ pub(crate) fn save_settings_as_json<P: AsRef<Path>>(settings_path: P) -> Result<
     std::fs::write(settings_path, settings_json.as_bytes()).map_err(Error::IoError)
 }
 
-// Set a Settings value by path reference.  The path is nested names of of the Settings objects
-// separated by "." notation.  For example "core.hash_alg" would set settings.core.hash_alg value.
-// The nesting can be arbitrarily deep based on the Settings definition.
+// Set a Settings value by path reference.  The path is nested names of of the
+// Settings objects separated by "." notation.  For example "core.hash_alg"
+// would set settings.core.hash_alg value. The nesting can be arbitrarily deep
+// based on the Settings definition.
 #[allow(unused)]
 pub(crate) fn set_settings_value<T: Into<config::Value>>(value_path: &str, value: T) -> Result<()> {
     match SETTINGS.write() {
@@ -365,9 +369,10 @@ pub(crate) fn set_settings_value<T: Into<config::Value>>(value_path: &str, value
     }
 }
 
-// Get a Settings value by path reference.  The path is nested names of of the Settings objects
-// separated by "." notation.  For example "core.hash_alg" would get the settings.core.hash_alg value.
-// The nesting can be arbitrarily deep based on the Settings definition.
+// Get a Settings value by path reference.  The path is nested names of of the
+// Settings objects separated by "." notation.  For example "core.hash_alg"
+// would get the settings.core.hash_alg value. The nesting can be arbitrarily
+// deep based on the Settings definition.
 #[allow(unused)]
 pub(crate) fn get_settings_value<'de, T: serde::de::Deserialize<'de>>(
     value_path: &str,
@@ -403,7 +408,8 @@ pub mod tests {
 
     use super::*;
 
-    // prevent tests from polluting the results of each other because of Rust unit test concurrency
+    // prevent tests from polluting the results of each other because of Rust unit
+    // test concurrency
     static PROTECT: Mutex<u32> = Mutex::new(1); // prevent tests from polluting the results of each other
 
     #[test]
@@ -424,7 +430,8 @@ pub mod tests {
     fn test_get_val_by_direct_path() {
         let _protect = PROTECT.lock().unwrap();
 
-        // you can do this for all values but if these sanity checks pass they all should if the path is correct
+        // you can do this for all values but if these sanity checks pass they all
+        // should if the path is correct
         assert_eq!(
             get_settings_value::<String>("core.hash_alg").unwrap(),
             Core::default().hash_alg

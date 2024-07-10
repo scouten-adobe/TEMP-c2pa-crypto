@@ -80,10 +80,11 @@ fn extract_aia_responders(cert: &x509_parser::certificate::X509Certificate) -> O
     }
 }
 
-/// Check the supplied cert chain for an OCSP responder in the end-entity cert.  If found it will attempt to
-/// retrieve the OCSPResponse.  If successful returns OcspData containing the DER encoded OCSPResponse and
-/// the DateTime for when this cached response should be refreshed, and the OCSP signer certificate chain.  
-/// None otherwise.
+/// Check the supplied cert chain for an OCSP responder in the end-entity cert.
+/// If found it will attempt to retrieve the OCSPResponse.  If successful
+/// returns OcspData containing the DER encoded OCSPResponse and the DateTime
+/// for when this cached response should be refreshed, and the OCSP signer
+/// certificate chain. None otherwise.
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn fetch_ocsp_response(certs: &[Vec<u8>]) -> Option<Vec<u8>> {
     use std::io::Read;
@@ -105,7 +106,9 @@ pub(crate) fn fetch_ocsp_response(certs: &[Vec<u8>]) -> Option<Vec<u8>> {
 
         let sha1_ai = rasn_pkix::AlgorithmIdentifier {
             algorithm: alg,
-            parameters: Some(Any::new(rasn::der::encode(&()).ok()?)), /* many OCSP responders expect this to be NULL not None */
+            parameters: Some(Any::new(rasn::der::encode(&()).ok()?)), /* many OCSP responders
+                                                                       * expect this to be NULL
+                                                                       * not None */
         };
 
         for r in responders {
@@ -188,7 +191,8 @@ pub(crate) fn fetch_ocsp_response(certs: &[Vec<u8>]) -> Option<Vec<u8>> {
     None
 }
 // check to OCSP response with optional signing time (if available)
-// Returns - returns OcspData unless their is a structural error in the response.
+// Returns - returns OcspData unless their is a structural error in the
+// response.
 pub(crate) fn check_ocsp_response(
     ocsp_response_der: &[u8],
     signing_time: Option<DateTime<Utc>>,
@@ -300,7 +304,8 @@ pub(crate) fn check_ocsp_response(
                                         .and_utc()
                                         .timestamp();
 
-                                        // check to see if we are within range or current time within range
+                                        // check to see if we are within range or current time
+                                        // within range
                                         let in_range = if let Some(st) = signing_time {
                                             revoked_at > st.timestamp()
                                         } else {
@@ -414,7 +419,8 @@ pub(crate) fn check_ocsp_response(
             }
         }
     }
-    // Per the spec if we cannot interpret the OCSP data treat it as if it did not exist
+    // Per the spec if we cannot interpret the OCSP data treat it as if it did not
+    // exist
     if !found_good {
         validation_log_out
             .get_log_mut()

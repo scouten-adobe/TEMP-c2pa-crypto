@@ -335,7 +335,8 @@ impl TiffStructure {
     }
 }
 
-// offset are stored in source endianness so to use offset value in Seek calls we must convert to native endianness
+// offset are stored in source endianness so to use offset value in Seek calls
+// we must convert to native endianness
 fn decode_offset(offset_file_native: u64, endianness: Endianness, big_tiff: bool) -> Result<u64> {
     let offset: u64;
     let offset_bytes = offset_file_native.to_ne_bytes();
@@ -583,7 +584,8 @@ impl<T: Read + Write + Seek> TiffCloner<T> {
     }
 
     fn write_ifd(&mut self, target_ifd: &mut BTreeMap<u16, IfdClonedEntry>) -> Result<u64> {
-        // write out all data and save the offsets, skipping subfiles since the data is already written
+        // write out all data and save the offsets, skipping subfiles since the data is
+        // already written
         for &mut IfdClonedEntry {
             value_bytes: ref mut value_bytes_ref,
             ..
@@ -1073,7 +1075,8 @@ impl<T: Read + Write + Seek> TiffCloner<T> {
                         let mut w = Cursor::new(data.as_mut_slice());
                         for _i in 0..num_shorts {
                             let s = offset_reader.read_u16::<NativeEndian>()?; // read a short from offset
-                            w.write_u16::<NativeEndian>(s)?; // write a short in output endian
+                            w.write_u16::<NativeEndian>(s)?; // write a short in
+                                                             // output endian
                         }
                     } else {
                         // move to start of data
@@ -1099,7 +1102,8 @@ impl<T: Read + Write + Seek> TiffCloner<T> {
                         let mut w = Cursor::new(data.as_mut_slice());
                         for _i in 0..num_longs {
                             let s = offset_reader.read_u32::<NativeEndian>()?; // read a long from offset
-                            w.write_u32::<NativeEndian>(s)?; // write a long in output endian
+                            w.write_u32::<NativeEndian>(s)?; // write a long in
+                                                             // output endian
                         }
                     } else {
                         // move to start of data
@@ -1141,7 +1145,8 @@ impl<T: Read + Write + Seek> TiffCloner<T> {
                         let mut w = Cursor::new(data.as_mut_slice());
                         for _i in 0..num_sshorts {
                             let s = offset_reader.read_i16::<NativeEndian>()?; // read a short from offset
-                            w.write_i16::<NativeEndian>(s)?; // write a short in output endian
+                            w.write_i16::<NativeEndian>(s)?; // write a short in
+                                                             // output endian
                         }
                     } else {
                         // move to start of data
@@ -1167,7 +1172,8 @@ impl<T: Read + Write + Seek> TiffCloner<T> {
                         let mut w = Cursor::new(data.as_mut_slice());
                         for _i in 0..num_slongs {
                             let s = offset_reader.read_i32::<NativeEndian>()?; // read a slong from offset
-                            w.write_i32::<NativeEndian>(s)?; // write a slong in output endian
+                            w.write_i32::<NativeEndian>(s)?; // write a slong in
+                                                             // output endian
                         }
                     } else {
                         // move to start of data
@@ -1208,7 +1214,8 @@ impl<T: Read + Write + Seek> TiffCloner<T> {
                         let mut w = Cursor::new(data.as_mut_slice());
                         for _i in 0..num_floats {
                             let s = offset_reader.read_f32::<NativeEndian>()?; // read a float from offset
-                            w.write_f32::<NativeEndian>(s)?; // write a float in output endian
+                            w.write_f32::<NativeEndian>(s)?; // write a float in
+                                                             // output endian
                         }
                     } else {
                         // move to start of data

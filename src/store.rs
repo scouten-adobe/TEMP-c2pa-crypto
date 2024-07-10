@@ -129,7 +129,8 @@ impl Store {
             provenance_path: None,
         };
 
-        // load the trust handler settings, don't worry about status as these are checked during setting generation
+        // load the trust handler settings, don't worry about status as these are
+        // checked during setting generation
         let _ = get_settings_value::<Option<String>>("trust.trust_anchors").map(|ta_opt| {
             if let Some(ta) = ta_opt {
                 let _v = store.add_trust(ta.as_bytes());
@@ -162,17 +163,18 @@ impl Store {
         &self.label
     }
 
-    /// Load set of trust anchors used for certificate validation. [u8] containing the
-    /// trust anchors is passed in the trust_vec variable.
+    /// Load set of trust anchors used for certificate validation. [u8]
+    /// containing the trust anchors is passed in the trust_vec variable.
     pub fn add_trust(&mut self, trust_vec: &[u8]) -> Result<()> {
         let mut trust_reader = Cursor::new(trust_vec);
         self.trust_handler
             .load_trust_anchors_from_data(&mut trust_reader)
     }
 
-    // Load set of private trust anchors used for certificate validation. [u8] to the
-    /// private trust anchors is passed in the trust_vec variable.  This can be called multiple times
-    /// if there are additional trust stores.
+    // Load set of private trust anchors used for certificate validation. [u8] to
+    // the
+    /// private trust anchors is passed in the trust_vec variable.  This can be
+    /// called multiple times if there are additional trust stores.
     pub fn add_private_trust_anchors(&mut self, trust_vec: &[u8]) -> Result<()> {
         let mut trust_reader = Cursor::new(trust_vec);
         self.trust_handler
@@ -199,8 +201,8 @@ impl Store {
     }
 
     /// Get the provenance if available.
-    /// If loaded from an existing asset it will be provenance from the last claim.
-    /// If a new claim is committed that will be the provenance claim
+    /// If loaded from an existing asset it will be provenance from the last
+    /// claim. If a new claim is committed that will be the provenance claim
     pub fn provenance_path(&self) -> Option<String> {
         if self.provenance_path.is_none() {
             // if we have claims and no provenance, return last claim
@@ -363,7 +365,8 @@ impl Store {
             })
     }
 
-    /// returns a ClaimAssertion given a jumbf uri, resolving to the right claim in the store
+    /// returns a ClaimAssertion given a jumbf uri, resolving to the right claim
+    /// in the store
     pub fn get_claim_assertion_from_uri(&self, uri: &str) -> Result<&ClaimAssertion> {
         // first find the right claim and then look for the assertion there
         let claim = self.get_claim_from_uri(uri)?;
@@ -375,9 +378,9 @@ impl Store {
             })
     }
 
-    /// Returns an Assertion referenced by JUMBF URI.  The URI should be absolute and include
-    /// the desired Claim in the path. If you need to specify the Claim for this URI use  
-    /// get_assertion_from_uri_and_claim.
+    /// Returns an Assertion referenced by JUMBF URI.  The URI should be
+    /// absolute and include the desired Claim in the path. If you need to
+    /// specify the Claim for this URI use get_assertion_from_uri_and_claim.
     /// uri - The JUMBF URI for desired Assertion.
     pub fn get_assertion_from_uri(&self, uri: &str) -> Option<&Assertion> {
         let claim_label = Store::manifest_label_from_path(uri);
@@ -390,10 +393,11 @@ impl Store {
         }
     }
 
-    /// Returns an Assertion referenced by JUMBF URI. Only the Claim specified by target_claim_label
-    /// will be searched.  The target_claim_label can be a Claim label or JUMBF URI.
-    /// uri - The JUMBF URI for desired Assertion.
-    /// target_claim_label - Label or URI of the Claim to search for the case when the URI is a relative path.
+    /// Returns an Assertion referenced by JUMBF URI. Only the Claim specified
+    /// by target_claim_label will be searched.  The target_claim_label can
+    /// be a Claim label or JUMBF URI. uri - The JUMBF URI for desired
+    /// Assertion. target_claim_label - Label or URI of the Claim to search
+    /// for the case when the URI is a relative path.
     pub fn get_assertion_from_uri_and_claim(
         &self,
         uri: &str,
@@ -505,21 +509,25 @@ impl Store {
     ) -> Result<Vec<u8>> {
         let claim_bytes = claim.data()?;
 
-        let result = if _sync {
-            if signer.direct_cose_handling() {
-                // Let the signer do all the COSE processing and return the structured COSE data.
-                return signer.sign(&claim_bytes); // do not verify remote signers (we never did)
+        let result =
+            if _sync {
+                if signer.direct_cose_handling() {
+                    // Let the signer do all the COSE processing and return the structured COSE
+                    // data.
+                    return signer.sign(&claim_bytes); // do not verify remote
+                                                      // signers (we never did)
+                } else {
+                    cose_sign(signer, &claim_bytes, Some(box_size))
+                }
             } else {
-                cose_sign(signer, &claim_bytes, Some(box_size))
-            }
-        } else {
-            if signer.direct_cose_handling() {
-                // Let the signer do all the COSE processing and return the structured COSE data.
-                return signer.sign(claim_bytes.clone()).await; // do not verify remote signers (we never did)
-            } else {
-                cose_sign_async(signer, &claim_bytes, Some(box_size)).await
-            }
-        };
+                if signer.direct_cose_handling() {
+                    // Let the signer do all the COSE processing and return the structured COSE
+                    // data.
+                    return signer.sign(claim_bytes.clone()).await; // do not verify remote signers (we never did)
+                } else {
+                    cose_sign_async(signer, &claim_bytes, Some(box_size)).await
+                }
+            };
         match result {
             Ok(sig) => {
                 // Sanity check: Ensure that this signature is valid.
@@ -797,7 +805,9 @@ impl Store {
                         Store::add_assertion_to_jumbf_store(&mut a_store, assertion)?;
                     }
 
-                    cai_store.add_box(Box::new(a_store)); // add the assertion store to the manifest
+                    cai_store.add_box(Box::new(a_store)); // add the assertion
+                                                          // store to the
+                                                          // manifest
                 }
                 CLAIM => {
                     let mut cb = CAIClaimBox::new();
@@ -820,7 +830,8 @@ impl Store {
                     let sigc = JUMBFCBORContentBox::new(signed_data);
                     sigb.add_signature(Box::new(sigc));
 
-                    cai_store.add_box(Box::new(sigb)); // add signature to manifest
+                    cai_store.add_box(Box::new(sigb)); // add signature to
+                                                       // manifest
                 }
                 CREDENTIALS => {
                     // add vc_store if needed
@@ -844,7 +855,9 @@ impl Store {
                                 return Err(Error::BadParam("VC data must be JSON".to_string()));
                             }
                         }
-                        cai_store.add_box(Box::new(vc_store)); // add the CAI assertion store to manifest
+                        cai_store.add_box(Box::new(vc_store)); // add the CAI
+                                                               // assertion store
+                                                               // to manifest
                     }
                 }
                 DATABOXES => {
@@ -869,7 +882,8 @@ impl Store {
                             databoxes.add_databox(Box::new(db_cbor));
                         }
 
-                        cai_store.add_box(Box::new(databoxes)); // add claim to manifest
+                        cai_store.add_box(Box::new(databoxes)); // add claim to
+                                                                // manifest
                     }
                 }
                 _ => return Err(Error::ClaimInvalidContent),
@@ -1170,7 +1184,8 @@ impl Store {
                 ) {
                     Ok(assertion) => {
                         claim.put_assertion_store(assertion); // restore assertion data to claim
-                        check_for_legacy_assertion = false; // only need to check once
+                        check_for_legacy_assertion = false; // only need to
+                                                            // check once
                     }
                     Err(e) => {
                         // if this is an old manifest always return
@@ -1460,7 +1475,8 @@ impl Store {
     /// store: Store to validate
     /// xmp_str: String containing entire XMP block of the asset
     /// asset_bytes: bytes of the asset to be verified
-    /// validation_log: If present all found errors are logged and returned, other wise first error causes exit and is returned  
+    /// validation_log: If present all found errors are logged and returned,
+    /// other wise first error causes exit and is returned
     pub async fn verify_store_async(
         store: &Store,
         asset_data: &mut ClaimAssetData<'_>,
@@ -1498,7 +1514,8 @@ impl Store {
     /// store: Store to validate
     /// xmp_str: String containing entire XMP block of the asset
     /// asset_bytes: bytes of the asset to be verified
-    /// validation_log: If present all found errors are logged and returned, other wise first error causes exit and is returned  
+    /// validation_log: If present all found errors are logged and returned,
+    /// other wise first error causes exit and is returned
     pub fn verify_store(
         store: &Store,
         asset_data: &mut ClaimAssetData<'_>,
@@ -1729,7 +1746,8 @@ impl Store {
     fn move_or_copy(source: &Path, dest: &Path) -> Result<()> {
         // copy temp file to asset
         std::fs::rename(source, dest)
-            // if rename fails, try to copy in case we are on different volumes or output does not exist
+            // if rename fails, try to copy in case we are on different volumes or output does not
+            // exist
             .or_else(|_| std::fs::copy(source, dest).and(Ok(())))
             .map_err(Error::IoError)
     }
@@ -1754,12 +1772,14 @@ impl Store {
         Ok(())
     }
 
-    /// This function is used to pre-generate a manifest with place holders for the final
-    /// DataHash and Manifest Signature.  The DataHash will reserve space for at least 10
-    /// Exclusion ranges.  The Signature box reserved size is based on the size required by
-    /// the Signer you plan to use.  This function is not needed when using Box Hash. This function is used
-    /// in conjunction with `get_data_hashed_embeddable_manifest`.  The manifest returned
-    /// from `get_data_hashed_embeddable_manifest` will have a size that matches this function.
+    /// This function is used to pre-generate a manifest with place holders for
+    /// the final DataHash and Manifest Signature.  The DataHash will
+    /// reserve space for at least 10 Exclusion ranges.  The Signature box
+    /// reserved size is based on the size required by the Signer you plan
+    /// to use.  This function is not needed when using Box Hash. This function
+    /// is used in conjunction with `get_data_hashed_embeddable_manifest`.
+    /// The manifest returned from `get_data_hashed_embeddable_manifest`
+    /// will have a size that matches this function.
     pub fn get_data_hashed_manifest_placeholder(
         &mut self,
         reserve_size: usize,
@@ -1842,16 +1862,18 @@ impl Store {
     }
 
     /// Returns a finalized, signed manifest.  The manifest are only supported
-    /// for cases when the client has provided a data hash content hash binding.  Note,
-    /// this function will not work for cases like BMFF where the position
-    /// of the content is also encoded.  This function is not compatible with
-    /// BMFF hash binding.  If a BMFF data hash or box hash is detected that is
-    /// an error.  The DataHash placeholder assertion will be  adjusted to the contain
-    /// the correct values.  If the asset_reader value is supplied it will also perform
-    /// the hash calculations, otherwise the function uses the caller supplied values.  
-    /// It is an error if `get_data_hashed_manifest_placeholder` was not called first
-    /// as this call inserts the DataHash placeholder assertion to reserve space for the
-    /// actual hash values not required when using BoxHashes.  
+    /// for cases when the client has provided a data hash content hash binding.
+    /// Note, this function will not work for cases like BMFF where the
+    /// position of the content is also encoded.  This function is not
+    /// compatible with BMFF hash binding.  If a BMFF data hash or box hash
+    /// is detected that is an error.  The DataHash placeholder assertion
+    /// will be  adjusted to the contain the correct values.  If the
+    /// asset_reader value is supplied it will also perform
+    /// the hash calculations, otherwise the function uses the caller supplied
+    /// values. It is an error if `get_data_hashed_manifest_placeholder` was
+    /// not called first as this call inserts the DataHash placeholder
+    /// assertion to reserve space for the actual hash values not required
+    /// when using BoxHashes.
     pub fn get_data_hashed_embeddable_manifest(
         &mut self,
         dh: &DataHash,
@@ -1872,16 +1894,18 @@ impl Store {
     }
 
     /// Returns a finalized, signed manifest.  The manifest are only supported
-    /// for cases when the client has provided a data hash content hash binding.  Note,
-    /// this function will not work for cases like BMFF where the position
-    /// of the content is also encoded.  This function is not compatible with
-    /// BMFF hash binding.  If a BMFF data hash or box hash is detected that is
-    /// an error.  The DataHash placeholder assertion will be  adjusted to the contain
-    /// the correct values.  If the asset_reader value is supplied it will also perform
-    /// the hash calculations, otherwise the function uses the caller supplied values.  
-    /// It is an error if `get_data_hashed_manifest_placeholder` was not called first
-    /// as this call inserts the DataHash placeholder assertion to reserve space for the
-    /// actual hash values not required when using BoxHashes.  
+    /// for cases when the client has provided a data hash content hash binding.
+    /// Note, this function will not work for cases like BMFF where the
+    /// position of the content is also encoded.  This function is not
+    /// compatible with BMFF hash binding.  If a BMFF data hash or box hash
+    /// is detected that is an error.  The DataHash placeholder assertion
+    /// will be  adjusted to the contain the correct values.  If the
+    /// asset_reader value is supplied it will also perform
+    /// the hash calculations, otherwise the function uses the caller supplied
+    /// values. It is an error if `get_data_hashed_manifest_placeholder` was
+    /// not called first as this call inserts the DataHash placeholder
+    /// assertion to reserve space for the actual hash values not required
+    /// when using BoxHashes.
     pub async fn get_data_hashed_embeddable_manifest_async(
         &mut self,
         dh: &DataHash,
@@ -1904,16 +1928,18 @@ impl Store {
     }
 
     /// Returns a finalized, signed manifest.  The manifest are only supported
-    /// for cases when the client has provided a data hash content hash binding.  Note,
-    /// this function will not work for cases like BMFF where the position
-    /// of the content is also encoded.  This function is not compatible with
-    /// BMFF hash binding.  If a BMFF data hash or box hash is detected that is
-    /// an error.  The DataHash placeholder assertion will be  adjusted to the contain
-    /// the correct values.  If the asset_reader value is supplied it will also perform
-    /// the hash calculations, otherwise the function uses the caller supplied values.  
-    /// It is an error if `get_data_hashed_manifest_placeholder` was not called first
-    /// as this call inserts the DataHash placeholder assertion to reserve space for the
-    /// actual hash values not required when using BoxHashes.  
+    /// for cases when the client has provided a data hash content hash binding.
+    /// Note, this function will not work for cases like BMFF where the
+    /// position of the content is also encoded.  This function is not
+    /// compatible with BMFF hash binding.  If a BMFF data hash or box hash
+    /// is detected that is an error.  The DataHash placeholder assertion
+    /// will be  adjusted to the contain the correct values.  If the
+    /// asset_reader value is supplied it will also perform
+    /// the hash calculations, otherwise the function uses the caller supplied
+    /// values. It is an error if `get_data_hashed_manifest_placeholder` was
+    /// not called first as this call inserts the DataHash placeholder
+    /// assertion to reserve space for the actual hash values not required
+    /// when using BoxHashes.
     pub async fn get_data_hashed_embeddable_manifest_remote(
         &mut self,
         dh: &DataHash,
@@ -2005,9 +2031,11 @@ impl Store {
         Ok(jumbf_bytes)
     }
 
-    /// Returns the supplied manifest composed to be directly compatible with the desired format.
-    /// For example, if format is JPEG function will return the set of APP11 segments that contains
-    /// the manifest.  Similarly for PNG it would be the PNG chunk complete with header and  CRC.   
+    /// Returns the supplied manifest composed to be directly compatible with
+    /// the desired format. For example, if format is JPEG function will
+    /// return the set of APP11 segments that contains the manifest.
+    /// Similarly for PNG it would be the PNG chunk complete with header and
+    /// CRC.
     pub fn get_composed_manifest(manifest_bytes: &[u8], format: &str) -> Result<Vec<u8>> {
         if let Some(h) = get_assetio_handler(format) {
             if let Some(composed_data_handler) = h.composed_data_ref() {
@@ -2017,11 +2045,12 @@ impl Store {
         Err(Error::UnsupportedType)
     }
 
-    /// Embed the claims store as jumbf into a stream. Updates XMP with provenance record.
-    /// When called, the stream should contain an asset matching format.
-    /// on return, the stream will contain the new manifest signed with signer
-    /// This directly modifies the asset in stream, backup stream first if you need to preserve it.
-    /// This can also handle remote signing if direct_cose_handling() is true.
+    /// Embed the claims store as jumbf into a stream. Updates XMP with
+    /// provenance record. When called, the stream should contain an asset
+    /// matching format. on return, the stream will contain the new manifest
+    /// signed with signer This directly modifies the asset in stream,
+    /// backup stream first if you need to preserve it. This can also handle
+    /// remote signing if direct_cose_handling() is true.
     #[async_generic(async_signature(
         &mut self,
         format: &str,
@@ -2075,11 +2104,14 @@ impl Store {
         }
     }
 
-    /// This function is used to pre-generate a manifest as if it were added to input_stream. All values
-    /// are complete including the hash bindings, except for the signature.  The signature is completed during
-    /// the actual embedding using `embed_placed_manifest `.   The Signature box reserve_size is based on the size required by
-    /// the Signer you plan to use.  This function is not needed when using Box Hash. This function is used
-    /// in conjunction with `embed_placed_manifest`.  `embed_placed_manifest` will accept the manifest to sign and place
+    /// This function is used to pre-generate a manifest as if it were added to
+    /// input_stream. All values are complete including the hash bindings,
+    /// except for the signature.  The signature is completed during
+    /// the actual embedding using `embed_placed_manifest `.   The Signature box
+    /// reserve_size is based on the size required by the Signer you plan to
+    /// use.  This function is not needed when using Box Hash. This function is
+    /// used in conjunction with `embed_placed_manifest`.
+    /// `embed_placed_manifest` will accept the manifest to sign and place
     /// in the output.
     pub fn get_placed_manifest(
         &mut self,
@@ -2093,17 +2125,21 @@ impl Store {
         self.start_save_stream(format, input_stream, &mut intermediate_stream, reserve_size)
     }
 
-    /// Embed the manifest store into an asset. If a ManifestPatchCallback is present the caller
-    /// is given an opportunity to adjust most assertions.  This function will not generate hash
-    /// binding for the manifest.  It is assumed the user called get_box_hashed_embeddable_manifest
-    /// hash or provided a box hash binding.  The input stream should reference the same content used
-    /// in the 'get_placed_manifest_call'.  Changes to the following assertions are disallowed
-    /// when using 'ManifestPatchCallback':  ["c2pa.hash.data",  "c2pa.hash.boxes",  "c2pa.hash.bmff",
-    ///  "c2pa.actions",  "c2pa.ingredient"].  Also the set of assertions cannot be changed, only the
-    /// content of allowed assertions can be modified.  
+    /// Embed the manifest store into an asset. If a ManifestPatchCallback is
+    /// present the caller is given an opportunity to adjust most
+    /// assertions.  This function will not generate hash binding for the
+    /// manifest.  It is assumed the user called
+    /// get_box_hashed_embeddable_manifest hash or provided a box hash
+    /// binding.  The input stream should reference the same content used in
+    /// the 'get_placed_manifest_call'.  Changes to the following assertions are
+    /// disallowed when using 'ManifestPatchCallback':  ["c2pa.hash.data",
+    /// "c2pa.hash.boxes",  "c2pa.hash.bmff",  "c2pa.actions",
+    /// "c2pa.ingredient"].  Also the set of assertions cannot be changed, only
+    /// the content of allowed assertions can be modified.  
     /// 'format' shoould match the type of the input stream..
-    /// Upon return, the output stream will contain the new manifest signed with signer
-    /// This directly modifies the asset in stream, backup stream first if you need to preserve it.
+    /// Upon return, the output stream will contain the new manifest signed with
+    /// signer This directly modifies the asset in stream, backup stream
+    /// first if you need to preserve it.
 
     #[async_generic(
         async_signature(
@@ -2135,7 +2171,8 @@ impl Store {
         let mut validation_log = DetailedStatusTracker::new();
         let mut store = Store::from_jumbf(manifest_bytes, &mut validation_log)?;
 
-        // todo: what kinds of validation can we do here since the file is not finailized;
+        // todo: what kinds of validation can we do here since the file is not
+        // finailized;
 
         let pc_mut = store.provenance_claim_mut().ok_or(Error::ClaimEncoding)?;
 
@@ -2287,10 +2324,12 @@ impl Store {
         }
     }
 
-    /// Async RemoteSigner used to embed the claims store and  returns memory representation of the
-    /// asset and manifest. Updates XMP with provenance record.
-    /// When called, the stream should contain an asset matching format.
-    /// Returns a tuple (output asset, manifest store) with a `Vec<u8>` containing the output asset and a `Vec<u8>` containing the insert manifest store.  (output asset, )
+    /// Async RemoteSigner used to embed the claims store and  returns memory
+    /// representation of the asset and manifest. Updates XMP with
+    /// provenance record. When called, the stream should contain an asset
+    /// matching format. Returns a tuple (output asset, manifest store) with
+    /// a `Vec<u8>` containing the output asset and a `Vec<u8>` containing the
+    /// insert manifest store.  (output asset, )
     pub(crate) async fn save_to_memory_remote_signed(
         &mut self,
         format: &str,
@@ -2330,7 +2369,8 @@ impl Store {
         }
     }
 
-    /// Embed the claims store as jumbf into an asset. Updates XMP with provenance record.
+    /// Embed the claims store as jumbf into an asset. Updates XMP with
+    /// provenance record.
     #[cfg(feature = "file_io")]
     pub fn save_to_asset(
         &mut self,
@@ -2384,7 +2424,8 @@ impl Store {
         }
     }
 
-    /// Embed the claims store as jumbf into an asset using an async signer. Updates XMP with provenance record.
+    /// Embed the claims store as jumbf into an asset using an async signer.
+    /// Updates XMP with provenance record.
     #[cfg(feature = "file_io")]
     pub async fn save_to_asset_async(
         &mut self,
@@ -2440,7 +2481,8 @@ impl Store {
         }
     }
 
-    /// Embed the claims store as jumbf into an asset using an CoseSign box generated remotely. Updates XMP with provenance record.
+    /// Embed the claims store as jumbf into an asset using an CoseSign box
+    /// generated remotely. Updates XMP with provenance record.
     #[cfg(feature = "file_io")]
     pub async fn save_to_asset_remote_signed(
         &mut self,
@@ -2518,7 +2560,8 @@ impl Store {
 
         let io_handler = get_assetio_handler(format).ok_or(Error::UnsupportedType)?;
 
-        // Do not assume the handler supports XMP or removing manifests unless we need it to
+        // Do not assume the handler supports XMP or removing manifests unless we need
+        // it to
         if let Some(url) = url {
             let external_ref_writer = io_handler
                 .remote_ref_writer_ref()
@@ -2581,7 +2624,8 @@ impl Store {
 
             // 3) Generate in memory CAI jumbf block
             // and write preliminary jumbf store to file
-            // source and dest the same so save_jumbf_to_file will use the same file since we have already cloned
+            // source and dest the same so save_jumbf_to_file will use the same file since
+            // we have already cloned
             data = self.to_jumbf_internal(reserve_size)?;
             jumbf_size = data.len();
             // write the jumbf to the output stream if we are embedding the manifest
@@ -2589,7 +2633,8 @@ impl Store {
                 intermediate_stream.rewind()?;
                 save_jumbf_to_stream(format, &mut intermediate_stream, output_stream, &data)?;
             } else {
-                // just copy the asset to the output stream without an embedded manifest (may be stripping one out here)
+                // just copy the asset to the output stream without an embedded manifest (may be
+                // stripping one out here)
                 intermediate_stream.rewind()?;
                 std::io::copy(&mut intermediate_stream, output_stream)?;
             }
@@ -2625,7 +2670,8 @@ impl Store {
                     )?
                 };
 
-                // add the placeholder data hashes to provenance claim so that the required space is reserved
+                // add the placeholder data hashes to provenance claim so that the required
+                // space is reserved
                 for mut hash in hashes {
                     // add padding to account for possible cbor expansion of final DataHash
                     let padding: Vec<u8> = vec![0x0; 10];
@@ -2645,13 +2691,16 @@ impl Store {
                 intermediate_stream.rewind()?;
                 save_jumbf_to_stream(format, &mut intermediate_stream, output_stream, &data)?;
             } else {
-                // just copy the asset to the output stream without an embedded manifest (may be stripping one out here)
+                // just copy the asset to the output stream without an embedded manifest (may be
+                // stripping one out here)
                 intermediate_stream.rewind()?;
                 std::io::copy(&mut intermediate_stream, output_stream)?;
             }
 
-            // 4)  determine final object locations and patch the asset hashes with correct offset
-            // replace the source with correct asset hashes so that the claim hash will be correct
+            // 4) determine final object locations and patch the asset hashes with correct
+            //    offset
+            // replace the source with correct asset hashes so that the claim hash will be
+            // correct
             if needs_hashing {
                 let pc = self.provenance_claim_mut().ok_or(Error::ClaimEncoding)?;
 
@@ -2706,7 +2755,8 @@ impl Store {
                 save_jumbf_to_stream(format, input_stream, output_stream, &jumbf_bytes)?;
             }
             RemoteManifest::SideCar | RemoteManifest::Remote(_) => {
-                // just copy the asset to the output stream without an embedded manifest (may be stripping one out here)
+                // just copy the asset to the output stream without an embedded manifest (may be
+                // stripping one out here)
                 std::io::copy(input_stream, output_stream)?;
             }
         }
@@ -2829,7 +2879,8 @@ impl Store {
 
             // 3) Generate in memory CAI jumbf block
             // and write preliminary jumbf store to file
-            // source and dest the same so save_jumbf_to_file will use the same file since we have already cloned
+            // source and dest the same so save_jumbf_to_file will use the same file since
+            // we have already cloned
             data = self.to_jumbf_internal(reserve_size)?;
             jumbf_size = data.len();
             save_jumbf_to_file(&data, &output_path, Some(&output_path))?;
@@ -2858,7 +2909,8 @@ impl Store {
                     Store::generate_data_hashes(dest_path, pc.alg(), &mut hash_ranges, false)?
                 };
 
-                // add the placeholder data hashes to provenance claim so that the required space is reserved
+                // add the placeholder data hashes to provenance claim so that the required
+                // space is reserved
                 for mut hash in hashes {
                     // add padding to account for possible cbor expansion of final DataHash
                     let padding: Vec<u8> = vec![0x0; 10];
@@ -2871,14 +2923,16 @@ impl Store {
 
             // 3) Generate in memory CAI jumbf block
             // and write preliminary jumbf store to file
-            // source and dest the same so save_jumbf_to_file will use the same file since we have already cloned
+            // source and dest the same so save_jumbf_to_file will use the same file since
+            // we have already cloned
             data = self.to_jumbf_internal(reserve_size)?;
             jumbf_size = data.len();
             save_jumbf_to_file(&data, &output_path, Some(&output_path))?;
 
-            // 4)  determine final object locations and patch the asset hashes with correct offset
-            // replace the source with correct asset hashes so that the claim hash will be correct
-            // If box hash is present we don't do any other
+            // 4) determine final object locations and patch the asset hashes with correct
+            //    offset
+            // replace the source with correct asset hashes so that the claim hash will be
+            // correct If box hash is present we don't do any other
             if needs_hashing {
                 let pc = self.provenance_claim_mut().ok_or(Error::ClaimEncoding)?;
 
@@ -2929,7 +2983,8 @@ impl Store {
 
     /// Verify Store from an existing asset
     /// asset_path: path to input asset
-    /// validation_log: If present all found errors are logged and returned, otherwise first error causes exit and is returned  
+    /// validation_log: If present all found errors are logged and returned,
+    /// otherwise first error causes exit and is returned
     #[cfg(feature = "file_io")]
     pub fn verify_from_path(
         &mut self,
@@ -2973,7 +3028,8 @@ impl Store {
         use conv::ValueFrom;
         use ureq::Error as uError;
 
-        //const MANIFEST_CONTENT_TYPE: &str = "application/x-c2pa-manifest-store"; // todo verify once these are served
+        //const MANIFEST_CONTENT_TYPE: &str = "application/x-c2pa-manifest-store"; //
+        // todo verify once these are served
         const DEFAULT_MANIFEST_RESPONSE_SIZE: usize = 10 * 1024 * 1024; // 10 MB
 
         match ureq::get(url).call() {
@@ -3015,7 +3071,8 @@ impl Store {
         }
     }
 
-    /// Handles remote manifests when file_io/fetch_remote_manifests feature is enabled
+    /// Handles remote manifests when file_io/fetch_remote_manifests feature is
+    /// enabled
     fn handle_remote_manifest(ext_ref: &str) -> Result<Vec<u8>> {
         // verify provenance path is remote url
         if Store::is_valid_remote_url(ext_ref) {
@@ -3128,8 +3185,10 @@ impl Store {
 
     /// Load Store from claims in an existing asset
     /// asset_path: path to input asset
-    /// verify: determines whether to verify the contents of the provenance claim.  Must be set true to use validation_log
-    /// validation_log: If present all found errors are logged and returned, otherwise first error causes exit and is returned  
+    /// verify: determines whether to verify the contents of the provenance
+    /// claim.  Must be set true to use validation_log validation_log: If
+    /// present all found errors are logged and returned, otherwise first error
+    /// causes exit and is returned
     #[cfg(feature = "file_io")]
     pub fn load_from_asset(
         asset_path: &Path,
@@ -3198,7 +3257,8 @@ impl Store {
     /// asset_type: asset extension or mime type
     /// data: reference to bytes of the the file
     /// verify: if true will run verification checks when loading
-    /// validation_log: If present all found errors are logged and returned, otherwise first error causes exit and is returned
+    /// validation_log: If present all found errors are logged and returned,
+    /// otherwise first error causes exit and is returned
     pub fn load_from_memory(
         asset_type: &str,
         data: &[u8],
@@ -3224,7 +3284,8 @@ impl Store {
     /// asset_type: asset extension or mime type
     /// data: reference to bytes of the file
     /// verify: if true will run verification checks when loading
-    /// validation_log: If present all found errors are logged and returned, otherwise first error causes exit and is returned
+    /// validation_log: If present all found errors are logged and returned,
+    /// otherwise first error causes exit and is returned
     pub async fn load_from_memory_async(
         asset_type: &str,
         data: &[u8],
@@ -3251,7 +3312,8 @@ impl Store {
     /// asset_type: asset extension or mime type
     /// data: reference to bytes of the the file
     /// verify: if true will run verification checks when loading
-    /// validation_log: If present all found errors are logged and returned, otherwise first error causes exit and is returned
+    /// validation_log: If present all found errors are logged and returned,
+    /// otherwise first error causes exit and is returned
     pub fn load_fragment_from_memory(
         asset_type: &str,
         init_segment: &[u8],
@@ -3286,7 +3348,8 @@ impl Store {
     /// init_segment: reference to bytes of the init segment
     /// fragment: reference to bytes of the fragment to validate
     /// verify: if true will run verification checks when loading
-    /// validation_log: If present all found errors are logged and returned, otherwise first error causes exit and is returned
+    /// validation_log: If present all found errors are logged and returned,
+    /// otherwise first error causes exit and is returned
     pub async fn load_fragment_from_memory_async(
         asset_type: &str,
         init_segment: &[u8],
@@ -3319,8 +3382,8 @@ impl Store {
 
     /// Load Store from memory and add its content as a claim ingredient
     /// claim: claim to add an ingredient
-    /// provenance_label: label of the provenance claim used as key into ingredient map
-    /// data: jumbf data block
+    /// provenance_label: label of the provenance claim used as key into
+    /// ingredient map data: jumbf data block
     pub fn load_ingredient_to_claim(
         claim: &mut Claim,
         provenance_label: &str,
@@ -3341,7 +3404,8 @@ impl std::fmt::Display for Store {
     }
 }
 
-/// `InvalidClaimError` provides additional detail on error cases for [`Store::from_jumbf`].
+/// `InvalidClaimError` provides additional detail on error cases for
+/// [`Store::from_jumbf`].
 #[derive(Debug, thiserror::Error)]
 pub enum InvalidClaimError {
     /// The "c2pa" block was not found in the asset.
@@ -3488,7 +3552,8 @@ pub mod tests {
         let capture = claim_capture.label().to_string();
         let claim2_label = claim2.label().to_string();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
         store.commit_claim(claim_capture).unwrap();
@@ -3595,7 +3660,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
 
@@ -3670,7 +3736,8 @@ pub mod tests {
 
         // TO DO: This generates a log spew when running this test.
         // I don't have time to fix this right now.
-        // [(date) ERROR c2pa::store] Signature that was just generated does not validate: CoseCbor
+        // [(date) ERROR c2pa::store] Signature that was just generated does not
+        // validate: CoseCbor
 
         store.save_to_asset(&ap, &signer, &op).unwrap_err();
     }
@@ -3844,7 +3911,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
         store.commit_claim(claim_capture).unwrap();
@@ -4086,7 +4154,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
         store.commit_claim(claim_capture).unwrap();
@@ -4160,7 +4229,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
         store.commit_claim(claim_capture).unwrap();
@@ -4234,7 +4304,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
         store.commit_claim(claim_capture).unwrap();
@@ -4300,7 +4371,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
 
@@ -4344,7 +4416,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
 
@@ -4388,7 +4461,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
 
@@ -4656,7 +4730,8 @@ pub mod tests {
 
     #[test]
     fn test_claim_decoding() {
-        // modify a required field label in the claim - causes failure to read claim from cbor
+        // modify a required field label in the claim - causes failure to read claim
+        // from cbor
         let report = patch_and_report("C.jpg", b"claim_generator", b"claim_generatur");
         assert!(!report.get_log().is_empty());
         assert!(report.get_log()[0]
@@ -4667,7 +4742,8 @@ pub mod tests {
 
     #[test]
     fn test_claim_modified() {
-        // replace the title that is inside the claim data - should cause signature to not match
+        // replace the title that is inside the claim data - should cause signature to
+        // not match
         let mut report = patch_and_report("C.jpg", b"C.jpg", b"X.jpg");
         assert!(!report.get_log().is_empty());
         let errors = report_split_errors(report.get_log_mut());
@@ -4687,7 +4763,8 @@ pub mod tests {
 
     #[test]
     fn test_assertion_hash_mismatch() {
-        // modifies content of an action assertion - causes an assertion hashuri mismatch
+        // modifies content of an action assertion - causes an assertion hashuri
+        // mismatch
         let mut report = patch_and_report("CA.jpg", b"brightnesscontrast", b"brightnesscontraxx");
         let errors = report_split_errors(report.get_log_mut());
 
@@ -4699,8 +4776,9 @@ pub mod tests {
 
     #[test]
     fn test_claim_missing() {
-        // patch jumbf url from c2pa_manifest field in an ingredient to cause claim_missing
-        // note this includes hex for Jumbf blocks, so may need some manual tweaking
+        // patch jumbf url from c2pa_manifest field in an ingredient to cause
+        // claim_missing note this includes hex for Jumbf blocks, so may need
+        // some manual tweaking
         const SEARCH_BYTES: &[u8] =
             b"c2pa_manifest\xA3\x63url\x78\x4aself#jumbf=/c2pa/contentauth:urn:uuid:";
         const REPLACE_BYTES: &[u8] =
@@ -5057,7 +5135,8 @@ pub mod tests {
 
         assert!(result.is_err());
 
-        // We should get a `JumbfNotFound` error since the external reference points to a file URL, not a remote URL
+        // We should get a `JumbfNotFound` error since the external reference points to
+        // a file URL, not a remote URL
         match result {
             Ok(_store) => panic!("did not expect to have a store"),
             Err(e) => match e {
@@ -5128,7 +5207,8 @@ pub mod tests {
         // Do we generate JUMBF?
         let signer = temp_signer();
 
-        // Move the claim to claims list. Note this is not real, the claims would have to be signed in between commits
+        // Move the claim to claims list. Note this is not real, the claims would have
+        // to be signed in between commits
         store.commit_claim(claim1).unwrap();
         store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
         store.commit_claim(claim_capture).unwrap();
@@ -5369,7 +5449,8 @@ pub mod tests {
             .open(&output)
             .unwrap();
 
-        // write a jpeg file with a placeholder for the manifest (returns offset of the placeholder)
+        // write a jpeg file with a placeholder for the manifest (returns offset of the
+        // placeholder)
         let offset =
             write_jpeg_placeholder_file(&placeholder, &ap, &mut output_file, None).unwrap();
 
@@ -5432,7 +5513,8 @@ pub mod tests {
             .open(&output)
             .unwrap();
 
-        // write a jpeg file with a placeholder for the manifest (returns offset of the placeholder)
+        // write a jpeg file with a placeholder for the manifest (returns offset of the
+        // placeholder)
         let offset =
             write_jpeg_placeholder_file(&placeholder, &ap, &mut output_file, None).unwrap();
 
@@ -5501,7 +5583,8 @@ pub mod tests {
             .open(&output)
             .unwrap();
 
-        // write a jpeg file with a placeholder for the manifest (returns offset of the placeholder)
+        // write a jpeg file with a placeholder for the manifest (returns offset of the
+        // placeholder)
         let offset =
             write_jpeg_placeholder_file(&placeholder, &ap, &mut output_file, Some(&mut hasher))
                 .unwrap();
@@ -5554,7 +5637,8 @@ pub mod tests {
                                     let replace_bytes =
                                         r#"{"my_tag": "some value was replaced!!"}"#.to_string();
 
-                                    // I'm not checking here but data len must be same len as replacement bytes.
+                                    // I'm not checking here but data len must be same len as
+                                    // replacement bytes.
                                     let mut new_manifest_store = manifest_store.to_vec();
                                     new_manifest_store.splice(
                                         data_offset..data_offset + replace_bytes.len(),

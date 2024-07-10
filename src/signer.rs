@@ -21,7 +21,8 @@ pub trait Signer {
     /// Returns the algorithm of the Signer.
     fn alg(&self) -> SigningAlg;
 
-    /// Returns the certificates as a Vec containing a Vec of DER bytes for each certificate.
+    /// Returns the certificates as a Vec containing a Vec of DER bytes for each
+    /// certificate.
     fn certs(&self) -> Result<Vec<Vec<u8>>>;
 
     /// Returns the size in bytes of the largest possible expected signature.
@@ -78,10 +79,11 @@ pub trait Signer {
         None
     }
 
-    /// If this returns true the sign function is responsible for for direct handling of the COSE structure.
+    /// If this returns true the sign function is responsible for for direct
+    /// handling of the COSE structure.
     ///
-    /// This is useful for cases where the signer needs to handle the COSE structure directly.
-    /// Not recommended for general use.
+    /// This is useful for cases where the signer needs to handle the COSE
+    /// structure directly. Not recommended for general use.
     fn direct_cose_handling(&self) -> bool {
         false
     }
@@ -117,7 +119,8 @@ pub(crate) trait ConfigurableSigner: Signer + Sized {
 
 use async_trait::async_trait;
 
-/// The `AsyncSigner` trait generates a cryptographic signature over a byte array.
+/// The `AsyncSigner` trait generates a cryptographic signature over a byte
+/// array.
 ///
 /// This trait exists to allow the signature mechanism to be extended.
 ///
@@ -131,7 +134,8 @@ pub trait AsyncSigner: Sync {
     /// Returns the algorithm of the Signer.
     fn alg(&self) -> SigningAlg;
 
-    /// Returns the certificates as a Vec containing a Vec of DER bytes for each certificate.
+    /// Returns the certificates as a Vec containing a Vec of DER bytes for each
+    /// certificate.
     fn certs(&self) -> Result<Vec<Vec<u8>>>;
 
     /// Returns the size in bytes of the largest possible expected signature.
@@ -188,10 +192,11 @@ pub trait AsyncSigner: Sync {
         None
     }
 
-    /// If this returns true the sign function is responsible for for direct handling of the COSE structure.
+    /// If this returns true the sign function is responsible for for direct
+    /// handling of the COSE structure.
     ///
-    /// This is useful for cases where the signer needs to handle the COSE structure directly.
-    /// Not recommended for general use.
+    /// This is useful for cases where the signer needs to handle the COSE
+    /// structure directly. Not recommended for general use.
     fn direct_cose_handling(&self) -> bool {
         false
     }
@@ -202,9 +207,10 @@ pub trait AsyncSigner: Sync {
 pub trait RemoteSigner: Sync {
     /// Returns the `CoseSign1` bytes signed by the [`RemoteSigner`].
     ///
-    /// The size of returned `Vec` must match the value returned by `reserve_size`.
-    /// This data will be embedded in the JUMBF `c2pa.signature` box of the manifest.
-    /// `data` are the bytes of the claim to be remotely signed.
+    /// The size of returned `Vec` must match the value returned by
+    /// `reserve_size`. This data will be embedded in the JUMBF
+    /// `c2pa.signature` box of the manifest. `data` are the bytes of the
+    /// claim to be remotely signed.
     async fn sign_remote(&self, data: &[u8]) -> Result<Vec<u8>>;
 
     /// Returns the size in bytes of the largest possible expected signature.

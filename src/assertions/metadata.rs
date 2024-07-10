@@ -29,7 +29,8 @@ use crate::{
 
 const ASSERTION_CREATION_VERSION: usize = 1;
 
-/// The Metadata structure can be used as part of other assertions or on its own to reference others
+/// The Metadata structure can be used as part of other assertions or on its own
+/// to reference others
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub struct Metadata {
@@ -68,7 +69,8 @@ impl Metadata {
         self.reviews.as_deref()
     }
 
-    /// Returns the ISO 8601 date-time string when the assertion was created/generated.
+    /// Returns the ISO 8601 date-time string when the assertion was
+    /// created/generated.
     pub fn date_time(&self) -> Option<&str> {
         self.date_time.as_deref()
     }
@@ -100,20 +102,23 @@ impl Metadata {
         self
     }
 
-    /// Sets the ISO 8601 date-time string when the assertion was created/generated.
+    /// Sets the ISO 8601 date-time string when the assertion was
+    /// created/generated.
     pub fn set_date_time(&mut self, date_time: String) -> &mut Self {
         self.date_time = Some(DateT(date_time));
         self
     }
 
-    /// Sets a [`HashedUri`] reference to another assertion to which this metadata applies.
+    /// Sets a [`HashedUri`] reference to another assertion to which this
+    /// metadata applies.
     #[cfg(test)] // only referenced from test code
     pub(crate) fn set_reference(mut self, reference: HashedUri) -> Self {
         self.reference = Some(reference);
         self
     }
 
-    /// Sets a description of the source of the assertion data, selected from a predefined list.
+    /// Sets a description of the source of the assertion data, selected from a
+    /// predefined list.
     pub fn set_data_source(mut self, data_source: DataSource) -> Self {
         self.data_source = Some(data_source);
         self
@@ -170,11 +175,13 @@ pub mod c2pa_source {
 #[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 #[non_exhaustive]
 pub struct DataSource {
-    /// A value from among the enumerated list indicating the source of the assertion.
+    /// A value from among the enumerated list indicating the source of the
+    /// assertion.
     #[serde(rename = "type")]
     pub source_type: String,
 
-    /// A human-readable string giving details about the source of the assertion data.
+    /// A human-readable string giving details about the source of the assertion
+    /// data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<String>,
 
@@ -192,7 +199,8 @@ impl DataSource {
         }
     }
 
-    /// Sets a human-readable string giving details about the source of the assertion data.
+    /// Sets a human-readable string giving details about the source of the
+    /// assertion data.
     pub fn set_details(mut self, details: String) -> Self {
         self.details = Some(details);
         self
@@ -210,7 +218,8 @@ impl DataSource {
 #[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 #[non_exhaustive]
 pub struct Actor {
-    /// An identifier for a human actor, used when the "type" is `humanEntry.identified`.
+    /// An identifier for a human actor, used when the "type" is
+    /// `humanEntry.identified`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub identifier: Option<String>,
 

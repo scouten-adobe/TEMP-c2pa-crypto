@@ -36,8 +36,8 @@ use crate::{
     Error, Result,
 };
 
-/// Function that is used by serde to determine whether or not we should serialize
-/// resources based on the `serialize_resources` flag.
+/// Function that is used by serde to determine whether or not we should
+/// serialize resources based on the `serialize_resources` flag.
 /// (Serialization is disabled by default.)
 pub(crate) fn skip_serializing_resources(_: &ResourceStore) -> bool {
     !cfg!(feature = "serialize_thumbnails") || cfg!(test) || cfg!(not(target_arch = "wasm32"))
@@ -100,7 +100,8 @@ impl From<HashedUri> for UriOrResource {
 #[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 /// A reference to a resource to be used in JSON serialization.
 ///
-/// The underlying data can be read as a stream via [`Reader::resource_to_stream`][crate::Reader::resource_to_stream].
+/// The underlying data can be read as a stream via
+/// [`Reader::resource_to_stream`][crate::Reader::resource_to_stream].
 pub struct ResourceRef {
     /// The mime type of the referenced resource.
     pub format: String,
@@ -137,7 +138,8 @@ impl ResourceRef {
     }
 }
 
-/// Resource store to contain binary objects referenced from JSON serializable structures
+/// Resource store to contain binary objects referenced from JSON serializable
+/// structures
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub struct ResourceStore {
@@ -175,7 +177,8 @@ impl ResourceStore {
     #[cfg(feature = "file_io")]
     /// Sets a base path for relative file paths.
     ///
-    /// Identifiers will be interpreted as file paths and resources will be written to files if this is set.
+    /// Identifiers will be interpreted as file paths and resources will be
+    /// written to files if this is set.
     pub fn set_base_path<P: Into<PathBuf>>(&mut self, base_path: P) {
         self.base_path = Some(base_path.into());
     }
@@ -287,7 +290,8 @@ impl ResourceStore {
 
     /// Returns a copy on write reference to the resource if found.
     ///
-    /// Returns [`Error::ResourceNotFound`] if it cannot find a resource matching that ID.
+    /// Returns [`Error::ResourceNotFound`] if it cannot find a resource
+    /// matching that ID.
     pub fn get(&self, id: &str) -> Result<Cow<Vec<u8>>> {
         #[cfg(feature = "file_io")]
         if !self.resources.contains_key(id) {

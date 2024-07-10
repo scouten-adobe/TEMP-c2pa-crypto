@@ -257,7 +257,8 @@ impl CAIReader for PngIO {
                         0u8;
                         pcp.length as usize
                             - (key.len() + _langtag.len() + _transkey.len() + 5)
-                    ]; // data len - size of key - size of land - size of transkey - 3 "0" string terminators - compressed u8 - compression method u8
+                    ]; // data len - size of key - size of land - size of transkey - 3 "0" string
+                       // terminators - compressed u8 - compression method u8
                     if asset_reader.read_exact(&mut data).is_err() {
                         return false;
                     }
@@ -378,7 +379,8 @@ impl CAIWriter for PngIO {
     ) -> Result<Vec<HashObjectPositions>> {
         let mut positions: Vec<HashObjectPositions> = Vec::new();
 
-        // Ensure the stream has the required chunks so we can generate the required offsets.
+        // Ensure the stream has the required chunks so we can generate the required
+        // offsets.
         let output: Vec<u8> = Vec::new();
         let mut output_stream = Cursor::new(output);
 

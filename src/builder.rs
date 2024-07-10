@@ -242,7 +242,8 @@ impl Builder {
 
     /// Sets a thumbnail for the [`Builder`].
     ///
-    /// The thumbnail should represent the associated asset for this [`Builder`].
+    /// The thumbnail should represent the associated asset for this
+    /// [`Builder`].
     ///
     /// # Arguments
     /// * `format` - The format of the thumbnail.
@@ -271,7 +272,8 @@ impl Builder {
     /// Adds a CBOR assertion to the manifest.
     /// # Arguments
     /// * `label` - A label for the assertion.
-    /// * `data` - The data for the assertion. The data is any Serde Serializable type.
+    /// * `data` - The data for the assertion. The data is any Serde
+    ///   Serializable type.
     /// # Returns
     /// * A mutable reference to the [`Builder`].
     /// # Errors
@@ -291,7 +293,8 @@ impl Builder {
     /// Adds a Json assertion to the manifest.
     /// # Arguments
     /// * `label` - A label for the assertion.
-    /// * `data` - The data for the assertion. The data is any Serde Serializable type.
+    /// * `data` - The data for the assertion. The data is any Serde
+    ///   Serializable type.
     /// # Returns
     /// * A mutable reference to the [`Builder`].
     /// # Errors
@@ -331,7 +334,8 @@ impl Builder {
         let ingredient = ingredient.with_stream(format, stream)?;
         self.definition.ingredients.push(ingredient);
         #[allow(clippy::unwrap_used)]
-        Ok(self.definition.ingredients.last_mut().unwrap()) // ok since we just added it
+        Ok(self.definition.ingredients.last_mut().unwrap()) // ok since we just
+                                                            // added it
     }
 
     /// Adds a resource to the manifest.
@@ -349,7 +353,8 @@ impl Builder {
         mut stream: impl Read + Seek + Send,
     ) -> Result<&mut Self> {
         if self.resources.exists(id) {
-            return Err(Error::BadParam(id.to_string())); // todo add specific error
+            return Err(Error::BadParam(id.to_string())); // todo add specific
+                                                         // error
         }
         let mut buf = Vec::new();
         let _size = stream.read_to_end(&mut buf)?;
@@ -359,8 +364,8 @@ impl Builder {
 
     /// Convert the Builder into a archive formatted stream.
     ///
-    /// The archive is a zip formatted stream containing the manifest.json, resources, and ingredients.
-    /// # Arguments
+    /// The archive is a zip formatted stream containing the manifest.json,
+    /// resources, and ingredients. # Arguments
     /// * `stream` - A stream to write the zip into.
     /// # Errors
     /// * If the archive cannot be written.
@@ -582,7 +587,8 @@ impl Builder {
                                         action.set_parameter(ingredients_key, hash_url.clone())
                                     }
                                     _ => {
-                                        // we only support on instanceId for actions, so only one ingredient on writing
+                                        // we only support on instanceId for actions, so only one
+                                        // ingredient on writing
                                         action.set_parameter(ingredients_key, [hash_url.clone()])
                                     }
                                 }?;
@@ -750,7 +756,8 @@ impl Builder {
     /// Sign a file using a supplied signer.
     /// # Arguments
     /// * `source` - The path to the file to read from.
-    /// * `dest` - The path to the file to write to (this must not already exist).
+    /// * `dest` - The path to the file to write to (this must not already
+    ///   exist).
     /// * `signer` - The signer to use.
     /// # Returns
     /// * The bytes of c2pa_manifest that was created.
@@ -763,7 +770,8 @@ impl Builder {
     {
         let source = source.as_ref();
         let dest = dest.as_ref();
-        // formats must match but allow extensions to be slightly different (i.e. .jpeg vs .jpg)s
+        // formats must match but allow extensions to be slightly different (i.e. .jpeg
+        // vs .jpg)s
         let format = crate::format_from_path(source).ok_or(crate::Error::UnsupportedType)?;
         let format_dest = crate::format_from_path(dest).ok_or(crate::Error::UnsupportedType)?;
         if format != format_dest {
@@ -1095,7 +1103,8 @@ mod tests {
             );
 
             // enable to write the signed manifests to a file for debugging
-            // let dest_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            // let dest_path =
+            // std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             //     .join("../target")
             //     .join("signed")
             //     .join(file_name);

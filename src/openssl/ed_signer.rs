@@ -44,7 +44,8 @@ impl ConfigurableSigner for EdSigner {
         let pkey = PKey::private_key_from_pem(pkey).map_err(Error::OpenSslError)?;
 
         if alg != SigningAlg::Ed25519 {
-            return Err(Error::UnsupportedType); // only ed25519 is supported by C2PA
+            return Err(Error::UnsupportedType); // only ed25519 is supported by
+                                                // C2PA
         }
 
         // make sure cert chains are in order
@@ -58,7 +59,8 @@ impl ConfigurableSigner for EdSigner {
             signcerts,
             pkey,
             certs_size,
-            timestamp_size: 10000, /* todo: call out to TSA to get actual timestamp and use that size */
+            timestamp_size: 10000, /* todo: call out to TSA to get actual timestamp and use that
+                                    * size */
             alg,
             tsa_url,
         })
@@ -95,7 +97,10 @@ impl Signer for EdSigner {
     }
 
     fn reserve_size(&self) -> usize {
-        1024 + self.certs_size + self.timestamp_size // the Cose_Sign1 contains complete certs and timestamps so account for size
+        1024 + self.certs_size + self.timestamp_size // the Cose_Sign1 contains
+                                                     // complete certs and
+                                                     // timestamps so account
+                                                     // for size
     }
 }
 

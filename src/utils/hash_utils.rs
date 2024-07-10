@@ -38,7 +38,8 @@ pub struct HashRange {
     length: usize,
 
     #[serde(skip)]
-    bmff_offset: Option<u64>, /* optional tracking of offset positions to include in BMFF_V2 hashes in BE format */
+    bmff_offset: Option<u64>, /* optional tracking of offset positions to include in BMFF_V2
+                               * hashes in BE format */
 }
 
 impl HashRange {

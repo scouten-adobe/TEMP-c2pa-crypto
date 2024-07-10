@@ -250,7 +250,8 @@ fn get_manifest_pos(reader: &mut dyn CAIRead) -> Option<(u64, u32)> {
     if top_level_chunks.id() == RIFF_ID {
         for c in top_level_chunks.iter(&mut chunk_reader) {
             if c.id() == C2PA_CHUNK_ID {
-                return Some((c.offset(), c.len() + 8)); // 8 is len of data chunk header
+                return Some((c.offset(), c.len() + 8)); // 8 is len of data
+                                                        // chunk header
             }
         }
     }

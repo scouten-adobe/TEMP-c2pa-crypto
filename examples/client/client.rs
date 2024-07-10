@@ -24,7 +24,8 @@ use c2pa::{
 const GENERATOR: &str = "test_app/0.1";
 const INDENT_SPACE: usize = 2;
 
-// Example for reading the contents of a manifest store, recursively showing nested manifests
+// Example for reading the contents of a manifest store, recursively showing
+// nested manifests
 fn show_manifest(manifest_store: &ManifestStore, manifest_label: &str, level: usize) -> Result<()> {
     let indent = " ".repeat(level * INDENT_SPACE);
 

@@ -72,7 +72,8 @@ impl ValidationStatus {
         self.url.as_deref()
     }
 
-    /// Returns a human-readable description of the validation that was performed.
+    /// Returns a human-readable description of the validation that was
+    /// performed.
     pub fn explanation(&self) -> Option<&str> {
         self.explanation.as_deref()
     }
@@ -83,7 +84,8 @@ impl ValidationStatus {
         self
     }
 
-    /// Sets the human-readable description of the validation that was performed.
+    /// Sets the human-readable description of the validation that was
+    /// performed.
     pub(crate) fn set_explanation(mut self, explanation: String) -> Self {
         self.explanation = Some(explanation);
         self
@@ -154,11 +156,12 @@ impl PartialEq for ValidationStatus {
     }
 }
 
-// TODO: Does this still need to be public? (I do see one reference in the JS SDK.)
+// TODO: Does this still need to be public? (I do see one reference in the JS
+// SDK.)
 
-/// Given a `Store` and a `StatusTracker`, return `ValidationStatus` items for each
-/// item in the tracker which reflect errors in the active manifest or which would not
-/// be reported as a validation error for any ingredient.
+/// Given a `Store` and a `StatusTracker`, return `ValidationStatus` items for
+/// each item in the tracker which reflect errors in the active manifest or
+/// which would not be reported as a validation error for any ingredient.
 pub fn status_for_store(
     store: &Store,
     validation_log: &impl StatusTracker,
@@ -186,7 +189,8 @@ pub fn status_for_store(
             .iter()
             .any(|s| !is_active_manifest(s.url.as_deref()))
         {
-            // Collect all the ValidationStatus records from all the ingredients in the store.
+            // Collect all the ValidationStatus records from all the ingredients in the
+            // store.
             let ingredient_statuses: Vec<ValidationStatus> = claim
                 .ingredient_assertions()
                 .iter()
@@ -195,7 +199,8 @@ pub fn status_for_store(
                 .flat_map(|x| x.into_iter())
                 .collect();
 
-            // Filter to only contain the active statuses and nested statuses not found in active.
+            // Filter to only contain the active statuses and nested statuses not found in
+            // active.
             return statuses
                 .iter()
                 .filter(|s| {
@@ -306,9 +311,11 @@ pub const CLAIM_SIGNATURE_MISMATCH: &str = "claimSignature.mismatch";
 /// If a manifest was documented to exist in a remote location,
 /// but is not present there, or the location is not currently available
 /// (such as in an offline scenario),
-/// the `manifest.inaccessible` error code shall be used to report the situation.
+/// the `manifest.inaccessible` error code shall be used to report the
+/// situation.
 ///
-/// `ValidationStatus.url()` URI reference to the C2PA Manifest that could not be accessed.
+/// `ValidationStatus.url()` URI reference to the C2PA Manifest that could not
+/// be accessed.
 pub const MANIFEST_INACCESSIBLE: &str = "manifest.inaccessible";
 
 /// The manifest has more than one ingredient whose `relationship`
@@ -383,7 +390,8 @@ pub const ASSERTION_MISSING: &str = "assertion.missing";
 /// `ValidationStatus.url()` will point to a C2PA claim box or assertion.
 pub const ASSERTION_UNDECLARED: &str = "assertion.undeclared";
 
-/// A non-embedded (remote) assertion was inaccessible at the time of validation.
+/// A non-embedded (remote) assertion was inaccessible at the time of
+/// validation.
 ///
 /// `ValidationStatus.url()` will point to a C2PA assertion.
 pub const ASSERTION_INACCESSIBLE: &str = "assertion.inaccessible";
@@ -444,8 +452,8 @@ pub const ASSERTION_BMFFHASH_MISMATCH: &str = "assertion.bmffHash.mismatch";
 /// `ValidationStatus.url()` will point to a C2PA assertion.
 pub const ASSERTION_BOXHASH_MISMATCH: &str = "assertion.boxesHash.mismatch";
 
-/// The hash of a box-based asset does not contain boxes in the expected order for
-/// the General Boxes hash assertion.
+/// The hash of a box-based asset does not contain boxes in the expected order
+/// for the General Boxes hash assertion.
 ///
 /// `ValidationStatus.url()` will point to a C2PA assertion.
 pub const ASSERTION_BOXHASH_UNKNOWN: &str = "assertion.boxesHash.";

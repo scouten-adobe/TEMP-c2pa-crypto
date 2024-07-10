@@ -322,7 +322,8 @@ impl crate::AsyncSigner for AsyncTestGoodSigner {
     }
 }
 
-/// Create a [`Signer`] instance that can be used for testing purposes using ps256 alg.
+/// Create a [`Signer`] instance that can be used for testing purposes using
+/// ps256 alg.
 ///
 /// # Returns
 ///
@@ -365,7 +366,8 @@ pub fn temp_async_signer() -> Box<dyn crate::signer::AsyncSigner> {
     }
 }
 
-/// Create a [`Signer`] instance for a specific algorithm that can be used for testing purposes.
+/// Create a [`Signer`] instance for a specific algorithm that can be used for
+/// testing purposes.
 ///
 /// # Returns
 ///

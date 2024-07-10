@@ -322,7 +322,8 @@ impl ManifestStore {
         .map(|store| Self::from_store(store, &validation_log))
     }
 
-    /// Asynchronously loads a manifest from a buffer holding a binary manifest (.c2pa) and validates against an asset buffer
+    /// Asynchronously loads a manifest from a buffer holding a binary manifest
+    /// (.c2pa) and validates against an asset buffer
     ///
     /// # Example: Creating a manifest store from a .c2pa manifest and validating it against an asset
     /// ```
@@ -361,7 +362,8 @@ impl ManifestStore {
         Ok(Self::from_store(store, &validation_log))
     }
 
-    /// Synchronously loads a manifest from a buffer holding a binary manifest (.c2pa) and validates against an asset buffer
+    /// Synchronously loads a manifest from a buffer holding a binary manifest
+    /// (.c2pa) and validates against an asset buffer
     ///
     /// # Example: Creating a manifest store from a .c2pa manifest and validating it against an asset
     /// ```

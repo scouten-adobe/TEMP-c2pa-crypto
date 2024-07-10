@@ -16,13 +16,15 @@ use std::time::Instant;
 use log::info;
 
 // (Internal debugging tool.)
-// Measure and log the time from the creation of this struct until it is dropped.
+// Measure and log the time from the creation of this struct until it is
+// dropped.
 pub(crate) struct TimeIt {
     label: &'static str,
     start: Instant,
 }
 
-// Justification for dead_code: This is a debugging tool that is not always needed.
+// Justification for dead_code: This is a debugging tool that is not always
+// needed.
 #[allow(dead_code)]
 impl TimeIt {
     pub fn new(label: &'static str) -> Self {

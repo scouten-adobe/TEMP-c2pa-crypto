@@ -197,7 +197,8 @@ enum DetectedTagsDepth {
     Empty,
 }
 
-// returns tuple of found manifest, where in the XML hierarchy the manifest needs to go, and the manifest insertion point
+// returns tuple of found manifest, where in the XML hierarchy the manifest
+// needs to go, and the manifest insertion point
 fn detect_manifest_location(
     input_stream: &mut dyn CAIRead,
 ) -> Result<(Option<Vec<u8>>, DetectedTagsDepth, usize)> {
@@ -512,7 +513,8 @@ impl CAIWriter for SvgIO {
                     } else {
                         writer
                             .write_event(Event::Start(e))
-                            .map_err(|_e| Error::XmlWriteError)?; // pass Event through
+                            .map_err(|_e| Error::XmlWriteError)?; // pass Event
+                                                                  // through
                     }
                 }
                 Ok(Event::Text(e)) => {
@@ -526,7 +528,8 @@ impl CAIWriter for SvgIO {
                     } else {
                         writer
                             .write_event(Event::Text(e))
-                            .map_err(|_e| Error::XmlWriteError)?; // pass Event through
+                            .map_err(|_e| Error::XmlWriteError)?; // pass Event
+                                                                  // through
                     }
                 }
                 Ok(Event::Eof) => break,
@@ -543,7 +546,8 @@ impl CAIWriter for SvgIO {
                         let _p = xml_path.pop();
                         writer
                             .write_event(Event::End(e))
-                            .map_err(|_e| Error::XmlWriteError)?; // pass Event through
+                            .map_err(|_e| Error::XmlWriteError)?; // pass Event
+                                                                  // through
                     }
                 }
                 Ok(e) => writer.write_event(&e).map_err(|_e| Error::XmlWriteError)?,

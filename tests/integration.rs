@@ -28,7 +28,8 @@ mod integration_1 {
 
     const GENERATOR: &str = "app";
 
-    // prevent tests from polluting the results of each other because of Rust unit test concurrency
+    // prevent tests from polluting the results of each other because of Rust unit
+    // test concurrency
     static PROTECT: std::sync::Mutex<u32> = std::sync::Mutex::new(1);
 
     fn get_temp_signer() -> Box<dyn Signer> {
@@ -195,7 +196,8 @@ mod integration_1 {
         let manifest_store = ManifestStore::from_file(&output_path)?;
 
         println!("{manifest_store}");
-        // std::fs::copy(&output_path, "test_file.jpg")?; // for debugging to get copy of the file
+        // std::fs::copy(&output_path, "test_file.jpg")?; // for debugging to get copy
+        // of the file
 
         assert!(manifest_store.get_active().is_some());
         if let Some(manifest) = manifest_store.get_active() {
@@ -289,8 +291,8 @@ mod integration_1 {
         // my manifest callback handler
         // set some data needed by callback to do what it needs to
         // for this example let's tell it which jumbf box we can to change
-        // There is currently no way to get this directly from Manifest so I am using a hack
-        // to get_placed_manifest to return the manifest UUID.
+        // There is currently no way to get this directly from Manifest so I am using a
+        // hack to get_placed_manifest to return the manifest UUID.
         let path = format!("{}/c2pa.assertions/{}", label, "com.mycompany.myassertion");
 
         let my_callback = PlacedCallback {
@@ -355,8 +357,8 @@ mod integration_1 {
         // my manifest callback handler
         // set some data needed by callback to do what it needs to
         // for this example let's tell it which jumbf box we can to change
-        // There is currently no way to get this directly from Manifest so I am using a hack
-        // to get_placed_manifest to return the manifest UUID.
+        // There is currently no way to get this directly from Manifest so I am using a
+        // hack to get_placed_manifest to return the manifest UUID.
         let path = format!("{}/c2pa.assertions/{}", label, "com.mycompany.myassertion");
 
         let my_callback = PlacedCallback {

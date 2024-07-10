@@ -80,8 +80,8 @@ impl Reader {
     /// let reader = Reader::from_file("path/to/file.jpg").unwrap();
     /// ```
     /// # Note
-    /// If the file does not have a manifest store, the function will check for a sidecar manifest
-    /// with the same name and a .c2pa extension.
+    /// If the file does not have a manifest store, the function will check for
+    /// a sidecar manifest with the same name and a .c2pa extension.
     pub fn from_file<P: AsRef<std::path::Path>>(path: P) -> Result<Reader> {
         let path = path.as_ref();
         let format = crate::format_from_path(path).ok_or(crate::Error::UnsupportedType)?;
@@ -160,10 +160,10 @@ impl Reader {
 
     /// Get the [`ValidationStatus`] array of the manifest store if it exists.
     ///
-    /// This validation report only includes error statuses on applied to the active manifest.
-    /// And error statuses for ingredients that are not already reported by the ingredient status.
-    /// The uri field can be used to identify the associated manifest.
-    /// # Example
+    /// This validation report only includes error statuses on applied to the
+    /// active manifest. And error statuses for ingredients that are not
+    /// already reported by the ingredient status. The uri field can be used
+    /// to identify the associated manifest. # Example
     /// ```no_run
     /// use c2pa::Reader;
     /// let stream = std::io::Cursor::new(include_bytes!("../tests/fixtures/CA.jpg"));
