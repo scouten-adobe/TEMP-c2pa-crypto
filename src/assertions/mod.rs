@@ -25,10 +25,6 @@ pub(crate) use creative_work::CreativeWork;
 mod exif;
 pub(crate) use exif::Exif;
 
-#[allow(dead_code)] // will become public later
-mod ingredient;
-pub(crate) use ingredient::{Ingredient, Relationship};
-
 pub mod labels;
 
 mod metadata;

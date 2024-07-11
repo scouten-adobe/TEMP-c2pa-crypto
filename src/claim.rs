@@ -1832,7 +1832,7 @@ impl Claim {
 
     // Given a proposed label, make a new label that is unique within this
     // assertion store. Typically this is done by adding `__{n}` where `n` is
-    // an integer starting from 1. Ingredient thumbnails have special handling.
+    // an integer starting from 1.
     fn make_assertion_instance_label(&self, assertion_label: &str) -> String {
         let cnt = self.next_instance(assertion_label);
 

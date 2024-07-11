@@ -14,7 +14,7 @@
 use std::{borrow::Cow, collections::HashMap, io::Cursor, slice::Iter};
 
 use async_generic::async_generic;
-use log::{debug, error};
+use log::debug;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -26,7 +26,6 @@ use crate::{
     claim::{Claim, RemoteManifest},
     error::{Error, Result},
     hashed_uri::HashedUri,
-    ingredient::Ingredient,
     jumbf,
     manifest_assertion::ManifestAssertion,
     resource_store::{mime_from_uri, skip_serializing_resources, ResourceRef, ResourceStore},
@@ -76,10 +75,6 @@ pub struct Manifest {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     thumbnail: Option<ResourceRef>,
-
-    /// A List of ingredients
-    #[serde(default = "default_vec::<Ingredient>")]
-    ingredients: Vec<Ingredient>,
 
     /// A List of verified credentials
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -179,18 +174,6 @@ impl Manifest {
     /// Returns a thumbnail ResourceRef or `None`.
     pub fn thumbnail_ref(&self) -> Option<&ResourceRef> {
         self.thumbnail.as_ref()
-    }
-
-    /// Returns immutable [Ingredient]s used by this Manifest
-    /// This can include a parent as well as any placed assets
-    pub fn ingredients(&self) -> &[Ingredient] {
-        &self.ingredients
-    }
-
-    /// Returns mutable [Ingredient]s used by this Manifest
-    /// This can include a parent as well as any placed assets
-    pub fn ingredients_mut(&mut self) -> &mut [Ingredient] {
-        &mut self.ingredients
     }
 
     /// Returns Assertions for this Manifest
@@ -315,31 +298,6 @@ impl Manifest {
         self.signature_info.as_ref()
     }
 
-    /// Returns the parent ingredient if it exists
-    pub fn parent(&self) -> Option<&Ingredient> {
-        self.ingredients.iter().find(|i| i.is_parent())
-    }
-
-    /// Sets the parent ingredient, assuring it is first and setting the
-    /// is_parent flag
-    pub fn set_parent(&mut self, mut ingredient: Ingredient) -> Result<&mut Self> {
-        // there should only be one parent so return an error if we already have one
-        if self.parent().is_some() {
-            error!("parent already added");
-            return Err(Error::BadParam("Parent parent already added".to_owned()));
-        }
-        ingredient.set_is_parent();
-        self.ingredients.insert(0, ingredient);
-
-        Ok(self)
-    }
-
-    /// Add an ingredient removing duplicates (consumes the asset)
-    pub fn add_ingredient(&mut self, ingredient: Ingredient) -> &mut Self {
-        self.ingredients.push(ingredient);
-        self
-    }
-
     /// Adds assertion using given label and any serde serializable
     /// The data for predefined assertions must be in correct format
     ///
@@ -406,17 +364,6 @@ impl Manifest {
         } else {
             Err(Error::NotFound)
         }
-    }
-
-    /// Redacts an assertion from the parent [Ingredient] of this manifest using
-    /// the provided assertion label.
-    pub fn add_redaction<S: Into<String>>(&mut self, label: S) -> Result<&mut Self> {
-        // todo: any way to verify if this assertion exists in the parent claim here?
-        match self.redactions.as_mut() {
-            Some(redactions) => redactions.push(label.into()),
-            None => self.redactions = Some([label.into()].to_vec()),
-        }
-        Ok(self)
     }
 
     /// Add verifiable credentials
@@ -541,13 +488,6 @@ impl Manifest {
             let base_label = assertion.label();
             debug!("assertion = {}", &label);
             match base_label.as_ref() {
-                base if base.starts_with(labels::INGREDIENT) => {
-                    // note that we use the original label here, not the base label
-                    let assertion_uri = jumbf::labels::to_assertion_uri(claim.label(), &label);
-                    let ingredient =
-                        Ingredient::from_ingredient_uri(store, manifest_label, &assertion_uri)?;
-                    manifest.add_ingredient(ingredient);
-                }
                 labels::DATA_HASH | labels::BOX_HASH => {
                     // do not include data hash when reading manifests
                 }
@@ -669,13 +609,6 @@ impl Manifest {
                 let id = Claim::vc_id(vc_str)?;
                 vc_table.insert(id, claim.add_verifiable_credential(vc_str)?);
             }
-        }
-
-        let mut ingredient_map = HashMap::new();
-        // add all ingredients to the claim
-        for ingredient in &self.ingredients {
-            let uri = ingredient.add_to_claim(&mut claim, self.redactions.clone(), None)?;
-            ingredient_map.insert(ingredient.instance_id(), uri);
         }
 
         let salt = DefaultSalt::default();

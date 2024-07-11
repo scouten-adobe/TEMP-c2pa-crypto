@@ -17,13 +17,7 @@ use std::path::PathBuf;
 
 use tempfile::TempDir;
 
-use crate::{
-    assertions::{labels, Ingredient, ReviewRating, SchemaDotOrg, Thumbnail},
-    claim::Claim,
-    salt::DefaultSalt,
-    store::Store,
-    RemoteSigner, Result, Signer, SigningAlg,
-};
+use crate::{claim::Claim, store::Store, RemoteSigner, Result, Signer, SigningAlg};
 #[cfg(feature = "openssl_sign")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
@@ -70,64 +64,6 @@ pub fn create_test_claim() -> Result<Claim> {
 
     // add VC entry
     let _hu = claim.add_verifiable_credential(TEST_VC)?;
-
-    // add a binary thumbnail assertion  ('deadbeefadbeadbe')
-    let some_binary_data: Vec<u8> = vec![
-        0x0d, 0x0e, 0x0a, 0x0d, 0x0b, 0x0e, 0x0e, 0x0f, 0x0a, 0x0d, 0x0b, 0x0e, 0x0a, 0x0d, 0x0b,
-        0x0e,
-    ];
-
-    // create a schema.org claim
-    let cr = r#"{
-        "@context": "https://schema.org",
-        "@type": "ClaimReview",
-        "claimReviewed": "The world is flat",
-        "reviewRating": {
-            "@type": "Rating",
-            "ratingValue": "1",
-            "bestRating": "5",
-            "worstRating": "1",
-            "alternateName": "False"
-        }
-    }"#;
-    let claim_review = SchemaDotOrg::from_json_str(cr)?;
-
-    let thumbnail_claim = Thumbnail::new(labels::JPEG_CLAIM_THUMBNAIL, some_binary_data.clone());
-
-    let thumbnail_ingred = Thumbnail::new(labels::JPEG_INGREDIENT_THUMBNAIL, some_binary_data);
-
-    claim.add_assertion(&claim_review)?;
-    claim.add_assertion(&thumbnail_claim)?;
-
-    let thumb_uri = claim.add_assertion_with_salt(&thumbnail_ingred, &DefaultSalt::default())?;
-
-    let review = ReviewRating::new(
-        "a 3rd party plugin was used",
-        Some("actions.unknownActionsPerformed".to_string()),
-        1,
-    );
-
-    //let data_path = claim.add_ingredient_data("some data".as_bytes());
-    let ingredient = Ingredient::new(
-        "image 1.jpg",
-        "image/jpeg",
-        "xmp.iid:7b57930e-2f23-47fc-affe-0400d70b738d",
-        Some("xmp.did:87d51599-286e-43b2-9478-88c79f49c347"),
-    )
-    .set_thumbnail(Some(&thumb_uri))
-    //.set_manifest_data(&data_path)
-    .add_review(review);
-
-    let ingredient2 = Ingredient::new(
-        "image 2.png",
-        "image/png",
-        "xmp.iid:7b57930e-2f23-47fc-affe-0400d70b738c",
-        Some("xmp.did:87d51599-286e-43b2-9478-88c79f49c346"),
-    )
-    .set_thumbnail(Some(&thumb_uri));
-
-    claim.add_assertion_with_salt(&ingredient, &DefaultSalt::default())?;
-    claim.add_assertion_with_salt(&ingredient2, &DefaultSalt::default())?;
 
     Ok(claim)
 }

@@ -21,10 +21,7 @@ use log::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    assertion::AssertionBase,
-    assertions::Ingredient,
     error::Error,
-    jumbf,
     status_tracker::{LogItem, StatusTracker},
     store::Store,
 };
@@ -160,7 +157,7 @@ impl PartialEq for ValidationStatus {
 /// each item in the tracker which reflect errors in the active manifest or
 /// which would not be reported as a validation error for any ingredient.
 pub fn status_for_store(
-    store: &Store,
+    _store: &Store,
     validation_log: &impl StatusTracker,
 ) -> Vec<ValidationStatus> {
     let statuses: Vec<ValidationStatus> = validation_log
@@ -169,45 +166,6 @@ pub fn status_for_store(
         .filter_map(ValidationStatus::from_validation_item)
         .filter(|s| !is_success(&s.code))
         .collect();
-
-    // Filter out any status that is already captured in an ingredient assertion.
-    if let Some(claim) = store.provenance_claim() {
-        let active_manifest = Some(claim.label().to_string());
-
-        // This closure returns true if the URI references the store's active manifest.
-        let is_active_manifest = |uri: Option<&str>| {
-            uri.filter(|uri| jumbf::labels::manifest_label_from_uri(uri) == active_manifest)
-                .is_some()
-        };
-
-        // We only need to do the more detailed filtering if there are any status
-        // reports that reference ingredients.
-        if statuses
-            .iter()
-            .any(|s| !is_active_manifest(s.url.as_deref()))
-        {
-            // Collect all the ValidationStatus records from all the ingredients in the
-            // store.
-            let ingredient_statuses: Vec<ValidationStatus> = claim
-                .ingredient_assertions()
-                .iter()
-                .filter_map(|a| Ingredient::from_assertion(a).ok())
-                .filter_map(|i| i.validation_status)
-                .flat_map(|x| x.into_iter())
-                .collect();
-
-            // Filter to only contain the active statuses and nested statuses not found in
-            // active.
-            return statuses
-                .iter()
-                .filter(|s| {
-                    is_active_manifest(s.url.as_deref())
-                        || !ingredient_statuses.iter().any(|i| s == &i)
-                })
-                .map(|s| s.to_owned())
-                .collect();
-        }
-    }
 
     statuses
 }

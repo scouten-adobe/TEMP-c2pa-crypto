@@ -1146,7 +1146,7 @@ impl CAICBORAssertionBox {
 // ANCHOR Ingredient Box
 /// Ingedient  Box
 #[derive(Debug)]
-pub struct CAIIngredientBox {
+pub(crate) struct CAIIngredientBox {
     ingredient_box: JUMBFSuperBox,
 }
 

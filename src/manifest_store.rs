@@ -89,16 +89,7 @@ impl ManifestStore {
             None => self.get_active(),
         };
         if let Some(manifest) = manifest {
-            let mut resources = manifest.resources();
-            if !resources.exists(uri) {
-                // also search ingredients to support Reader model
-                for ingredient in manifest.ingredients() {
-                    if ingredient.resources().exists(uri) {
-                        resources = ingredient.resources();
-                        break;
-                    }
-                }
-            }
+            let resources = manifest.resources();
             resources.write_stream(uri, stream)
         } else {
             Err(Error::ResourceNotFound(uri.to_owned()))
@@ -379,31 +370,9 @@ mod tests {
     use wasm_bindgen_test::*;
 
     use super::*;
-    use crate::{status_tracker::OneShotStatusTracker, utils::test::create_test_store};
 
     #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
-    // #[cfg_attr(not(target_arch = "wasm32"), test)]
-    // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    #[test]
-    fn manifest_report() {
-        let store = create_test_store().expect("creating test store");
-
-        let manifest_store = ManifestStore::from_store(store, &OneShotStatusTracker::new());
-        assert!(manifest_store.active_manifest.is_some());
-        assert!(!manifest_store.manifests.is_empty());
-        let manifest = manifest_store.get_active().unwrap();
-        assert!(!manifest.ingredients().is_empty());
-        // make sure we have two different ingredients
-        assert_eq!(manifest.ingredients()[0].format(), "image/jpeg");
-        assert_eq!(manifest.ingredients()[1].format(), "image/png");
-
-        let full_report = manifest_store.to_string();
-        assert!(!full_report.is_empty());
-        println!("{full_report}");
-    }
 
     #[test]
     #[cfg(feature = "v1_api")]
@@ -418,7 +387,6 @@ mod tests {
         assert!(!manifest_store.manifests().is_empty());
         assert!(manifest_store.validation_status().is_none());
         let manifest = manifest_store.get_active().unwrap();
-        assert!(!manifest.ingredients().is_empty());
         assert_eq!(manifest.issuer().unwrap(), "C2PA Test Signing Cert");
         assert!(manifest.time().is_some());
     }
@@ -439,7 +407,6 @@ mod tests {
         assert!(!manifest_store.manifests().is_empty());
         assert!(manifest_store.validation_status().is_none());
         let manifest = manifest_store.get_active().unwrap();
-        assert!(!manifest.ingredients().is_empty());
         assert_eq!(manifest.issuer().unwrap(), "C2PA Test Signing Cert");
         assert!(manifest.time().is_some());
     }
@@ -476,7 +443,6 @@ mod tests {
         assert!(!manifest_store.manifests().is_empty());
         assert!(manifest_store.validation_status().is_none());
         let manifest = manifest_store.get_active().unwrap();
-        assert!(!manifest.ingredients().is_empty());
         assert_eq!(manifest.issuer().unwrap(), "C2PA Test Signing Cert");
         assert!(manifest.time().is_some());
     }

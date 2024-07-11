@@ -42,7 +42,7 @@ use crate::{
 #[derive(Debug, Default, Deserialize, Serialize)]
 /// An `Ingredient` is any external asset that has been used in the creation of
 /// an image.
-pub struct Ingredient {
+pub(crate) struct Ingredient {
     /// A human-readable title, generally source filename.
     title: String,
 
@@ -140,22 +140,6 @@ fn default_relationship() -> Relationship {
 }
 
 impl Ingredient {
-    /// Constructs a new `Ingredient`.
-    ///
-    /// # Arguments
-    ///
-    /// * `title` - A user-displayable name for this ingredient (often a
-    ///   filename).
-    /// * `format` - The MIME media type of the ingredient - i.e. `image/jpeg`.
-    /// * `instance_id` - A unique identifier, such as the value of the
-    ///   ingredient's `xmpMM:InstanceID`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use c2pa_crypto::Ingredient;
-    /// let ingredient = Ingredient::new("title", "image/jpeg", "ed610ae51f604002be3dbf0c589a2f1f");
-    /// ```
     pub fn new<S>(title: S, format: S, instance_id: S) -> Self
     where
         S: Into<String>,
@@ -168,20 +152,6 @@ impl Ingredient {
         }
     }
 
-    /// Constructs a new V2 `Ingredient`.
-    ///
-    /// # Arguments
-    ///
-    /// * `title` - A user-displayable name for this ingredient (often a
-    ///   filename).
-    /// * `format` - The MIME media type of the ingredient - i.e. `image/jpeg`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use c2pa_crypto::Ingredient;
-    /// let ingredient = Ingredient::new_v2("title", "image/jpeg");
-    /// ```
     pub fn new_v2<S1, S2>(title: S1, format: S2) -> Self
     where
         S1: Into<String>,
@@ -1060,28 +1030,6 @@ impl Ingredient {
         claim.add_assertion(&ingredient_assertion)
     }
 
-    /// Asynchronously create an Ingredient from a binary manifest (.c2pa) and
-    /// asset bytes
-    ///
-    /// # Example: Create an Ingredient from a binary manifest (.c2pa) and asset bytes
-    /// ```
-    /// use c2pa_crypto::{Result, Ingredient};
-    ///
-    /// # fn main() -> Result<()> {
-    /// #    async {
-    ///         let asset_bytes = include_bytes!("../tests/fixtures/cloud.jpg");
-    ///         let manifest_bytes = include_bytes!("../tests/fixtures/cloud_manifest.c2pa");
-    ///
-    ///         let ingredient = Ingredient::from_manifest_and_asset_bytes_async(manifest_bytes.to_vec(), "image/jpeg", asset_bytes)
-    ///             .await
-    ///             .unwrap();
-    ///
-    ///         println!("{}", ingredient);
-    /// #    };
-    /// #
-    /// #    Ok(())
-    /// }
-    /// ```
     pub async fn from_manifest_and_asset_bytes_async<M: Into<Vec<u8>>>(
         manifest_bytes: M,
         format: &str,

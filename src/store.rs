@@ -20,12 +20,10 @@ use async_generic::async_generic;
 use log::error;
 
 use crate::{
-    assertion::{
-        Assertion, AssertionBase, AssertionData, AssertionDecodeError, AssertionDecodeErrorCause,
-    },
+    assertion::{Assertion, AssertionData, AssertionDecodeError, AssertionDecodeErrorCause},
     assertions::{
         labels::{self, CLAIM},
-        DataBox, DataHash, Ingredient, Relationship,
+        DataBox, DataHash,
     },
     asset_io::{
         CAIRead, CAIReadWrite, HashBlockObjectType, HashObjectPositions, RemoteRefEmbedType,
@@ -35,7 +33,7 @@ use crate::{
     cose_validator::{check_ocsp_status, verify_cose, verify_cose_async},
     error::{Error, Result},
     external_manifest::ManifestPatchCallback,
-    hash_utils::{hash_by_alg, vec_compare, verify_by_alg},
+    hash_utils::{hash_by_alg, vec_compare},
     jumbf::{
         self,
         boxes::*,
@@ -277,55 +275,6 @@ impl Store {
         self.claims_map.insert(claim_label.clone(), index);
 
         Ok(claim_label)
-    }
-
-    /// Add a new update manifest to this Store. The manifest label
-    /// may be updated to reflect is position in the manifest Store
-    /// if there are conflicting label names.  The function
-    /// will return the label of the claim used
-    pub fn commit_update_manifest(&mut self, mut claim: Claim) -> Result<String> {
-        claim.set_update_manifest(true);
-
-        // check for disallowed assertions
-        if claim.has_assertion_type(labels::DATA_HASH) || claim.has_assertion_type(labels::ACTIONS)
-        {
-            return Err(Error::ClaimInvalidContent);
-        }
-
-        // must have exactly one ingredient
-        let ingredient = match claim.get_assertion(Ingredient::LABEL, 0) {
-            Some(i) => {
-                if claim.count_instances(Ingredient::LABEL) > 1 {
-                    return Err(Error::ClaimInvalidContent);
-                } else {
-                    i
-                }
-            }
-            None => return Err(Error::ClaimInvalidContent),
-        };
-
-        let ingredient_helper = Ingredient::from_assertion(ingredient)?;
-
-        // must have a parent relationship
-        if ingredient_helper.relationship != Relationship::ParentOf {
-            return Err(Error::IngredientNotFound);
-        }
-
-        // make sure ingredient c2pa.manifest points to provenance claim
-        if let Some(c2pa_manifest) = ingredient_helper.c2pa_manifest {
-            // the manifest should refer to provenance claim
-            if let Some(pc) = self.provenance_claim() {
-                if !c2pa_manifest.url().contains(pc.label()) {
-                    return Err(Error::IngredientNotFound);
-                }
-            } else {
-                return Err(Error::IngredientNotFound);
-            }
-        } else {
-            return Err(Error::IngredientNotFound);
-        }
-
-        self.commit_claim(claim)
     }
 
     /// Get Claim by label
@@ -1266,198 +1215,21 @@ impl Store {
 
     // wake the ingredients and validate
     fn ingredient_checks(
-        store: &Store,
-        claim: &Claim,
-        asset_data: &mut ClaimAssetData<'_>,
-        validation_log: &mut impl StatusTracker,
+        _store: &Store,
+        _claim: &Claim,
+        _asset_data: &mut ClaimAssetData<'_>,
+        _validation_log: &mut impl StatusTracker,
     ) -> Result<()> {
-        let mut num_parent_ofs = 0;
-
-        // walk the ingredients
-        for i in claim.ingredient_assertions() {
-            let ingredient_assertion = Ingredient::from_assertion(i)?;
-
-            // is this an ingredient
-            if let Some(ref c2pa_manifest) = &ingredient_assertion.c2pa_manifest {
-                let label = Store::manifest_label_from_path(&c2pa_manifest.url());
-
-                // check for parentOf relationships
-                if ingredient_assertion.relationship == Relationship::ParentOf {
-                    num_parent_ofs += 1;
-                }
-
-                if let Some(ingredient) = store.get_claim(&label) {
-                    let alg = match c2pa_manifest.alg() {
-                        Some(a) => a,
-                        None => ingredient.alg().to_owned(),
-                    };
-
-                    // get the 1.1-1.2 box hash
-                    let box_hash = store.get_manifest_box_hash(ingredient);
-
-                    // test for 1.1 hash then 1.0 version
-                    if !vec_compare(&c2pa_manifest.hash(), &box_hash)
-                        && !verify_by_alg(&alg, &c2pa_manifest.hash(), &ingredient.data()?, None)
-                    {
-                        let log_item = log_item!(
-                            &c2pa_manifest.url(),
-                            "ingredient hash incorrect",
-                            "ingredient_checks"
-                        )
-                        .error(Error::HashMismatch(
-                            "ingredient hash does not match found ingredient".to_string(),
-                        ))
-                        .validation_status(validation_status::INGREDIENT_HASHEDURI_MISMATCH);
-                        validation_log.log(
-                            log_item,
-                            Some(Error::HashMismatch(
-                                "ingredient hash does not match found ingredient".to_string(),
-                            )),
-                        )?;
-                    }
-
-                    // make sure
-                    // verify the ingredient claim
-                    Claim::verify_claim(
-                        ingredient,
-                        asset_data,
-                        false,
-                        store.trust_handler(),
-                        validation_log,
-                    )?;
-                } else {
-                    let log_item = log_item!(
-                        &c2pa_manifest.url(),
-                        "ingredient not found",
-                        "ingredient_checks"
-                    )
-                    .error(Error::ClaimVerification(format!(
-                        "ingredient: {label} is missing"
-                    )))
-                    .validation_status(validation_status::CLAIM_MISSING);
-                    validation_log.log(
-                        log_item,
-                        Some(Error::ClaimVerification(format!(
-                            "ingredient: {label} is missing"
-                        ))),
-                    )?;
-                }
-            }
-        }
-
-        // check ingredient rules
-        if claim.update_manifest() {
-            if !(num_parent_ofs == 1 && claim.ingredient_assertions().len() == 1) {
-                let log_item = log_item!(
-                    &claim.uri(),
-                    "update manifest must have one parent",
-                    "ingredient_checks"
-                )
-                .error(Error::ClaimVerification(
-                    "update manifest must have one parent".to_string(),
-                ))
-                .validation_status(validation_status::MANIFEST_UPDATE_WRONG_PARENTS);
-                validation_log.log(
-                    log_item,
-                    Some(Error::ClaimVerification(
-                        "update manifest must have one parent".to_string(),
-                    )),
-                )?;
-            }
-        } else if num_parent_ofs > 1 {
-            let log_item = log_item!(
-                &claim.uri(),
-                "too many ingredient parents",
-                "ingredient_checks"
-            )
-            .error(Error::ClaimVerification(
-                "ingredient has more than one parent".to_string(),
-            ))
-            .validation_status(validation_status::MANIFEST_MULTIPLE_PARENTS);
-            validation_log.log(
-                log_item,
-                Some(Error::ClaimVerification(
-                    "ingredient has more than one parent".to_string(),
-                )),
-            )?;
-        }
-
         Ok(())
     }
 
     // wake the ingredients and validate
     async fn ingredient_checks_async(
-        store: &Store,
-        claim: &Claim,
-        asset_data: &mut ClaimAssetData<'_>,
-        validation_log: &mut impl StatusTracker,
+        _store: &Store,
+        _claim: &Claim,
+        _asset_data: &mut ClaimAssetData<'_>,
+        _validation_log: &mut impl StatusTracker,
     ) -> Result<()> {
-        // walk the ingredients
-        for i in claim.ingredient_assertions() {
-            let ingredient_assertion = Ingredient::from_assertion(i)?;
-
-            // is this an ingredient
-            if let Some(ref c2pa_manifest) = &ingredient_assertion.c2pa_manifest {
-                let label = Store::manifest_label_from_path(&c2pa_manifest.url());
-
-                if let Some(ingredient) = store.get_claim(&label) {
-                    let alg = match c2pa_manifest.alg() {
-                        Some(a) => a,
-                        None => ingredient.alg().to_owned(),
-                    };
-
-                    // get the 1.1-1.2 box hash
-                    let box_hash = store.get_manifest_box_hash(ingredient);
-
-                    // test for 1.1 hash then 1.0 version
-                    if !vec_compare(&c2pa_manifest.hash(), &box_hash)
-                        && !verify_by_alg(&alg, &c2pa_manifest.hash(), &ingredient.data()?, None)
-                    {
-                        let log_item = log_item!(
-                            &c2pa_manifest.url(),
-                            "ingredient hash incorrect",
-                            "ingredient_checks_async"
-                        )
-                        .error(Error::HashMismatch(
-                            "ingredient hash does not match found ingredient".to_string(),
-                        ))
-                        .validation_status(validation_status::INGREDIENT_HASHEDURI_MISMATCH);
-                        validation_log.log(
-                            log_item,
-                            Some(Error::HashMismatch(
-                                "ingredient hash does not match found ingredient".to_string(),
-                            )),
-                        )?;
-                    }
-                    // verify the ingredient claim
-                    Claim::verify_claim_async(
-                        ingredient,
-                        asset_data,
-                        false,
-                        store.trust_handler(),
-                        validation_log,
-                    )
-                    .await?;
-                } else {
-                    let log_item = log_item!(
-                        &c2pa_manifest.url(),
-                        "ingredient not found",
-                        "ingredient_checks_async"
-                    )
-                    .error(Error::ClaimVerification(format!(
-                        "ingredient: {label} is missing"
-                    )))
-                    .validation_status(validation_status::CLAIM_MISSING);
-                    validation_log.log(
-                        log_item,
-                        Some(Error::ClaimVerification(format!(
-                            "ingredient: {label} is missing"
-                        ))),
-                    )?;
-                }
-            }
-        }
-
         Ok(())
     }
 
@@ -2030,53 +1802,6 @@ impl Store {
                 return Err(Error::OtherError(
                     "patched manifest changed the Claim structure".into(),
                 ));
-            }
-
-            // check that other manifests have not changed
-            // check expected ingredients against those in the new updated store
-            for i in pc_mut.ingredient_assertions() {
-                let ingredient_assertion = Ingredient::from_assertion(i)?;
-
-                // is this an ingredient
-                if let Some(ref c2pa_manifest) = &ingredient_assertion.c2pa_manifest {
-                    let label = Store::manifest_label_from_path(&c2pa_manifest.url());
-
-                    if let Some(ingredient) = new_store.get_claim(&label) {
-                        let alg = match c2pa_manifest.alg() {
-                            Some(a) => a,
-                            None => ingredient.alg().to_owned(),
-                        };
-
-                        // get the 1.1-1.2 box hash
-                        let box_hash = new_store.get_manifest_box_hash(&ingredient.clone());
-
-                        // test for 1.1 hash then 1.0 version
-                        if !vec_compare(&c2pa_manifest.hash(), &box_hash)
-                            && !verify_by_alg(
-                                &alg,
-                                &c2pa_manifest.hash(),
-                                &ingredient.data()?,
-                                None,
-                            )
-                        {
-                            let log_item = log_item!(
-                                &c2pa_manifest.url(),
-                                "ingredient hash incorrect",
-                                "embed_placed_manifest"
-                            )
-                            .error(Error::HashMismatch(
-                                "ingredient hash does not match found ingredient".to_string(),
-                            ))
-                            .validation_status(validation_status::INGREDIENT_HASHEDURI_MISMATCH);
-                            validation_log.log(
-                                log_item,
-                                Some(Error::HashMismatch(
-                                    "ingredient hash does not match found ingredient".to_string(),
-                                )),
-                            )?;
-                        }
-                    }
-                }
             }
 
             // check to make sure assertion changes are OK and nothing else changed.

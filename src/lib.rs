@@ -50,7 +50,6 @@ pub use claim_generator_info::ClaimGeneratorInfo;
 pub use error::{Error, Result};
 pub use external_manifest::ManifestPatchCallback;
 pub use hash_utils::{hash_stream_by_alg, HashRange};
-pub use ingredient::Ingredient;
 pub use manifest::Manifest;
 pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
 #[cfg(feature = "v1_api")]
@@ -73,7 +72,6 @@ pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
 pub(crate) mod external_manifest;
 pub(crate) mod hashed_uri;
-pub(crate) mod ingredient;
 #[allow(dead_code)]
 pub(crate) mod jumbf;
 pub(crate) mod manifest;
