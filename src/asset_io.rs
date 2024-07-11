@@ -12,12 +12,10 @@
 // each license.
 
 use std::{
-    fmt, fs,
+    fmt,
     io::{Cursor, Read, Seek, Write},
     path::Path,
 };
-
-use tempfile::NamedTempFile;
 
 use crate::{assertions::BoxMap, error::Result};
 
@@ -205,31 +203,4 @@ pub trait RemoteRefEmbed {
 pub trait ComposedManifestRef {
     // Return entire CAI block as Vec<u8>
     fn compose_manifest(&self, manifest_data: &[u8], format: &str) -> Result<Vec<u8>>;
-}
-
-/// Utility function to rename a file or, if the provided paths are on separate
-/// mounting points, move a file from a temporary location to its final
-/// location.
-///
-/// If the rename is not possible due to cross volume references, the file will
-/// be copied to the final and then the temp file we be deleted.
-pub fn rename_or_move<P>(temp_file: NamedTempFile, asset_path: P) -> Result<()>
-where
-    P: AsRef<Path>,
-{
-    // Clear temp flag for Windows.
-    let (_, path) = temp_file
-        .keep()
-        .map_err(|e| crate::Error::OtherError(Box::new(e)))?;
-
-    // Move the temp_file to the asset's final path.
-    fs::rename(&path, asset_path.as_ref())
-        // Attempt to copy the file instead if the file's final location is on a different volume.
-        .or_else(|_| {
-            fs::copy(&path, asset_path).map(|_| ()).and_then(|_| {
-                // Remove the temporary file.
-                fs::remove_file(path)
-            })
-        })
-        .map_err(crate::Error::IoError)
 }

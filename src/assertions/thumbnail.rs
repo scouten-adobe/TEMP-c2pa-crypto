@@ -36,7 +36,6 @@ impl Thumbnail {
             "jpeg" | "jpk2" => "image/jpeg",
             "bmp" => "image/bmp",
             "gif" => "image/gif",
-            "tiff" => "image/tiff",
             "ico" => "image/x-icon",
             "webp" => "image/webp",
             _ => "application/octet-stream",

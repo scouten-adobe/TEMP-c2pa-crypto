@@ -44,14 +44,9 @@ The library has been tested on the following operating systems:
 
  | Extensions    | MIME type                                           |
  | ------------- | --------------------------------------------------- |
- | `avi`         | `video/msvideo`, `video/avi`, `application-msvideo` |
  | `c2pa`        | `application/x-c2pa-manifest-store`                 |
- | `dng`         | `image/x-adobe-dng`                                 |
  | `jpg`, `jpeg` | `image/jpeg`                                        |
  | `mov`         | `video/quicktime`                                   |
- | `tif`,`tiff`  | `image/tiff`                                        |
- | `wav`         | `audio/wav`                                         |
- | `webp`        | `image/webp`                                        |
 
 ## Usage
 

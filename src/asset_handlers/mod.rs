@@ -13,4 +13,3 @@
 
 pub mod c2pa_io;
 pub mod jpeg_io;
-pub mod tiff_io;
