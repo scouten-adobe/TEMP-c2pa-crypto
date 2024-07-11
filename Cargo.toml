@@ -32,7 +32,6 @@ no_interleaved_io = ["file_io"]
 fetch_remote_manifests = []
 openssl_sign = ["openssl"]
 json_schema = ["dep:schemars"]
-pdf = ["dep:lopdf"]
 v1_api = []
 
 # The diagnostics feature is unsupported and might be removed.
@@ -74,7 +73,6 @@ id3 = "=1.12.0"
 img-parts = "0.3.0"
 jfifdump = "0.5.1"
 log = "0.4.8"
-lopdf = { version = "0.31.0", optional = true }
 lazy_static = "1.4.0"
 memchr = "2.7.1"
 multibase = "0.9.0"
