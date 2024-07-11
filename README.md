@@ -72,7 +72,6 @@ NOTE: If you are building for WASM, omit the `file_io` dependency.
 The Rust library crate provides:
 
 * `file_io` enables manifest generation, signing via OpenSSL, and embedding manifests in various file formats.
-* `add_thumbnails` will generate thumbnails automatically for JPEG files. (no longer included with `file_io`)
 * `serialize_thumbnails` includes binary thumbnail data in the [Serde](https://serde.rs/) serialization output.
 * `xmp_write` enables updating XMP on embed with the `dcterms:provenance` field. (Requires [xmp_toolkit](https://crates.io/crates/xmp_toolkit).)
 * `no_interleaved_io` forces fully-synchronous I/O; otherwise, the library uses threaded I/O for some operations to improve performance.

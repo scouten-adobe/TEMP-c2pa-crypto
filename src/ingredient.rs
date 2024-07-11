@@ -1652,12 +1652,6 @@ mod tests_file_io {
         assert!(ingredient.manifest_data().is_none());
         assert!(ingredient.metadata().is_none());
         assert!(ingredient.instance_id().starts_with("xmp.iid:"));
-        #[cfg(feature = "add_thumbnails")]
-        assert!(ingredient
-            .thumbnail_ref()
-            .unwrap()
-            .identifier
-            .starts_with("xmp.iid"));
     }
 
     #[test]
