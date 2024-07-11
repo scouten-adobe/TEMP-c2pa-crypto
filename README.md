@@ -64,11 +64,6 @@ c2pa = "0.32.5"
 ```
 
 If you want to read or write a manifest file, add the `file_io` dependency to your `Cargo.toml`.
-The `add_thumbnails` feature will generate thumbnails for JPEG files.
- For example:
-```
-c2pa = { version = "0.25.0", features = ["file_io", "add_thumbnails"] }
-```
 
 NOTE: If you are building for WASM, omit the `file_io` dependency.
 

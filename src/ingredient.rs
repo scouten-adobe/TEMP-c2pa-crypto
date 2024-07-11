@@ -848,21 +848,6 @@ impl Ingredient {
         // set validation status from result and log
         self.update_validation_status(result, manifest_bytes, &validation_log)?;
 
-        // create a thumbnail if we don't already have a manifest with a thumb we can
-        // use
-        #[cfg(feature = "add_thumbnails")]
-        if self.thumbnail.is_none() {
-            stream.rewind()?;
-            match crate::utils::thumbnail::make_thumbnail_from_stream(format, stream) {
-                Ok((format, image)) => {
-                    self.set_thumbnail(format, image)?;
-                }
-                Err(err) => {
-                    log::warn!("Could not create thumbnail. {err}");
-                }
-            }
-        }
-
         Ok(self)
     }
 
@@ -924,21 +909,6 @@ impl Ingredient {
 
         // set validation status from result and log
         ingredient.update_validation_status(result, manifest_bytes, &validation_log)?;
-
-        // create a thumbnail if we don't already have a manifest with a thumb we can
-        // use
-        #[cfg(feature = "add_thumbnails")]
-        if ingredient.thumbnail.is_none() {
-            stream.rewind()?;
-            match crate::utils::thumbnail::make_thumbnail_from_stream(format, stream) {
-                Ok((format, image)) => {
-                    ingredient.set_thumbnail(format, image)?;
-                }
-                Err(err) => {
-                    log::warn!("Could not create thumbnail. {err}");
-                }
-            }
-        }
 
         Ok(ingredient)
     }
@@ -1328,20 +1298,6 @@ impl Ingredient {
         // set validation status from result and log
         ingredient.update_validation_status(result, Some(manifest_bytes), &validation_log)?;
 
-        // create a thumbnail if we don't already have a manifest with a thumb we can
-        // use
-        #[cfg(feature = "add_thumbnails")]
-        if ingredient.thumbnail.is_none() {
-            stream.rewind()?;
-            match crate::utils::thumbnail::make_thumbnail_from_stream(format, stream) {
-                Ok((format, image)) => {
-                    ingredient.set_thumbnail(format, image)?;
-                }
-                Err(err) => {
-                    log::warn!("Could not create thumbnail. {err}");
-                }
-            }
-        }
         Ok(ingredient)
     }
 }
@@ -1381,9 +1337,6 @@ pub trait IngredientOptions {
     /// The default is to have no thumbnail, so you must provide an override to
     /// have a thumbnail image
     fn thumbnail(&self, _path: &Path) -> Option<(String, Vec<u8>)> {
-        #[cfg(feature = "add_thumbnails")]
-        return crate::utils::thumbnail::make_thumbnail(_path).ok();
-        #[cfg(not(feature = "add_thumbnails"))]
         None
     }
 
@@ -1538,8 +1491,6 @@ mod tests {
         println!("ingredient = {ingredient}");
         assert_eq!(&ingredient.title, title);
         assert_eq!(ingredient.format(), format);
-        #[cfg(feature = "add_thumbnails")]
-        assert!(ingredient.thumbnail().is_some());
         assert!(ingredient.manifest_data().is_some());
         assert!(ingredient.metadata().is_none());
         assert!(ingredient.validation_status().is_some());
@@ -1646,14 +1597,8 @@ mod tests_file_io {
         ingredient.title().len() + ingredient.instance_id().len() + thumb_size + manifest_data_size
     }
 
-    // check for correct thumbnail generation with or without add_thumbnails feature
-    fn test_thumbnail(ingredient: &Ingredient, format: &str) {
-        if cfg!(feature = "add_thumbnails") {
-            assert!(ingredient.thumbnail().is_some());
-            assert_eq!(ingredient.thumbnail().unwrap().0, format);
-        } else {
-            assert!(ingredient.thumbnail().is_none());
-        }
+    fn test_thumbnail(ingredient: &Ingredient, _format: &str) {
+        assert!(ingredient.thumbnail().is_none());
     }
 
     #[test]

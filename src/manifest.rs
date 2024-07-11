@@ -740,18 +740,6 @@ impl Manifest {
             self.set_title(ingredient.title());
         }
 
-        // if a thumbnail is not already defined, create one here
-        if self.thumbnail_ref().is_none() {
-            #[cfg(feature = "add_thumbnails")]
-            if let Ok((format, image)) = crate::utils::thumbnail::make_thumbnail(path.as_ref()) {
-                // Do not write this as a file when reading from files
-                let base_path = self.resources_mut().take_base_path();
-                self.set_thumbnail(format, image)?;
-                if let Some(path) = base_path {
-                    self.resources_mut().set_base_path(path)
-                }
-            }
-        }
         Ok(())
     }
 
@@ -1136,18 +1124,6 @@ impl Manifest {
         // todo:: read instance_id from xmp from stream
         self.set_instance_id(format!("xmp:iid:{}", Uuid::new_v4()));
 
-        // generate thumbnail if we don't already have one
-        #[cfg(feature = "add_thumbnails")]
-        {
-            if self.thumbnail_ref().is_none() {
-                if let Ok((format, image)) =
-                    crate::utils::thumbnail::make_thumbnail_from_stream(format, source)
-                {
-                    self.set_thumbnail(format, image)?;
-                }
-            }
-        }
-
         // convert the manifest to a store
         let mut store = self.to_store()?;
 
@@ -1177,16 +1153,6 @@ impl Manifest {
         // generate thumbnail if we don't already have one
         #[allow(unused_mut)] // so that this builds with WASM
         let mut stream = std::io::Cursor::new(asset);
-        #[cfg(feature = "add_thumbnails")]
-        {
-            if self.thumbnail_ref().is_none() {
-                if let Ok((format, image)) =
-                    crate::utils::thumbnail::make_thumbnail_from_stream(format, &mut stream)
-                {
-                    self.set_thumbnail(format, image)?;
-                }
-            }
-        }
         let asset = stream.into_inner();
 
         // convert the manifest to a store
