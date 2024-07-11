@@ -1747,20 +1747,6 @@ mod tests_file_io {
 
     #[test]
     #[cfg(feature = "file_io")]
-    fn test_png_no_claim() {
-        let ap = fixture_path("libpng-test.png");
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        stats(&ingredient);
-
-        println!("ingredient = {ingredient}");
-        assert_eq!(ingredient.title(), "libpng-test.png");
-        test_thumbnail(&ingredient, "image/png");
-        assert!(ingredient.provenance().is_none());
-        assert!(ingredient.manifest_data.is_none());
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
     fn test_jpg_bad_signature() {
         let ap = fixture_path(BAD_SIGNATURE_JPEG);
         let ingredient = Ingredient::from_file(ap).expect("from_file");

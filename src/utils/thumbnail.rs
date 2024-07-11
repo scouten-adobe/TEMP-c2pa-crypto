@@ -25,8 +25,6 @@ const THUMBNAIL_JPEG_QUALITY: u8 = 80;
 /// returns Result (format, image_bits) if successful, otherwise Error
 #[cfg(feature = "file_io")]
 pub fn make_thumbnail(path: &std::path::Path) -> Result<(String, Vec<u8>)> {
-    let format = ImageFormat::from_path(path)?;
-
     let mut img = image::open(path)?;
     let longest_edge = THUMBNAIL_LONGEST_EDGE;
 
@@ -34,15 +32,10 @@ pub fn make_thumbnail(path: &std::path::Path) -> Result<(String, Vec<u8>)> {
     if img.width() > longest_edge || img.height() > longest_edge {
         img = img.thumbnail(longest_edge, longest_edge);
     }
-    // for png files, use png thumbnails if there is an alpha channel
-    // for other supported types try a jpeg thumbnail
-    let (output_format, format) = match format {
-        ImageFormat::Png if img.color().has_alpha() => (image::ImageOutputFormat::Png, "image/png"),
-        _ => (
-            image::ImageOutputFormat::Jpeg(THUMBNAIL_JPEG_QUALITY),
-            "image/jpeg",
-        ),
-    };
+    let (output_format, format) = (
+        image::ImageOutputFormat::Jpeg(THUMBNAIL_JPEG_QUALITY),
+        "image/jpeg",
+    );
     let thumbnail_bits = Vec::new();
     let mut cursor = std::io::Cursor::new(thumbnail_bits);
     img.write_to(&mut cursor, output_format)?;
@@ -71,15 +64,10 @@ pub fn make_thumbnail_from_stream<R: Read + Seek + ?Sized>(
         img = img.thumbnail(longest_edge, longest_edge);
     }
 
-    // for png files, use png thumbnails for transparency
-    // for other supported types try a jpeg thumbnail
-    let (output_format, format) = match format {
-        ImageFormat::Png => (image::ImageOutputFormat::Png, "image/png"),
-        _ => (
-            image::ImageOutputFormat::Jpeg(THUMBNAIL_JPEG_QUALITY),
-            "image/jpeg",
-        ),
-    };
+    let (output_format, format) = (
+        image::ImageOutputFormat::Jpeg(THUMBNAIL_JPEG_QUALITY),
+        "image/jpeg",
+    );
     let thumbnail_bits = Vec::new();
     let mut cursor = std::io::Cursor::new(thumbnail_bits);
     img.write_to(&mut cursor, output_format)?;

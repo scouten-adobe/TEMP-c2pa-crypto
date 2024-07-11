@@ -25,8 +25,7 @@ use lazy_static::lazy_static;
 
 use crate::{
     asset_handlers::{
-        c2pa_io::C2paIO, jpeg_io::JpegIO, png_io::PngIO, riff_io::RiffIO, svg_io::SvgIO,
-        tiff_io::TiffIO,
+        c2pa_io::C2paIO, jpeg_io::JpegIO, riff_io::RiffIO, svg_io::SvgIO, tiff_io::TiffIO,
     },
     asset_io::{AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashObjectPositions},
     error::{Error, Result},
@@ -38,7 +37,6 @@ lazy_static! {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(PngIO::new("")),
             Box::new(RiffIO::new("")),
             Box::new(SvgIO::new("")),
             Box::new(TiffIO::new("")),
@@ -64,7 +62,6 @@ lazy_static! {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(PngIO::new("")),
             Box::new(RiffIO::new("")),
             Box::new(SvgIO::new("")),
             Box::new(TiffIO::new("")),
@@ -350,7 +347,6 @@ pub mod tests {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(PngIO::new("")),
             Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
             Box::new(SvgIO::new("")),
@@ -370,7 +366,6 @@ pub mod tests {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(PngIO::new("")),
             Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
             Box::new(SvgIO::new("")),
@@ -389,7 +384,6 @@ pub mod tests {
     fn test_get_writer() {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(JpegIO::new("")),
-            Box::new(PngIO::new("")),
             Box::new(SvgIO::new("")),
             Box::new(RiffIO::new("")),
         ];
@@ -409,7 +403,6 @@ pub mod tests {
 
         assert!(supported.iter().any(|s| s == "jpg"));
         assert!(supported.iter().any(|s| s == "jpeg"));
-        assert!(supported.iter().any(|s| s == "png"));
         assert!(supported.iter().any(|s| s == "avi"));
         assert!(supported.iter().any(|s| s == "webp"));
         assert!(supported.iter().any(|s| s == "wav"));
@@ -465,14 +458,6 @@ pub mod tests {
         test_jumbf("jpeg", &mut reader);
         reader.rewind().unwrap();
         test_remote_ref("jpeg", &mut reader);
-    }
-
-    #[test]
-    fn test_streams_png() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.png").unwrap();
-        test_jumbf("png", &mut reader);
-        reader.rewind().unwrap();
-        test_remote_ref("png", &mut reader);
     }
 
     #[test]

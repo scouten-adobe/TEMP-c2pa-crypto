@@ -1915,8 +1915,6 @@ impl Store {
     /// Returns the supplied manifest composed to be directly compatible with
     /// the desired format. For example, if format is JPEG function will
     /// return the set of APP11 segments that contains the manifest.
-    /// Similarly for PNG it would be the PNG chunk complete with header and
-    /// CRC.
     pub fn get_composed_manifest(manifest_bytes: &[u8], format: &str) -> Result<Vec<u8>> {
         if let Some(h) = get_assetio_handler(format) {
             if let Some(composed_data_handler) = h.composed_data_ref() {
@@ -3681,82 +3679,6 @@ pub mod tests {
 
     #[test]
     #[cfg(feature = "file_io")]
-    fn test_png_jumbf_generation() {
-        // test adding to actual image
-        let ap = fixture_path("libpng-test.png");
-        let temp_dir = tempdir().expect("temp dir");
-        let op = temp_dir_path(&temp_dir, "libpng-test-c2pa.png");
-
-        // Create claims store.
-        let mut store = Store::new();
-
-        // Create a new claim.
-        let claim1 = create_test_claim().unwrap();
-
-        // Create a new claim.
-        let mut claim2 = Claim::new("Photoshop", Some("Adobe"));
-        create_editing_claim(&mut claim2).unwrap();
-
-        // Create a 3rd party claim
-        let mut claim_capture = Claim::new("capture", Some("claim_capture"));
-        create_capture_claim(&mut claim_capture).unwrap();
-
-        // Do we generate JUMBF?
-        let signer = temp_signer();
-
-        // Move the claim to claims list. Note this is not real, the claims would have
-        // to be signed in between commits
-        store.commit_claim(claim1).unwrap();
-        store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
-        store.commit_claim(claim_capture).unwrap();
-        store.save_to_asset(&op, signer.as_ref(), &op).unwrap();
-        store.commit_claim(claim2).unwrap();
-        store.save_to_asset(&op, signer.as_ref(), &op).unwrap();
-
-        // write to new file
-        println!("Provenance: {}\n", store.provenance_path().unwrap());
-
-        let mut report = DetailedStatusTracker::new();
-
-        // read from new file
-        let new_store = Store::load_from_asset(&op, true, &mut report).unwrap();
-
-        // can  we get by the ingredient data back
-        let _some_binary_data: Vec<u8> = vec![
-            0x0d, 0x0e, 0x0a, 0x0d, 0x0b, 0x0e, 0x0e, 0x0f, 0x0a, 0x0d, 0x0b, 0x0e, 0x0a, 0x0d,
-            0x0b, 0x0e,
-        ];
-
-        // dump store and compare to original
-        for claim in new_store.claims() {
-            let _restored_json = claim
-                .to_json(AssertionStoreJsonFormat::OrderedList, false)
-                .unwrap();
-            let _orig_json = store
-                .get_claim(claim.label())
-                .unwrap()
-                .to_json(AssertionStoreJsonFormat::OrderedList, false)
-                .unwrap();
-
-            println!(
-                "Claim: {} \n{}",
-                claim.label(),
-                claim
-                    .to_json(AssertionStoreJsonFormat::OrderedListNoBinary, true)
-                    .expect("could not restore from json")
-            );
-
-            for hashed_uri in claim.assertions() {
-                let (label, instance) = Claim::assertion_label_from_link(&hashed_uri.url());
-                claim
-                    .get_claim_assertion(&label, instance)
-                    .expect("Should find assertion");
-            }
-        }
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
     fn test_get_data_boxes() {
         // Create a new claim.
         use crate::jumbf::labels::to_relative_uri;
@@ -4478,44 +4400,6 @@ pub mod tests {
         assert!(report_has_err(report.get_log(), Error::JumbfNotFound));
     }
 
-    #[test]
-    fn test_external_manifest_sidecar() {
-        // test adding to actual image
-        let ap = fixture_path("libpng-test.png");
-        let temp_dir = tempdir().expect("temp dir");
-        let op = temp_dir_path(&temp_dir, "libpng-test-c2pa.png");
-
-        let sidecar = op.with_extension(MANIFEST_STORE_EXT);
-
-        // Create claims store.
-        let mut store = Store::new();
-
-        // Create a new claim.
-        let mut claim = create_test_claim().unwrap();
-
-        // set claim for side car generation
-        claim.set_external_manifest();
-
-        // Do we generate JUMBF?
-        let signer = temp_signer();
-
-        store.commit_claim(claim).unwrap();
-
-        let saved_manifest = store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
-
-        assert!(sidecar.exists());
-
-        // load external manifest
-        let loaded_manifest = std::fs::read(sidecar).unwrap();
-
-        // compare returned to external
-        assert_eq!(saved_manifest, loaded_manifest);
-
-        // test auto loading of sidecar with validation
-        let mut validation_log = OneShotStatusTracker::default();
-        Store::load_from_asset(&op, true, &mut validation_log).unwrap();
-    }
-
     // generalize test for multipe file types
     fn external_manifest_test(file_name: &str) {
         // test adding to actual image
@@ -4572,11 +4456,6 @@ pub mod tests {
     }
 
     #[test]
-    fn test_external_manifest_embedded_png() {
-        external_manifest_test("libpng-test.png");
-    }
-
-    #[test]
     fn test_external_manifest_embedded_tiff() {
         external_manifest_test("TUSCANY.TIF");
     }
@@ -4584,119 +4463,6 @@ pub mod tests {
     #[test]
     fn test_external_manifest_embedded_webp() {
         external_manifest_test("sample1.webp");
-    }
-
-    #[test]
-    fn test_user_guid_external_manifest_embedded() {
-        // test adding to actual image
-        let ap = fixture_path("libpng-test.png");
-        let temp_dir = tempdir().expect("temp dir");
-        let op = temp_dir_path(&temp_dir, "libpng-test-c2pa.png");
-
-        let sidecar = op.with_extension(MANIFEST_STORE_EXT);
-
-        // Create claims store.
-        let mut store = Store::new();
-
-        // Create a new claim.
-        let mut claim = create_test_claim().unwrap();
-
-        // Do we generate JUMBF?
-        let signer = temp_signer();
-
-        // start with base url
-        let fp = format!("file:/{}", sidecar.to_str().unwrap());
-        let url = url::Url::parse(&fp).unwrap();
-
-        let url_string: String = url.into();
-
-        // set claim for side car with remote manifest embedding generation
-        claim.set_embed_remote_manifest(url_string.clone()).unwrap();
-
-        store.commit_claim(claim).unwrap();
-
-        let saved_manifest = store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
-
-        assert!(sidecar.exists());
-
-        // load external manifest
-        let loaded_manifest = std::fs::read(sidecar).unwrap();
-
-        // compare returned to external
-        assert_eq!(saved_manifest, loaded_manifest);
-
-        let mut asset_reader = std::fs::File::open(op.clone()).unwrap();
-        let ext_ref =
-            crate::utils::xmp_inmemory_utils::XmpInfo::from_source(&mut asset_reader, "png")
-                .provenance
-                .unwrap();
-
-        assert_eq!(ext_ref, url_string);
-
-        // make sure it validates
-        let mut validation_log = OneShotStatusTracker::default();
-        Store::load_from_asset(&op, true, &mut validation_log).unwrap();
-    }
-
-    #[test]
-    fn test_external_manifest_from_memory() {
-        // test adding to actual image
-        let ap = fixture_path("libpng-test.png");
-        let temp_dir = tempdir().expect("temp dir");
-        let op = temp_dir_path(&temp_dir, "libpng-test-c2pa.png");
-
-        let sidecar = op.with_extension(MANIFEST_STORE_EXT);
-
-        // Create claims store.
-        let mut store = Store::new();
-
-        // Create a new claim.
-        let mut claim = create_test_claim().unwrap();
-
-        // Do we generate JUMBF?
-        let signer = temp_signer();
-
-        // start with base url
-        let fp = format!("file:/{}", sidecar.to_str().unwrap());
-        let url = url::Url::parse(&fp).unwrap();
-
-        let url_string: String = url.into();
-
-        // set claim for side car with remote manifest embedding generation
-        claim.set_remote_manifest(url_string).unwrap();
-
-        store.commit_claim(claim).unwrap();
-
-        let saved_manifest = store.save_to_asset(&ap, signer.as_ref(), &op).unwrap();
-
-        // delete the sidecar so we can test for url only rea
-        // std::fs::remove_file(sidecar);
-
-        assert!(sidecar.exists());
-
-        // load external manifest
-        let loaded_manifest = std::fs::read(sidecar).unwrap();
-
-        // compare returned to external
-        assert_eq!(saved_manifest, loaded_manifest);
-
-        // Load the exported file into a buffer
-        let file_buffer = std::fs::read(&op).unwrap();
-
-        let mut validation_log = OneShotStatusTracker::default();
-        let result = Store::load_from_memory("png", &file_buffer, true, &mut validation_log);
-
-        assert!(result.is_err());
-
-        // We should get a `JumbfNotFound` error since the external reference points to
-        // a file URL, not a remote URL
-        match result {
-            Ok(_store) => panic!("did not expect to have a store"),
-            Err(e) => match e {
-                Error::JumbfNotFound => {}
-                e => panic!("unexpected error: {e}"),
-            },
-        }
     }
 
     #[actix::test]

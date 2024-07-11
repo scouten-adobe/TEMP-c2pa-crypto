@@ -15,7 +15,6 @@
 pub fn extension_to_mime(extension: &str) -> Option<&'static str> {
     Some(match extension {
         "jpg" | "jpeg" => "image/jpeg",
-        "png" => "image/png",
         "gif" => "image/gif",
         "psd" => "image/vnd.adobe.photoshop",
         "tiff" | "tif" => "image/tiff",
@@ -60,7 +59,6 @@ pub fn format_to_mime(format: &str) -> String {
 pub fn format_to_extension(format: &str) -> Option<&'static str> {
     Some(match format {
         "jpg" | "jpeg" | "image/jpeg" => "jpg",
-        "png" | "image/png" => "png",
         "gif" | "image/gif" => "gif",
         "psd" | "image/vnd.adobe.photoshop" => "psd",
         "tiff" | "tif" | "image/tiff" => "tiff",

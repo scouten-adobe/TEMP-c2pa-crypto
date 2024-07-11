@@ -74,16 +74,6 @@ pub const JPEG_CLAIM_THUMBNAIL: &str = "c2pa.thumbnail.claim.jpeg";
 /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_thumbnail>.
 pub const JPEG_INGREDIENT_THUMBNAIL: &str = "c2pa.thumbnail.ingredient.jpeg";
 
-/// Label prefix for a PNG claim thumbnail assertion.
-///
-/// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_thumbnail>.
-pub const PNG_CLAIM_THUMBNAIL: &str = "c2pa.thumbnail.claim.png";
-
-/// Label prefix for a PNG ingredient thumbnail assertion.
-///
-/// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_thumbnail>.
-pub const PNG_INGREDIENT_THUMBNAIL: &str = "c2pa.thumbnail.ingredient.png";
-
 /// Label prefix for an actions assertion.
 ///
 /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_actions>.
@@ -169,26 +159,9 @@ pub fn version(label: &str) -> Option<usize> {
 
 /// Given a thumbnail label prefix such as `CLAIM_THUMBNAIL` and a file
 /// format (such as `png`), create a suitable label for an assertion.
-///
-/// # Examples
-///
-/// ```
-/// use c2pa_crypto::assertions::labels;
-///
-/// assert_eq!(
-///     labels::add_thumbnail_format(labels::CLAIM_THUMBNAIL, "image/jpeg"),
-///     labels::JPEG_CLAIM_THUMBNAIL
-/// );
-///
-/// assert_eq!(
-///     labels::add_thumbnail_format(labels::INGREDIENT_THUMBNAIL, "image/png"),
-///     labels::PNG_INGREDIENT_THUMBNAIL
-/// );
-/// ```
 pub fn add_thumbnail_format(label: &str, format: &str) -> String {
     match format {
         "image/jpeg" | "jpeg" | "jpg" => format!("{label}.jpeg"),
-        "image/png" | "png" => format!("{label}.png"),
         _ => {
             let p: Vec<&str> = format.split('/').collect();
             if p.len() == 2 && p[0] == "image" {

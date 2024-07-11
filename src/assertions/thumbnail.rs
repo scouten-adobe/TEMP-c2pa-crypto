@@ -34,7 +34,6 @@ impl Thumbnail {
         let image_type = get_thumbnail_image_type(label);
         let content_type = match image_type.as_str() {
             "jpeg" | "jpk2" => "image/jpeg",
-            "png" => "image/png",
             "bmp" => "image/bmp",
             "gif" => "image/gif",
             "tiff" => "image/tiff",
@@ -111,9 +110,7 @@ pub mod tests {
     #[test]
     fn assertion_thumbnail_valid() {
         thumbnail_test(labels::JPEG_CLAIM_THUMBNAIL, "image/jpeg");
-        thumbnail_test(labels::PNG_CLAIM_THUMBNAIL, "image/png");
         thumbnail_test(labels::JPEG_INGREDIENT_THUMBNAIL, "image/jpeg");
-        thumbnail_test(labels::PNG_INGREDIENT_THUMBNAIL, "image/png");
         // unrecognized labels will be formatted as octet_streams
         thumbnail_test("foo", "application/octet-stream");
     }

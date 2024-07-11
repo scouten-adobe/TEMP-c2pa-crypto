@@ -188,8 +188,6 @@ impl ResourceStore {
     pub fn id_from(&self, key: &str, format: &str) -> String {
         let ext = match format {
             "jpg" | "jpeg" | "image/jpeg" => ".jpg",
-            "png" | "image/png" => ".png",
-            //make "svg" | "image/svg+xml" => ".svg",
             "c2pa" | "application/x-c2pa-manifest-store" | "application/c2pa" => ".c2pa",
             _ => "",
         };
@@ -249,7 +247,7 @@ impl ResourceStore {
                 }
                 id = id.replace([':'], "_");
                 // add a file extension if it doesn't have one
-                if !(id.ends_with(".jpeg") || id.ends_with(".png")) {
+                if !id.ends_with(".jpeg") {
                     if let Some(ext) = crate::utils::mime::format_to_extension(format) {
                         id = format!("{}.{}", id, ext);
                     }

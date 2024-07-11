@@ -49,7 +49,6 @@ The library has been tested on the following operating systems:
  | `dng`         | `image/x-adobe-dng`                                 |
  | `jpg`, `jpeg` | `image/jpeg`                                        |
  | `mov`         | `video/quicktime`                                   |
- | `png`         | `image/png`                                         |
  | `svg`         | `image/svg+xml`                                     |
  | `tif`,`tiff`  | `image/tiff`                                        |
  | `wav`         | `audio/wav`                                         |
@@ -65,7 +64,7 @@ c2pa = "0.32.5"
 ```
 
 If you want to read or write a manifest file, add the `file_io` dependency to your `Cargo.toml`.
-The `add_thumbnails` feature will generate thumbnails for JPEG and PNG files.
+The `add_thumbnails` feature will generate thumbnails for JPEG files.
  For example:
 ```
 c2pa = { version = "0.25.0", features = ["file_io", "add_thumbnails"] }
@@ -78,7 +77,7 @@ NOTE: If you are building for WASM, omit the `file_io` dependency.
 The Rust library crate provides:
 
 * `file_io` enables manifest generation, signing via OpenSSL, and embedding manifests in various file formats.
-* `add_thumbnails` will generate thumbnails automatically for JPEG and PNG files. (no longer included with `file_io`)
+* `add_thumbnails` will generate thumbnails automatically for JPEG files. (no longer included with `file_io`)
 * `serialize_thumbnails` includes binary thumbnail data in the [Serde](https://serde.rs/) serialization output.
 * `xmp_write` enables updating XMP on embed with the `dcterms:provenance` field. (Requires [xmp_toolkit](https://crates.io/crates/xmp_toolkit).)
 * `no_interleaved_io` forces fully-synchronous I/O; otherwise, the library uses threaded I/O for some operations to improve performance.
