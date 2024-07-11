@@ -18,8 +18,6 @@
 #![deny(missing_docs)]
 
 use log::debug;
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -36,7 +34,6 @@ use crate::{
 ///
 /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_existing_manifests>.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub struct ValidationStatus {
     code: String,
 

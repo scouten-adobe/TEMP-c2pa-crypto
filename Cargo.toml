@@ -28,7 +28,6 @@ psxxx_ocsp_stapling_experimental = []
 file_io = ["openssl_sign"]
 serialize_thumbnails = []
 openssl_sign = ["openssl"]
-json_schema = ["dep:schemars"]
 v1_api = []
 
 # The diagnostics feature is unsupported and might be removed.

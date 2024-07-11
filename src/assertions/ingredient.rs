@@ -11,8 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::AssetType;
@@ -28,7 +26,6 @@ const ASSERTION_CREATION_VERSION: usize = 2;
 
 // Used to differentiate a parent from a component
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub enum Relationship {
     #[serde(rename = "parentOf")]
     ParentOf,

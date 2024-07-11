@@ -13,8 +13,6 @@
 
 use std::{fmt, ops::Deref};
 
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{
     de::{Deserialize, Deserializer},
     ser::{Serialize, Serializer},
@@ -29,7 +27,6 @@ use serde_cbor::tags::Tagged;
 //
 // https://tools.ietf.org/html/rfc7049#section-2.4.1
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub struct DateT(pub String);
 
 impl Serialize for DateT {

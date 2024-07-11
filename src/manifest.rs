@@ -17,8 +17,6 @@ use std::{fs::create_dir_all, path::Path};
 
 use async_generic::async_generic;
 use log::{debug, error};
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -45,7 +43,6 @@ use crate::{
 
 /// A Manifest represents all the information in a c2pa manifest
 #[derive(Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub struct Manifest {
     /// Optional prefix added to the generated Manifest Label
     /// This is typically Internet domain name for the vendor (i.e. `adobe`)
@@ -1381,7 +1378,6 @@ impl std::fmt::Display for Manifest {
     }
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 /// Holds information about a signature
 pub struct SignatureInfo {
     /// human readable issuing authority for this signature

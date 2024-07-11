@@ -19,8 +19,6 @@ use std::{
 };
 
 use async_generic::async_generic;
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -34,7 +32,6 @@ use crate::{
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 /// A Container for a set of Manifests and a ValidationStatus list
 pub struct ManifestStore {
     #[serde(skip_serializing_if = "Option::is_none")]

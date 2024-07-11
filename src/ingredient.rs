@@ -17,8 +17,6 @@ use std::path::{Path, PathBuf};
 use std::{borrow::Cow, io::Cursor};
 
 use log::{debug, error};
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -46,7 +44,6 @@ use crate::{
 };
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 /// An `Ingredient` is any external asset that has been used in the creation of
 /// an image.
 pub struct Ingredient {

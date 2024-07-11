@@ -22,8 +22,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[cfg(feature = "json_schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -42,7 +40,6 @@ pub(crate) fn skip_serializing_resources(_: &ResourceStore) -> bool {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 #[serde(untagged)]
 pub enum UriOrResource {
     ResourceRef(ResourceRef),
@@ -95,7 +92,6 @@ impl From<HashedUri> for UriOrResource {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 /// A reference to a resource to be used in JSON serialization.
 pub struct ResourceRef {
     /// The mime type of the referenced resource.
@@ -136,7 +132,6 @@ impl ResourceRef {
 /// Resource store to contain binary objects referenced from JSON serializable
 /// structures
 #[derive(Debug, Serialize)]
-#[cfg_attr(feature = "json_schema", derive(JsonSchema))]
 pub struct ResourceStore {
     resources: HashMap<String, Vec<u8>>,
     #[cfg(feature = "file_io")]
