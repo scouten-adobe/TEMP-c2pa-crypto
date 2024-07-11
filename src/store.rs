@@ -2484,7 +2484,6 @@ impl Store {
         }
 
         let mut data;
-        
 
         // we will not do automatic hashing if we detect a box hash present
         let mut needs_hashing = false;

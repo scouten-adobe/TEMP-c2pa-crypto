@@ -45,21 +45,15 @@ The library has been tested on the following operating systems:
  | Extensions    | MIME type                                           |
  | ------------- | --------------------------------------------------- |
  | `avi`         | `video/msvideo`, `video/avi`, `application-msvideo` |
- | `avif`        | `image/avif`                                        |
  | `c2pa`        | `application/x-c2pa-manifest-store`                 |
  | `dng`         | `image/x-adobe-dng`                                 |
- | `heic`        | `image/heic`                                        |
- | `heif`        | `image/heif`                                        |
  | `jpg`, `jpeg` | `image/jpeg`                                        |
- | `m4a`         | `audio/mp4`                                         |
- | `mp4`         | `video/mp4`, `application/mp4`                      |
  | `mov`         | `video/quicktime`                                   |
  | `png`         | `image/png`                                         |
  | `svg`         | `image/svg+xml`                                     |
  | `tif`,`tiff`  | `image/tiff`                                        |
  | `wav`         | `audio/wav`                                         |
  | `webp`        | `image/webp`                                        |
- | `mp3`         | `audio/mpeg`                                        |
 
 ## Usage
 

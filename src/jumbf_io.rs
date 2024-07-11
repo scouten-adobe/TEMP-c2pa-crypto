@@ -25,8 +25,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     asset_handlers::{
-        c2pa_io::C2paIO, jpeg_io::JpegIO, mp3_io::Mp3IO, png_io::PngIO, riff_io::RiffIO,
-        svg_io::SvgIO, tiff_io::TiffIO,
+        c2pa_io::C2paIO, jpeg_io::JpegIO, png_io::PngIO, riff_io::RiffIO, svg_io::SvgIO,
+        tiff_io::TiffIO,
     },
     asset_io::{AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashObjectPositions},
     error::{Error, Result},
@@ -42,7 +42,6 @@ lazy_static! {
             Box::new(RiffIO::new("")),
             Box::new(SvgIO::new("")),
             Box::new(TiffIO::new("")),
-            Box::new(Mp3IO::new("")),
         ];
 
         let mut handler_map = HashMap::new();
@@ -69,7 +68,6 @@ lazy_static! {
             Box::new(RiffIO::new("")),
             Box::new(SvgIO::new("")),
             Box::new(TiffIO::new("")),
-            Box::new(Mp3IO::new("")),
         ];
         let mut handler_map = HashMap::new();
 
@@ -356,7 +354,6 @@ pub mod tests {
             Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
             Box::new(SvgIO::new("")),
-            Box::new(Mp3IO::new("")),
         ];
 
         // build handler map
@@ -377,7 +374,6 @@ pub mod tests {
             Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
             Box::new(SvgIO::new("")),
-            Box::new(Mp3IO::new("")),
         ];
 
         // build handler map
@@ -394,7 +390,6 @@ pub mod tests {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(JpegIO::new("")),
             Box::new(PngIO::new("")),
-            Box::new(Mp3IO::new("")),
             Box::new(SvgIO::new("")),
             Box::new(RiffIO::new("")),
         ];
@@ -422,7 +417,6 @@ pub mod tests {
         assert!(supported.iter().any(|s| s == "tiff"));
         assert!(supported.iter().any(|s| s == "dng"));
         assert!(supported.iter().any(|s| s == "svg"));
-        assert!(supported.iter().any(|s| s == "mp3"));
     }
 
     fn test_jumbf(asset_type: &str, reader: &mut dyn CAIRead) {
@@ -444,9 +438,7 @@ pub mod tests {
             .unwrap();
         removed.set_position(0);
         let result = load_jumbf_from_stream(asset_type, &mut removed);
-        if (asset_type != "wav")
-            && (asset_type != "avi" && asset_type != "mp3" && asset_type != "webp")
-        {
+        if (asset_type != "wav") && (asset_type != "webp") {
             assert!(matches!(&result.err().unwrap(), Error::JumbfNotFound));
         }
         //assert!(matches!(result.err().unwrap(), Error::JumbfNotFound));
@@ -500,14 +492,6 @@ pub mod tests {
     }
 
     #[test]
-    fn test_streams_avi() {
-        let mut reader = std::fs::File::open("tests/fixtures/test.avi").unwrap();
-        test_jumbf("avi", &mut reader);
-        //reader.rewind().unwrap();
-        //test_remote_ref("avi", &mut reader); // not working
-    }
-
-    #[test]
     fn test_streams_tiff() {
         let mut reader = std::fs::File::open("tests/fixtures/TUSCANY.TIF").unwrap();
         test_jumbf("tiff", &mut reader);
@@ -522,15 +506,6 @@ pub mod tests {
         //reader.rewind().unwrap();
         //test_remote_ref("svg", &mut reader); // svg doesn't support remote
         // refs
-    }
-
-    #[test]
-    fn test_streams_mp3() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.mp3").unwrap();
-        test_jumbf("mp3", &mut reader);
-        // mp3 doesn't support remote refs
-        //reader.rewind().unwrap();
-        //test_remote_ref("mp3", &mut reader); // not working
     }
 
     #[test]
