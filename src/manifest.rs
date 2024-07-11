@@ -21,10 +21,7 @@ use uuid::Uuid;
 
 use crate::{
     assertion::{AssertionBase, AssertionData},
-    assertions::{
-        labels, Actions, CreativeWork, DataHash, Exif, Metadata, SoftwareAgent, Thumbnail, User,
-        UserCbor,
-    },
+    assertions::{labels, CreativeWork, DataHash, Exif, Metadata, Thumbnail, User, UserCbor},
     asset_io::{CAIRead, CAIReadWrite},
     claim::{Claim, RemoteManifest},
     error::{Error, Result},
@@ -544,49 +541,6 @@ impl Manifest {
             let base_label = assertion.label();
             debug!("assertion = {}", &label);
             match base_label.as_ref() {
-                base if base.starts_with(labels::ACTIONS) => {
-                    let mut actions = Actions::from_assertion(assertion)?;
-
-                    for action in actions.actions_mut() {
-                        if let Some(SoftwareAgent::ClaimGeneratorInfo(info)) =
-                            action.software_agent_mut()
-                        {
-                            if let Some(icon) = info.icon.as_mut() {
-                                let icon = icon.to_resource_ref(manifest.resources_mut(), claim)?;
-                                info.set_icon(icon);
-                            }
-                        }
-                    }
-
-                    // convert icons in templates to resource refs
-                    if let Some(templates) = actions.templates.as_mut() {
-                        for template in templates {
-                            // replace icon with resource ref
-                            template.icon = match template.icon.take() {
-                                Some(icon) => {
-                                    Some(icon.to_resource_ref(manifest.resources_mut(), claim)?)
-                                }
-                                None => None,
-                            };
-
-                            // replace software agent with resource ref
-                            template.software_agent = match template.software_agent.take() {
-                                Some(SoftwareAgent::ClaimGeneratorInfo(mut info)) => {
-                                    if let Some(icon) = info.icon.as_mut() {
-                                        let icon =
-                                            icon.to_resource_ref(manifest.resources_mut(), claim)?;
-                                        info.set_icon(icon);
-                                    }
-                                    Some(SoftwareAgent::ClaimGeneratorInfo(info))
-                                }
-                                agent => agent,
-                            };
-                        }
-                    }
-                    let manifest_assertion = ManifestAssertion::from_assertion(&actions)?
-                        .set_instance(claim_assertion.instance());
-                    manifest.assertions.push(manifest_assertion);
-                }
                 base if base.starts_with(labels::INGREDIENT) => {
                     // note that we use the original label here, not the base label
                     let assertion_uri = jumbf::labels::to_assertion_uri(claim.label(), &label);
@@ -729,98 +683,6 @@ impl Manifest {
         // add any additional assertions
         for manifest_assertion in &self.assertions {
             match manifest_assertion.label() {
-                l if l.starts_with(Actions::LABEL) => {
-                    let version = labels::version(l);
-
-                    let mut actions: Actions = manifest_assertion.to_assertion()?;
-
-                    let ingredients_key = match version {
-                        None | Some(1) => "ingredient",
-                        Some(2) => "ingredients",
-                        _ => return Err(Error::AssertionUnsupportedVersion),
-                    };
-
-                    // fixup parameters field from instance_id to ingredient uri
-                    let needs_ingredient: Vec<(usize, crate::assertions::Action)> = actions
-                        .actions()
-                        .iter()
-                        .enumerate()
-                        .filter_map(|(i, a)| {
-                            if a.instance_id().is_some()
-                                && a.get_parameter(ingredients_key).is_none()
-                            {
-                                Some((i, a.clone()))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
-
-                    for (index, action) in needs_ingredient {
-                        if let Some(id) = action.instance_id() {
-                            if let Some(hash_url) = ingredient_map.get(id) {
-                                let update = match ingredients_key {
-                                    "ingredient" => {
-                                        action.set_parameter(ingredients_key, hash_url.clone())
-                                    }
-                                    _ => {
-                                        // we only support on instanceId for actions, so only one
-                                        // ingredient on writing
-                                        action.set_parameter(ingredients_key, [hash_url.clone()])
-                                    }
-                                }?;
-                                actions = actions.update_action(index, update);
-                            }
-                        }
-                    }
-
-                    if let Some(templates) = actions.templates.as_mut() {
-                        for template in templates {
-                            // replace icon with hashed_uri
-                            template.icon = match template.icon.take() {
-                                Some(icon) => {
-                                    Some(icon.to_hashed_uri(self.resources(), &mut claim)?)
-                                }
-                                None => None,
-                            };
-
-                            // replace software agent with hashed_uri
-                            template.software_agent = match template.software_agent.take() {
-                                Some(SoftwareAgent::ClaimGeneratorInfo(mut info)) => {
-                                    if let Some(icon) = info.icon.as_mut() {
-                                        let icon =
-                                            icon.to_hashed_uri(self.resources(), &mut claim)?;
-                                        info.set_icon(icon);
-                                    }
-                                    Some(SoftwareAgent::ClaimGeneratorInfo(info))
-                                }
-                                agent => agent,
-                            };
-                        }
-                    }
-
-                    // convert icons in software agents to hashed uris
-                    let actions_mut = actions.actions_mut();
-                    #[allow(clippy::needless_range_loop)]
-                    // clippy is wrong here, we reference index twice
-                    for index in 0..actions_mut.len() {
-                        let action = &actions_mut[index];
-                        if let Some(SoftwareAgent::ClaimGeneratorInfo(info)) =
-                            action.software_agent()
-                        {
-                            if let Some(icon) = info.icon.as_ref() {
-                                let mut info = info.to_owned();
-                                let icon_uri = icon.to_hashed_uri(self.resources(), &mut claim)?;
-                                let update = info.set_icon(icon_uri);
-                                let mut action = action.to_owned();
-                                action = action.set_software_agent(update.to_owned());
-                                actions_mut[index] = action;
-                            }
-                        }
-                    }
-
-                    claim.add_assertion(&actions)
-                }
                 CreativeWork::LABEL => {
                     let mut cw: CreativeWork = manifest_assertion.to_assertion()?;
                     // insert a credentials field if we have a vc that matches the identifier

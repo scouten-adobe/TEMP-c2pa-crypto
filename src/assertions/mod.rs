@@ -13,11 +13,6 @@
 
 //! Assertion helpers to build, validate, and parse assertions.
 
-mod actions;
-pub use actions::SoftwareAgent;
-#[allow(unused_imports)]
-pub(crate) use actions::{c2pa_action, Action, Actions};
-
 mod box_hash;
 pub(crate) use box_hash::{BoxHash, BoxMap, C2PA_BOXHASH};
 
@@ -37,6 +32,7 @@ pub(crate) use ingredient::{Ingredient, Relationship};
 pub mod labels;
 
 mod metadata;
+#[allow(unused_imports)] // TEMPORARY while working on actions
 pub use metadata::{Actor, AssetType, DataBox, Metadata, ReviewRating};
 
 mod schema_org;
