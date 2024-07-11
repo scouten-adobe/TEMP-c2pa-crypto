@@ -52,8 +52,6 @@ pub use external_manifest::ManifestPatchCallback;
 pub use hash_utils::{hash_stream_by_alg, HashRange};
 pub use manifest::Manifest;
 pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
-#[cfg(feature = "v1_api")]
-pub use resource_store::{ResourceRef, ResourceStore};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
 pub use utils::mime::format_from_path;
@@ -77,7 +75,6 @@ pub(crate) mod manifest_assertion;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
-#[allow(dead_code)]
 pub(crate) mod resource_store;
 pub(crate) mod salt;
 pub(crate) mod signer;

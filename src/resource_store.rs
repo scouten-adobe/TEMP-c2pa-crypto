@@ -1,4 +1,4 @@
-// Copyright 2023 Adobe. All rights reserved.
+f// Copyright 2023 Adobe. All rights reserved.
 // This file is licensed to you under the Apache License,
 // Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 // or the MIT license (http://opensource.org/licenses/MIT),
@@ -177,27 +177,6 @@ impl ResourceStore {
     {
         let id = self.id_from(key, format);
         self.add(&id, value)?;
-        Ok(ResourceRef::new(format, id))
-    }
-
-    /// Adds a resource from a URI, generating a [`ResourceRef`].
-    ///
-    /// The generated identifier may be different from the key.
-    pub(crate) fn add_uri<R>(
-        &mut self,
-        uri: &str,
-        format: &str,
-        value: R,
-    ) -> crate::Result<ResourceRef>
-    where
-        R: Into<Vec<u8>>,
-    {
-        let id = uri.to_string();
-
-        // if it isn't jumbf, assume it's an external uri and use it as is
-        if id.starts_with("self#jumbf=") && !self.exists(&id) {
-            self.add(&id, value)?;
-        }
         Ok(ResourceRef::new(format, id))
     }
 
