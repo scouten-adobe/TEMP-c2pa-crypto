@@ -2484,7 +2484,7 @@ impl Store {
         }
 
         let mut data;
-        let jumbf_size;
+        
 
         // we will not do automatic hashing if we detect a box hash present
         let mut needs_hashing = false;
@@ -2516,7 +2516,7 @@ impl Store {
 
         // 3) Generate in memory CAI jumbf block
         data = self.to_jumbf_internal(reserve_size)?;
-        jumbf_size = data.len();
+        let jumbf_size = data.len();
 
         // write the jumbf to the output stream if we are embedding the manifest
         if !remove_manifests {
