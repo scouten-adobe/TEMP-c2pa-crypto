@@ -271,38 +271,17 @@ where
         // move to start of range
         data.seek(SeekFrom::Start(*start))?;
 
-        let mut chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
-        data.read_exact(&mut chunk)?;
-
         loop {
-            let (tx, rx) = std::sync::mpsc::channel();
+            let mut chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
+
+            data.read_exact(&mut chunk)?;
+
+            hasher_enum.update(&chunk);
 
             chunk_left -= chunk.len() as u64;
-
-            std::thread::spawn(move || {
-                hasher_enum.update(&chunk);
-                tx.send(hasher_enum).unwrap_or_default();
-            });
-
-            // are we done
             if chunk_left == 0 {
-                hasher_enum = match rx.recv() {
-                    Ok(hasher) => hasher,
-                    Err(_) => return Err(Error::ThreadReceiveError),
-                };
                 break;
             }
-
-            // read next chunk while we wait for hash
-            let mut next_chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
-            data.read_exact(&mut next_chunk)?;
-
-            hasher_enum = match rx.recv() {
-                Ok(hasher) => hasher,
-                Err(_) => return Err(Error::ThreadReceiveError),
-            };
-
-            chunk = next_chunk;
         }
     }
 
