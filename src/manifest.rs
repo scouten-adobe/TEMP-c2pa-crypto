@@ -1456,8 +1456,6 @@ pub(crate) mod tests {
 
     #[cfg(feature = "file_io")]
     use tempfile::tempdir;
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::*;
 
     #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -1472,7 +1470,6 @@ pub(crate) mod tests {
     };
     use crate::{
         assertions::{c2pa_action, Action, Actions},
-        ingredient::Ingredient,
         utils::test::{temp_signer, TEST_VC},
         Manifest, Result,
     };
