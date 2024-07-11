@@ -244,12 +244,6 @@ pub const ASSERTION_HASHEDURI_MATCH: &str = "assertion.hashedURI.match";
 /// `ValidationStatus.url()` will point to a C2PA assertion.
 pub const ASSERTION_DATAHASH_MATCH: &str = "assertion.dataHash.match";
 
-/// Hash of a box-based asset matches the hash declared in the BMFF
-/// hash assertion.
-///
-/// `ValidationStatus.url()` will point to a C2PA assertion.
-pub const ASSERTION_BMFFHASH_MATCH: &str = "assertion.bmffHash.match";
-
 /// Hash of a box-based asset matches the hash declared in the General Box
 /// Hash assertion.
 ///
@@ -441,12 +435,6 @@ pub const ACTION_ASSERTION_REDACTED: &str = "assertion.action.redacted";
 pub const ASSERTION_DATAHASH_MISMATCH: &str = "assertion.dataHash.mismatch";
 
 /// The hash of a box-based asset does not match the hash declared
-/// in the BMFF hash assertion.
-///
-/// `ValidationStatus.url()` will point to a C2PA assertion.
-pub const ASSERTION_BMFFHASH_MISMATCH: &str = "assertion.bmffHash.mismatch";
-
-/// The hash of a box-based asset does not match the hash declared
 /// in the General Boxes hash assertion.
 ///
 /// `ValidationStatus.url()` will point to a C2PA assertion.
@@ -506,7 +494,6 @@ pub fn is_success(status_code: &str) -> bool {
             | TIMESTAMP_TRUSTED
             | ASSERTION_HASHEDURI_MATCH
             | ASSERTION_DATAHASH_MATCH
-            | ASSERTION_BMFFHASH_MATCH
             | ASSERTION_ACCESSIBLE
             | ASSERTION_BOXHASH_MATCH
     )

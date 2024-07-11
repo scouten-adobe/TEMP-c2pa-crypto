@@ -124,7 +124,6 @@ pub(crate) struct Core {
     hash_alg: String,
     salt_jumbf_boxes: bool,
     prefer_box_hash: bool,
-    prefer_bmff_merkle_tree: bool,
     compress_manifests: bool,
     max_memory_usage: Option<u64>,
 }
@@ -136,7 +135,6 @@ impl Default for Core {
             hash_alg: "sha256".into(),
             salt_jumbf_boxes: true,
             prefer_box_hash: false,
-            prefer_bmff_merkle_tree: false,
             compress_manifests: true,
             max_memory_usage: None,
         }

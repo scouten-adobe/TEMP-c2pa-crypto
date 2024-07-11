@@ -28,7 +28,7 @@ use crate::{
     assertions::{
         self,
         labels::{self, CLAIM},
-        AssetType, BmffHash, BoxHash, DataBox, DataHash, Metadata,
+        AssetType, BoxHash, DataBox, DataHash, Metadata,
     },
     asset_io::CAIRead,
     cose_validator::{get_signing_info, verify_cose, verify_cose_async},
@@ -969,22 +969,6 @@ impl Claim {
         )
     }
 
-    // Crate private function to allow for patching a BMFF hash with final contents.
-    pub(crate) fn update_bmff_hash(&mut self, bmff_hash: BmffHash) -> Result<()> {
-        self.replace_assertion(bmff_hash.to_assertion()?)
-    }
-
-    // Patch an existing assertion with new contents.
-    //
-    // `replace_with` should match in name and size of an existing assertion.
-    pub(crate) fn replace_assertion(&mut self, replace_with: Assertion) -> Result<()> {
-        self.update_assertion(
-            replace_with,
-            |_: &ClaimAssertion| true,
-            |_: &ClaimAssertion, a: Assertion| Ok(a),
-        )
-    }
-
     /// Redact an assertion from a prior claim.
     /// This will remove the assertion from the JUMBF
     fn redact_assertion(&mut self, assertion_uri: &str) -> Result<()> {
@@ -1370,61 +1354,8 @@ impl Claim {
                             }
                         }
                     }
-                } else if hash_binding_assertion.label_root() == BmffHash::LABEL {
-                    // handle BMFF data hashes
-                    let dh = BmffHash::from_assertion(hash_binding_assertion)?;
-
-                    let name = dh.name().map_or("unnamed".to_string(), default_str);
-
-                    let hash_result = match asset_data {
-                        #[cfg(feature = "file_io")]
-                        ClaimAssetData::Path(asset_path) => {
-                            dh.verify_hash(asset_path, Some(claim.alg()))
-                        }
-                        ClaimAssetData::Bytes(asset_bytes, _) => {
-                            dh.verify_in_memory_hash(asset_bytes, Some(claim.alg()))
-                        }
-                        ClaimAssetData::Stream(stream_data, _) => {
-                            dh.verify_stream_hash(*stream_data, Some(claim.alg()))
-                        }
-                        ClaimAssetData::StreamFragment(initseg_data, fragment_data, _) => dh
-                            .verify_stream_segment(
-                                *initseg_data,
-                                *fragment_data,
-                                Some(claim.alg()),
-                            ),
-                    };
-
-                    match hash_result {
-                        Ok(_a) => {
-                            let log_item = log_item!(
-                                claim.assertion_uri(&hash_binding_assertion.label()),
-                                "data hash valid",
-                                "verify_internal"
-                            )
-                            .validation_status(validation_status::ASSERTION_BMFFHASH_MATCH);
-                            validation_log.log_silent(log_item);
-
-                            continue;
-                        }
-                        Err(e) => {
-                            let log_item = log_item!(
-                                claim.assertion_uri(&hash_binding_assertion.label()),
-                                format!("asset hash error, name: {name}, error: {e}"),
-                                "verify_internal"
-                            )
-                            .error(Error::HashMismatch(format!("Asset hash failure: {e}")))
-                            .validation_status(validation_status::ASSERTION_BMFFHASH_MISMATCH);
-
-                            validation_log.log(
-                                log_item,
-                                Some(Error::HashMismatch(format!("Asset hash failure: {e}"))),
-                            )?;
-                        }
-                    }
                 } else if hash_binding_assertion.label_root() == BoxHash::LABEL {
                     // box hash case
-                    // handle BMFF data hashes
                     let bh = BoxHash::from_assertion(hash_binding_assertion)?;
 
                     let hash_result = match asset_data {
@@ -1523,11 +1454,6 @@ impl Claim {
         let dummy_hash = Assertion::new(DataHash::LABEL, None, dummy_data);
         let mut data_hashes = self.assertions_by_type(&dummy_hash);
 
-        // add in an BMFF hashes
-        let dummy_bmff_data = AssertionData::Cbor(Vec::new());
-        let dummy_bmff_hash = Assertion::new(assertions::labels::BMFF_HASH, None, dummy_bmff_data);
-        data_hashes.append(&mut self.assertions_by_type(&dummy_bmff_hash));
-
         // add in an box hashes
         let dummy_box_data = AssertionData::Cbor(Vec::new());
         let dummy_box_hash = Assertion::new(assertions::labels::BOX_HASH, None, dummy_box_data);
@@ -1536,15 +1462,8 @@ impl Claim {
         data_hashes
     }
 
-    pub fn bmff_hash_assertions(&self) -> Vec<&Assertion> {
-        // add in an BMFF hashes
-        let dummy_bmff_data = AssertionData::Cbor(Vec::new());
-        let dummy_bmff_hash = Assertion::new(assertions::labels::BMFF_HASH, None, dummy_bmff_data);
-        self.assertions_by_type(&dummy_bmff_hash)
-    }
-
     pub fn box_hash_assertions(&self) -> Vec<&Assertion> {
-        // add in an BMFF hashes
+        // add in an box hashes
         let dummy_box_data = AssertionData::Cbor(Vec::new());
         let dummy_box_hash = Assertion::new(assertions::labels::BOX_HASH, None, dummy_box_data);
         self.assertions_by_type(&dummy_box_hash)

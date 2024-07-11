@@ -21,7 +21,7 @@ use crate::Result;
 // allowed to change the set of manifests in the store.  You are allowed to
 // change the content of the assertions in the active manifest.  You cannot add
 // or remove assertions. Special assertions like hash assertions
-// (c2pa.hash.{data | boxes | bmff | bmff.v2}), ingredients,
+// (c2pa.hash.{data | boxes}), ingredients,
 // or action assertions cannot be changed.
 pub trait ManifestPatchCallback {
     fn patch_manifest(&self, manifest_store: &[u8]) -> Result<Vec<u8>>;

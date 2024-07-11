@@ -16,9 +16,6 @@
 mod actions;
 pub use actions::{c2pa_action, Action, Actions, SoftwareAgent};
 
-mod bmff_hash;
-pub use bmff_hash::{BmffHash, BmffMerkleMap, DataMap, ExclusionsMap, SubsetMap};
-
 mod box_hash;
 pub use box_hash::{BoxHash, BoxMap, C2PA_BOXHASH};
 

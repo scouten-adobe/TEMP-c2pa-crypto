@@ -25,8 +25,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     asset_handlers::{
-        bmff_io::BmffIO, c2pa_io::C2paIO, jpeg_io::JpegIO, mp3_io::Mp3IO, png_io::PngIO,
-        riff_io::RiffIO, svg_io::SvgIO, tiff_io::TiffIO,
+        c2pa_io::C2paIO, jpeg_io::JpegIO, mp3_io::Mp3IO, png_io::PngIO, riff_io::RiffIO,
+        svg_io::SvgIO, tiff_io::TiffIO,
     },
     asset_io::{AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashObjectPositions},
     error::{Error, Result},
@@ -36,7 +36,6 @@ use crate::{
 lazy_static! {
     static ref ASSET_HANDLERS: HashMap<String, Box<dyn AssetIO>> = {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
-            Box::new(BmffIO::new("")),
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
             Box::new(PngIO::new("")),
@@ -64,7 +63,6 @@ lazy_static! {
 lazy_static! {
     static ref CAI_WRITERS: HashMap<String, Box<dyn CAIWriter>> = {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
-            Box::new(BmffIO::new("")),
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
             Box::new(PngIO::new("")),
@@ -87,11 +85,6 @@ lazy_static! {
 
         handler_map
     };
-}
-
-pub(crate) fn is_bmff_format(asset_type: &str) -> bool {
-    let bmff_io = BmffIO::new("");
-    bmff_io.supported_types().contains(&asset_type)
 }
 
 /// Return jumbf block from in memory asset
@@ -358,7 +351,6 @@ pub mod tests {
     fn test_get_assetio() {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
-            Box::new(BmffIO::new("")),
             Box::new(JpegIO::new("")),
             Box::new(PngIO::new("")),
             Box::new(RiffIO::new("")),
@@ -380,7 +372,6 @@ pub mod tests {
     fn test_get_reader() {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
-            Box::new(BmffIO::new("")),
             Box::new(JpegIO::new("")),
             Box::new(PngIO::new("")),
             Box::new(RiffIO::new("")),
@@ -424,9 +415,6 @@ pub mod tests {
         assert!(supported.iter().any(|s| s == "jpg"));
         assert!(supported.iter().any(|s| s == "jpeg"));
         assert!(supported.iter().any(|s| s == "png"));
-        assert!(supported.iter().any(|s| s == "mov"));
-        assert!(supported.iter().any(|s| s == "mp4"));
-        assert!(supported.iter().any(|s| s == "m4a"));
         assert!(supported.iter().any(|s| s == "avi"));
         assert!(supported.iter().any(|s| s == "webp"));
         assert!(supported.iter().any(|s| s == "wav"));
@@ -543,36 +531,6 @@ pub mod tests {
         // mp3 doesn't support remote refs
         //reader.rewind().unwrap();
         //test_remote_ref("mp3", &mut reader); // not working
-    }
-
-    #[test]
-    fn test_streams_avif() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.avif").unwrap();
-        test_jumbf("avif", &mut reader);
-        //reader.rewind().unwrap();
-        //test_remote_ref("avif", &mut reader);  // not working
-    }
-
-    #[test]
-    fn test_streams_heic() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.heic").unwrap();
-        test_jumbf("heic", &mut reader);
-    }
-
-    #[test]
-    fn test_streams_heif() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.heif").unwrap();
-        test_jumbf("heif", &mut reader);
-        //reader.rewind().unwrap();
-        //test_remote_ref("heif", &mut reader);   // not working
-    }
-
-    #[test]
-    fn test_streams_mp4() {
-        let mut reader = std::fs::File::open("tests/fixtures/video1.mp4").unwrap();
-        test_jumbf("mp4", &mut reader);
-        reader.rewind().unwrap();
-        test_remote_ref("mp4", &mut reader);
     }
 
     #[test]
