@@ -107,9 +107,6 @@ pub struct Ingredient {
     #[serde(rename = "informational_URI", skip_serializing_if = "Option::is_none")]
     informational_uri: Option<String>,
 
-    /// Any additional [`Metadata`] as defined in the C2PA spec.
-    ///
-    /// [`Manifest`]: crate::Manifest
     #[serde(skip_serializing_if = "Option::is_none")]
     metadata: Option<Metadata>,
 
@@ -275,7 +272,7 @@ impl Ingredient {
         self.validation_status.as_deref()
     }
 
-    /// Returns a reference to [`Metadata`] if it exists.
+    /// Returns a reference to `Metadata` if it exists.
     pub fn metadata(&self) -> Option<&Metadata> {
         self.metadata.as_ref()
     }
@@ -427,7 +424,7 @@ impl Ingredient {
         self
     }
 
-    /// Adds any desired [`Metadata`] to this ingredient.
+    /// Adds any desired `Metadata` to this ingredient.
     pub fn set_metadata(&mut self, metadata: Metadata) -> &mut Self {
         self.metadata = Some(metadata);
         self
