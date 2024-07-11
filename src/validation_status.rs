@@ -17,11 +17,9 @@
 
 #![deny(missing_docs)]
 
-use log::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    error::Error,
     status_tracker::{LogItem, StatusTracker},
     store::Store,
 };
@@ -101,27 +99,6 @@ impl ValidationStatus {
             e if e.starts_with("PrereleaseError") => STATUS_PRERELEASE,
             _ => GENERAL_ERROR,
         }
-    }
-
-    // Maps errors into validation_status codes.
-    fn code_from_error(error: &Error) -> &str {
-        match error {
-            Error::ClaimMissing { .. } => CLAIM_MISSING,
-            Error::AssertionMissing { .. } => ASSERTION_MISSING,
-            Error::AssertionDecoding(_code) => ASSERTION_REQUIRED_MISSING, /* todo detect json/cbor errors */
-            Error::HashMismatch(_) => ASSERTION_DATAHASH_MATCH,
-            Error::RemoteManifestFetch(_) => MANIFEST_INACCESSIBLE,
-            Error::PrereleaseError => STATUS_PRERELEASE,
-            _ => GENERAL_ERROR,
-        }
-    }
-
-    /// Creates a ValidationStatus from an error code.
-    pub(crate) fn from_error(error: &Error) -> Self {
-        // We need to create error codes here for client processing.
-        let code = Self::code_from_error(error);
-        debug!("ValidationStatus {} from error {:#?}", code, error);
-        Self::new(code.to_string()).set_explanation(error.to_string())
     }
 
     /// Creates a ValidationStatus from a validation_log item.

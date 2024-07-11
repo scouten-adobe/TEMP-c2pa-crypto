@@ -14,19 +14,17 @@
 use std::{borrow::Cow, collections::HashMap, io::Cursor, slice::Iter};
 
 use async_generic::async_generic;
-use log::debug;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
-    assertion::{AssertionBase, AssertionData},
+    assertion::AssertionBase,
     assertions::{labels, CreativeWork, DataHash, Exif, Metadata, Thumbnail, User, UserCbor},
     asset_io::{CAIRead, CAIReadWrite},
     claim::{Claim, RemoteManifest},
     error::{Error, Result},
     hashed_uri::HashedUri,
-    jumbf,
     manifest_assertion::ManifestAssertion,
     resource_store::{mime_from_uri, skip_serializing_resources, ResourceRef, ResourceStore},
     salt::DefaultSalt,
@@ -407,141 +405,6 @@ impl Manifest {
     /// Creates a Manifest from a JSON string formatted as a Manifest
     pub fn from_json(json: &str) -> Result<Self> {
         serde_json::from_slice(json.as_bytes()).map_err(Error::JsonError)
-    }
-
-    // Generates a Manifest given a store and a manifest label
-    pub(crate) fn from_store(store: &Store, manifest_label: &str) -> Result<Self> {
-        let claim = store
-            .get_claim(manifest_label)
-            .ok_or_else(|| Error::ClaimMissing {
-                label: manifest_label.to_owned(),
-            })?;
-
-        // extract vendor from claim label
-        let claim_generator = claim.claim_generator().to_owned();
-
-        let mut manifest = Manifest::new(claim_generator);
-
-        if let Some(info_vec) = claim.claim_generator_info() {
-            let mut generators = Vec::new();
-            for claim_info in info_vec {
-                let mut info = claim_info.to_owned();
-                if let Some(icon) = claim_info.icon.as_ref() {
-                    info.set_icon(icon.to_resource_ref(manifest.resources_mut(), claim)?);
-                }
-                generators.push(info);
-            }
-            manifest.claim_generator_info = Some(generators);
-        }
-
-        if let Some(metadata_vec) = claim.metadata() {
-            if !metadata_vec.is_empty() {
-                manifest.metadata = Some(metadata_vec.to_vec())
-            }
-        }
-
-        manifest.set_label(claim.label());
-        manifest.resources.set_label(claim.label()); // default manifest for relative urls
-        manifest.claim_generator_hints = claim.get_claim_generator_hint_map().cloned();
-
-        // get credentials converting from AssertionData to Value
-        let credentials: Vec<Value> = claim
-            .get_verifiable_credentials()
-            .iter()
-            .filter_map(|d| match d {
-                AssertionData::Json(s) => serde_json::from_str(s).ok(),
-                _ => None,
-            })
-            .collect();
-
-        if !credentials.is_empty() {
-            manifest.credentials = Some(credentials);
-        }
-
-        manifest.redactions = claim.redactions().map(|rs| {
-            rs.iter()
-                .filter_map(|r| jumbf::labels::assertion_label_from_uri(r))
-                .collect()
-        });
-
-        if let Some(title) = claim.title() {
-            manifest.set_title(title);
-        }
-        manifest.set_format(claim.format());
-        manifest.set_instance_id(claim.instance_id());
-
-        manifest.assertion_references = claim
-            .assertions()
-            .iter()
-            .map(|h| {
-                let alg = h.alg().or_else(|| Some(claim.alg().to_string()));
-                HashedUri::new(h.url(), alg, &h.hash())
-            })
-            .collect();
-
-        for assertion in claim.assertions() {
-            let claim_assertion = store.get_claim_assertion_from_uri(
-                &jumbf::labels::to_absolute_uri(claim.label(), &assertion.url()),
-            )?;
-            let assertion = claim_assertion.assertion();
-            let label = claim_assertion.label();
-            let base_label = assertion.label();
-            debug!("assertion = {}", &label);
-            match base_label.as_ref() {
-                labels::DATA_HASH | labels::BOX_HASH => {
-                    // do not include data hash when reading manifests
-                }
-                label if label.starts_with(labels::CLAIM_THUMBNAIL) => {
-                    let thumbnail = Thumbnail::from_assertion(assertion)?;
-                    let id = jumbf::labels::to_assertion_uri(claim.label(), label);
-                    let id = jumbf::labels::to_relative_uri(&id);
-                    manifest.thumbnail = Some(manifest.resources.add_uri(
-                        &id,
-                        &thumbnail.content_type,
-                        thumbnail.data,
-                    )?);
-                }
-                _ => {
-                    // inject assertions for all other assertions
-                    match assertion.decode_data() {
-                        AssertionData::Cbor(_) => {
-                            let value = assertion.as_json_object()?;
-                            let ma = ManifestAssertion::new(base_label, value)
-                                .set_instance(claim_assertion.instance());
-
-                            manifest.assertions.push(ma);
-                        }
-                        AssertionData::Json(_) => {
-                            let value = assertion.as_json_object()?;
-                            let ma = ManifestAssertion::new(base_label, value)
-                                .set_instance(claim_assertion.instance())
-                                .set_kind(ManifestAssertionKind::Json);
-
-                            manifest.assertions.push(ma);
-                        }
-
-                        // todo: support binary forms
-                        AssertionData::Binary(_x) => {}
-                        AssertionData::Uuid(_, _) => {}
-                    }
-                }
-            }
-        }
-
-        manifest.signature_info = match claim.signature_info() {
-            Some(signature_info) => Some(SignatureInfo {
-                alg: signature_info.alg,
-                issuer: signature_info.issuer_org,
-                time: signature_info.date.map(|d| d.to_rfc3339()),
-                cert_serial_number: signature_info.cert_serial_number.map(|s| s.to_string()),
-                cert_chain: String::from_utf8(signature_info.cert_chain)
-                    .map_err(|_e| Error::CoseInvalidCert)?,
-                revocation_status: signature_info.revocation_status,
-            }),
-            None => None,
-        };
-
-        Ok(manifest)
     }
 
     // Convert a Manifest into a Claim
@@ -1029,28 +892,6 @@ pub(crate) mod tests {
         let store = manifest.to_store().expect("to_store");
         let claim = store.provenance_claim().unwrap();
         assert!(!claim.get_verifiable_credentials().is_empty());
-    }
-
-    #[test]
-    fn test_assertion_user_cbor() {
-        use crate::{assertions::UserCbor, Manifest};
-
-        const LABEL: &str = "org.cai.test";
-        const DATA: &str = r#"{ "l1":"some data", "l2":"some other data" }"#;
-        let json: serde_json::Value = serde_json::from_str(DATA).unwrap();
-        let data = serde_cbor::to_vec(&json).unwrap();
-        let cbor = UserCbor::new(LABEL, data);
-        let mut manifest = test_manifest();
-        manifest.add_assertion(&cbor).expect("add_assertion");
-        manifest.add_assertion(&cbor).expect("add_assertion");
-        let store = manifest.to_store().expect("to_store");
-
-        let _manifest2 =
-            Manifest::from_store(&store, &store.provenance_label().unwrap()).expect("from_store");
-        println!("{store}");
-        println!("{_manifest2:?}");
-        let cbor2: UserCbor = manifest.find_assertion(LABEL).expect("get_assertion");
-        assert_eq!(cbor, cbor2);
     }
 
     #[test]

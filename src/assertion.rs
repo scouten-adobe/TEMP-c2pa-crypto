@@ -14,7 +14,6 @@
 use std::fmt;
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use serde_bytes::ByteBuf;
 use serde_json::Value;
 use thiserror::Error;
 
@@ -321,57 +320,6 @@ impl Assertion {
             AssertionData::Json(x) => x.as_bytes(), // json encoded data
             AssertionData::Binary(x) | AssertionData::Uuid(_, x) => x, // binary data
             AssertionData::Cbor(x) => x,
-        }
-    }
-
-    /// Return assertion as serde_json Object
-    /// this may have loss of cbor structure if unsupported in conversion to
-    /// json It should always do the correct thing when using the correct
-    /// tagged CBOR types
-    pub(crate) fn as_json_object(&self) -> AssertionDecodeResult<Value> {
-        match self.decode_data() {
-            AssertionData::Json(x) => serde_json::from_str(x)
-                .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e)),
-
-            AssertionData::Cbor(x) => {
-                let buf: Vec<u8> = Vec::new();
-                let mut from = serde_cbor::Deserializer::from_slice(x);
-                let mut to = serde_json::Serializer::new(buf);
-
-                serde_transcode::transcode(&mut from, &mut to)
-                    .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e))?;
-
-                let buf2 = to.into_inner();
-                serde_json::from_slice(&buf2)
-                    .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e))
-            }
-
-            AssertionData::Binary(x) => {
-                let binary_bytes = ByteBuf::from(x.clone());
-                let binary_str = serde_json::to_string(&binary_bytes)
-                    .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e))?;
-
-                serde_json::from_str(&binary_str)
-                    .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e))
-            }
-            AssertionData::Uuid(uuid, x) => {
-                #[derive(Serialize)]
-                struct TmpObj<'a> {
-                    uuid: &'a str,
-                    data: ByteBuf,
-                }
-
-                let v = TmpObj {
-                    uuid,
-                    data: ByteBuf::from(x.clone()),
-                };
-
-                let binary_str = serde_json::to_string(&v)
-                    .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e))?;
-
-                serde_json::from_str(&binary_str)
-                    .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(self, e))
-            }
         }
     }
 

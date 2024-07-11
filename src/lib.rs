@@ -53,7 +53,6 @@ pub use hash_utils::{hash_stream_by_alg, HashRange};
 pub use manifest::Manifest;
 pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
 #[cfg(feature = "v1_api")]
-pub use manifest_store::ManifestStore;
 pub use resource_store::{ResourceRef, ResourceStore};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
@@ -76,7 +75,6 @@ pub(crate) mod hashed_uri;
 pub(crate) mod jumbf;
 pub(crate) mod manifest;
 pub(crate) mod manifest_assertion;
-pub(crate) mod manifest_store;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.

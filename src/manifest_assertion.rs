@@ -101,14 +101,6 @@ impl ManifestAssertion {
         }
     }
 
-    /// This can be used to set an instance number, but generally should not be
-    /// used Instance numbers will be assigned automatically when the
-    /// assertions are embedded
-    pub(crate) fn set_instance(mut self, instance: usize) -> Self {
-        self.instance = if instance > 0 { Some(instance) } else { None };
-        self
-    }
-
     /// Allows overriding the default [ManifestAssertionKind] to Json
     /// For assertions like Schema.org that require being stored in Json format
     pub fn set_kind(mut self, kind: ManifestAssertionKind) -> Self {
