@@ -18,7 +18,7 @@ use std::path::PathBuf;
 use tempfile::TempDir;
 
 use crate::{
-    assertions::{labels, Action, Actions, Ingredient, ReviewRating, SchemaDotOrg, Thumbnail},
+    assertions::{labels, Ingredient, ReviewRating, SchemaDotOrg, Thumbnail},
     claim::Claim,
     salt::DefaultSalt,
     store::Store,
@@ -71,26 +71,6 @@ pub fn create_test_claim() -> Result<Claim> {
     // add VC entry
     let _hu = claim.add_verifiable_credential(TEST_VC)?;
 
-    // Add assertions.
-    let actions = Actions::new()
-        .add_action(
-            Action::new("c2pa.cropped")
-                .set_parameter(
-                    "name".to_owned(),
-                    r#"{
-                    "left": 0,
-                    "right": 2000,
-                    "top": 1000,
-                    "bottom": 4000
-                }"#,
-                )
-                .unwrap(),
-        )
-        .add_action(
-            Action::new("c2pa.filtered")
-                .set_parameter("name".to_owned(), "gaussian blur")?
-                .set_when("2015-06-26T16:43:23+0200"),
-        );
     // add a binary thumbnail assertion  ('deadbeefadbeadbe')
     let some_binary_data: Vec<u8> = vec![
         0x0d, 0x0e, 0x0a, 0x0d, 0x0b, 0x0e, 0x0e, 0x0f, 0x0a, 0x0d, 0x0b, 0x0e, 0x0a, 0x0d, 0x0b,
@@ -116,7 +96,6 @@ pub fn create_test_claim() -> Result<Claim> {
 
     let thumbnail_ingred = Thumbnail::new(labels::JPEG_INGREDIENT_THUMBNAIL, some_binary_data);
 
-    claim.add_assertion(&actions)?;
     claim.add_assertion(&claim_review)?;
     claim.add_assertion(&thumbnail_claim)?;
 

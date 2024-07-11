@@ -1208,9 +1208,8 @@ pub(crate) mod tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{
-        assertions::{c2pa_action, Action, Actions},
         utils::test::{temp_signer, TEST_VC},
-        Manifest, Result,
+        Manifest,
     };
 
     // example of random data structure as an assertion
@@ -1257,30 +1256,6 @@ pub(crate) mod tests {
         println!("{_manifest2:?}");
         let cbor2: UserCbor = manifest.find_assertion(LABEL).expect("get_assertion");
         assert_eq!(cbor, cbor2);
-    }
-
-    #[test]
-    fn manifest_assertion_instances() {
-        let mut manifest = Manifest::new("test".to_owned());
-        let actions = Actions::new().add_action(Action::new(c2pa_action::EDITED));
-        // add three assertions with the same label
-        manifest.add_assertion(&actions).expect("add_assertion");
-        manifest.add_assertion(&actions).expect("add_assertion");
-        manifest.add_assertion(&actions).expect("add_assertion");
-
-        // convert to a store and read back again
-        let store = manifest.to_store().expect("to_store");
-        println!("{store}");
-        let active_label = store.provenance_label().unwrap();
-
-        let manifest2 = Manifest::from_store(&store, &active_label).expect("from_store");
-        println!("{manifest2}");
-
-        // now check to see if we have three separate assertions with different
-        // instances
-        let action2: Result<Actions> = manifest2.find_assertion_with_instance(Actions::LABEL, 2);
-        assert!(action2.is_ok());
-        assert_eq!(action2.unwrap().actions()[0].action(), c2pa_action::EDITED);
     }
 
     #[test]

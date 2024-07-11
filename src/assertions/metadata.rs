@@ -106,14 +106,6 @@ impl Metadata {
         self
     }
 
-    /// Sets a [`HashedUri`] reference to another assertion to which this
-    /// metadata applies.
-    #[cfg(test)] // only referenced from test code
-    pub(crate) fn set_reference(mut self, reference: HashedUri) -> Self {
-        self.reference = Some(reference);
-        self
-    }
-
     /// Sets a description of the source of the assertion data, selected from a
     /// predefined list.
     pub fn set_data_source(mut self, data_source: DataSource) -> Self {
