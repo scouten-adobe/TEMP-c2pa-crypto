@@ -71,7 +71,6 @@ pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
 pub(crate) mod external_manifest;
 pub(crate) mod hashed_uri;
-#[allow(dead_code)]
 pub(crate) mod jumbf;
 pub(crate) mod manifest;
 pub(crate) mod manifest_assertion;

@@ -280,10 +280,6 @@ impl JUMBFSuperBox {
         self.data_boxes.len()
     }
 
-    pub fn data_box(&self, index: usize) -> &dyn BMFFBox {
-        self.data_boxes[index].as_ref()
-    }
-
     pub fn data_box_as_superbox(&self, index: usize) -> Option<&JUMBFSuperBox> {
         let da_box = &self.data_boxes[index];
         da_box.as_ref().as_any().downcast_ref::<JUMBFSuperBox>()
@@ -303,14 +299,6 @@ impl JUMBFSuperBox {
             .as_ref()
             .as_any()
             .downcast_ref::<JUMBFCBORContentBox>()
-    }
-
-    pub fn data_box_as_jp2c_box(&self, index: usize) -> Option<&JUMBFCodestreamContentBox> {
-        let da_box = &self.data_boxes[index];
-        da_box
-            .as_ref()
-            .as_any()
-            .downcast_ref::<JUMBFCodestreamContentBox>()
     }
 
     pub fn data_box_as_uuid_box(&self, index: usize) -> Option<&JUMBFUUIDContentBox> {
@@ -704,11 +692,6 @@ impl JUMBFCodestreamContentBox {
     pub fn new(data_in: Vec<u8>) -> Self {
         JUMBFCodestreamContentBox { data: data_in }
     }
-
-    // getter
-    pub fn data(&self) -> &Vec<u8> {
-        &self.data
-    }
 }
 
 // ANCHOR JUMBF UUID Content box
@@ -779,11 +762,8 @@ pub const CAI_BLOCK_UUID: &str = "6332706100110010800000AA00389B71"; // c2pa
 pub const CAI_STORE_UUID: &str = "63326D6100110010800000AA00389B71"; // c2ma
 pub const CAI_UPDATE_MANIFEST_UUID: &str = "6332756D00110010800000AA00389B71"; // c2um
 pub const CAI_ASSERTION_STORE_UUID: &str = "6332617300110010800000AA00389B71"; // c2as
-pub const CAI_INGREDIENT_STORE_UUID: &str = "6361697300110010800000AA00389B71"; //cais
 pub const CAI_JSON_ASSERTION_UUID: &str = "6A736F6E00110010800000AA00389B71"; // json
 pub const CAI_CBOR_ASSERTION_UUID: &str = "63626F7200110010800000AA00389B71"; // cbor
-pub const CAI_CODESTREAM_ASSERTION_UUID: &str = "6579D6FBDBA2446BB2AC1B82FEEB89D1";
-pub const CAI_INGREDIENT_UUID: &str = "6361696E00110010800000AA00389B71"; // cain
 pub const CAI_CLAIM_UUID: &str = "6332636C00110010800000AA00389B71"; // c2cl
 pub const CAI_SIGNATURE_UUID: &str = "6332637300110010800000AA00389B71"; // c2cs
 pub const CAI_EMBEDDED_FILE_UUID: &str = "40CB0C32BB8A489DA70B2AD6F47F4369";
@@ -861,15 +841,6 @@ impl BMFFBox for CAISignatureContentBox {
     // Necessary method to enable conversion between types...
     fn as_any(&self) -> &dyn Any {
         self
-    }
-}
-
-impl CAISignatureContentBox {
-    pub fn new(data_in: Vec<u8>) -> Self {
-        CAISignatureContentBox {
-            uuid: <[u8; 16]>::from_hex(CAI_SIGNATURE_UUID).unwrap_or_default(),
-            sig_data: data_in,
-        }
     }
 }
 
@@ -1143,53 +1114,6 @@ impl CAICBORAssertionBox {
     }
 }
 
-// ANCHOR Ingredient Box
-/// Ingedient  Box
-#[derive(Debug)]
-pub(crate) struct CAIIngredientBox {
-    ingredient_box: JUMBFSuperBox,
-}
-
-impl BMFFBox for CAIIngredientBox {
-    fn box_type(&self) -> &'static [u8; 4] {
-        b"    "
-    }
-
-    fn box_uuid(&self) -> &'static str {
-        CAI_INGREDIENT_UUID
-    }
-
-    fn box_payload_size(&self) -> IoResult<u32> {
-        let size = boxio::ByteCounter::calculate(|w| self.write_box_payload(w))?;
-        Ok(size as u32)
-    }
-
-    fn write_box_payload(&self, writer: &mut dyn Write) -> IoResult<()> {
-        self.ingredient_box.write_box(writer)
-    }
-
-    // Necessary method to enable conversion between types...
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-impl CAIIngredientBox {
-    pub fn new(box_label: &str) -> Self {
-        CAIIngredientBox {
-            ingredient_box: JUMBFSuperBox::new(box_label, Some(CAI_INGREDIENT_UUID)),
-        }
-    }
-
-    // add a JUMBFCodestreamContentBox box, with the codestream data
-    //  takes ownership of the data
-    pub fn add_data(&mut self, data_in: Vec<u8>) {
-        let ingredient_content = JUMBFCodestreamContentBox::new(data_in);
-        self.ingredient_box
-            .add_data_box(Box::new(ingredient_content));
-    }
-}
-
 // ANCHOR Assertion Store
 /// Assertion Store
 #[derive(Debug)]
@@ -1226,10 +1150,6 @@ impl CAIAssertionStore {
         CAIAssertionStore {
             store: JUMBFSuperBox::new(labels::ASSERTIONS, Some(CAI_ASSERTION_STORE_UUID)),
         }
-    }
-
-    pub fn from(in_box: JUMBFSuperBox) -> Self {
-        CAIAssertionStore { store: in_box }
     }
 
     // add an assertion box (of various types) *WITHOUT* taking ownership of the box
@@ -1278,10 +1198,6 @@ impl CAIDataboxStore {
         CAIDataboxStore {
             store: JUMBFSuperBox::new(labels::DATABOXES, Some(CAI_DATABOXES_STORE_UUID)),
         }
-    }
-
-    pub fn from(in_box: JUMBFSuperBox) -> Self {
-        CAIDataboxStore { store: in_box }
     }
 
     // add an assertion box (of various types) *WITHOUT* taking ownership of the box
@@ -1335,10 +1251,6 @@ impl CAIVerifiableCredentialStore {
                 Some(CAI_VERIFIABLE_CREDENTIALS_STORE_UUID),
             ),
         }
-    }
-
-    pub fn from(in_box: JUMBFSuperBox) -> Self {
-        CAIVerifiableCredentialStore { store: in_box }
     }
 
     // add an credential box *WITHOUT* taking ownership of the box
@@ -1403,15 +1315,6 @@ impl CAIStore {
         }
     }
 
-    pub fn from(sbox: JUMBFSuperBox) -> Self {
-        let update_manifest = sbox.box_uuid() == CAI_UPDATE_MANIFEST_UUID;
-
-        CAIStore {
-            is_update_manifest: update_manifest,
-            store: sbox,
-        }
-    }
-
     /// add a box (of various types) *WITHOUT* taking ownership of the box
     pub fn add_box(&mut self, b: Box<dyn BMFFBox>) {
         self.store.add_data_box(b)
@@ -1420,23 +1323,6 @@ impl CAIStore {
     // getters
     pub fn super_box(&self) -> &JUMBFSuperBox {
         &self.store
-    }
-
-    pub fn desc_box(&self) -> &JUMBFDescriptionBox {
-        &self.store.desc_box
-    }
-
-    pub fn data_box_count(&self) -> usize {
-        self.store.data_boxes.len()
-    }
-
-    pub fn data_box(&self, index: usize) -> &dyn BMFFBox {
-        self.store.data_boxes[index].as_ref()
-    }
-
-    pub fn assertion_store(&self) -> Option<&JUMBFSuperBox> {
-        // we REALLY want to return a CAIAssertionStore but can't do to referencing...
-        self.store.data_box_as_superbox(0)
     }
 
     pub fn set_salt(&mut self, salt: Vec<u8>) -> JumbfParseResult<()> {
@@ -1491,11 +1377,6 @@ impl Cai {
         self.sbox.add_data_box(b)
     }
 
-    // getters
-    pub fn super_box(&self) -> &JUMBFSuperBox {
-        &self.sbox
-    }
-
     pub fn desc_box(&self) -> &JUMBFDescriptionBox {
         &self.sbox.desc_box
     }
@@ -1504,18 +1385,9 @@ impl Cai {
         self.sbox.data_boxes.len()
     }
 
-    pub fn data_box(&self, index: usize) -> &dyn BMFFBox {
-        self.sbox.data_boxes[index].as_ref()
-    }
-
     pub fn data_box_as_superbox(&self, index: usize) -> Option<&JUMBFSuperBox> {
         let da_box = &self.sbox.data_boxes[index];
         da_box.as_ref().as_any().downcast_ref::<JUMBFSuperBox>()
-    }
-
-    pub fn store(&self) -> Option<&JUMBFSuperBox> {
-        // we REALLY want to return a UpdateManifest but can't do to referencing...
-        self.sbox.data_box_as_superbox(0)
     }
 }
 
@@ -1572,32 +1444,8 @@ impl JumbfEmbeddedFileBox {
         self.embedding_box.add_data_box(Box::new(d));
     }
 
-    pub fn media_type_box(&self) -> Option<&JUMBFEmbeddedFileDescriptionBox> {
-        let efd_box = &self.embedding_box.data_boxes[0];
-        efd_box
-            .as_ref()
-            .as_any()
-            .downcast_ref::<JUMBFEmbeddedFileDescriptionBox>()
-    }
-
-    pub fn data_box(&self) -> Option<&JUMBFEmbeddedFileContentBox> {
-        let efc_box = &self.embedding_box.data_boxes[1];
-        efc_box
-            .as_ref()
-            .as_any()
-            .downcast_ref::<JUMBFEmbeddedFileContentBox>()
-    }
-
     pub fn set_salt(&mut self, salt: Vec<u8>) -> JumbfParseResult<()> {
         self.embedding_box.desc_box.set_salt(salt)
-    }
-
-    pub fn get_salt(&self) -> Option<Vec<u8>> {
-        self.embedding_box
-            .desc_box
-            .private
-            .as_ref()
-            .map(|saltbox| saltbox.salt.clone())
     }
 
     pub fn super_box(&self) -> &dyn BMFFBox {
@@ -1656,8 +1504,9 @@ impl JUMBFEmbeddedFileContentBox {
 
 #[derive(Debug)]
 pub struct JUMBFEmbeddedFileDescriptionBox {
-    toggles: u8,                // media togles
-    media_type: CString,        // file media type
+    toggles: u8,         // media togles
+    media_type: CString, // file media type
+    #[allow(dead_code)]
     file_name: Option<CString>, // optional file name
 }
 
@@ -1740,10 +1589,6 @@ impl JUMBFEmbeddedFileDescriptionBox {
         self.to_rust_str(&self.media_type)
     }
 
-    pub fn file_name(&self) -> Option<String> {
-        self.file_name.as_ref().map(|f| self.to_rust_str(f))
-    }
-
     /// Makes a new `JUMBFDescriptionBox` instance from read in data
     pub fn from(togs: u8, mt_bytes: Vec<u8>, fn_bytes: Option<Vec<u8>>) -> Self {
         let mt_cstring: CString = unsafe { CString::from_vec_unchecked(mt_bytes) };
@@ -1769,30 +1614,6 @@ const TOGGLE_SIZE: u64 = 1;
 /// method for getting the current position
 pub fn current_pos<R: Seek>(seeker: &mut R) -> JumbfParseResult<u64> {
     Ok(seeker.stream_position()?)
-}
-
-/// method for seeking back to the start of the box (header)
-pub fn box_start<R: Seek>(seeker: &mut R) -> JumbfParseResult<u64> {
-    Ok(current_pos(seeker).map_err(|_| JumbfParseError::InvalidBoxStart)? - HEADER_SIZE)
-}
-
-/// method for skipping over `size` bytes
-pub fn skip_bytes<S: Seek>(seeker: &mut S, size: u64) -> JumbfParseResult<()> {
-    seeker.seek(SeekFrom::Current(size as i64))?;
-    Ok(())
-}
-
-/// method for skipping to a specific position (`pos`)
-pub fn skip_bytes_to<S: Seek>(seeker: &mut S, pos: u64) -> JumbfParseResult<()> {
-    seeker.seek(SeekFrom::Start(pos))?;
-    Ok(())
-}
-
-// method to skip over an entire box
-pub fn skip_box<S: Seek>(seeker: &mut S, size: u64) -> JumbfParseResult<()> {
-    let start = box_start(seeker)?;
-    skip_bytes_to(seeker, start + size)?;
-    Ok(())
 }
 
 /// method for skipping backwards `size` bytes
@@ -2296,560 +2117,3 @@ impl BoxReader {
         Ok(sbox)
     }
 }
-
-// !SECTION
-
-//---------------
-// SECTION Tests
-//---------------
-
-#[cfg(test)]
-pub mod tests {
-    #![allow(clippy::expect_used)]
-    #![allow(clippy::unwrap_used)]
-
-    use std::io::Cursor;
-
-    use extfmt::*;
-
-    use super::*;
-
-    // base_len = size (u32) + type (u32)
-    // desc_len = base + 16 (UUID type) + 1 (TOGGLE)
-    // cont_len = base
-    // sig_len  = base + 16 (UUID type)
-    const BOX_BASE_LEN: usize = 4 + 4;
-    const DESC_BOX_BASE: usize = BOX_BASE_LEN + 16 + 1;
-    const CONT_BOX_BASE: usize = BOX_BASE_LEN;
-    const SIG_BOX_BASE: usize = BOX_BASE_LEN + 16;
-    const EMBED_MEDIA_BASE: usize = BOX_BASE_LEN + 1;
-    const EMBED_DATA_BASE: usize = BOX_BASE_LEN;
-
-    fn compute_desc_box_size(box_label: &str) -> usize {
-        DESC_BOX_BASE + box_label.len() + 1
-    }
-
-    // len is base + desc (base + len(label) + 1 (null term))
-    fn compute_super_box_size(box_label: &str) -> usize {
-        let mut len = BOX_BASE_LEN;
-        len += compute_desc_box_size(box_label);
-        len
-    }
-
-    fn compute_content_box_size(box_label: &str, data_size: usize) -> usize {
-        let content_box_expected_len = CONT_BOX_BASE + data_size;
-        let desc_box_expected_len = compute_desc_box_size(box_label);
-        BOX_BASE_LEN + desc_box_expected_len + content_box_expected_len
-    }
-
-    fn compute_signature_box_size(sig_size: usize) -> usize {
-        let content_box_expected_len = SIG_BOX_BASE + sig_size;
-        let desc_box_expected_len = compute_desc_box_size(labels::SIGNATURE);
-        BOX_BASE_LEN + desc_box_expected_len + content_box_expected_len
-    }
-
-    fn compute_media_type_box_size(media_type: &str, file_name: Option<&str>) -> usize {
-        let mut len = EMBED_MEDIA_BASE + media_type.len() + 1;
-        if let Some(f) = file_name {
-            len += f.len() + 1;
-        }
-        len
-    }
-
-    fn compute_embedded_box_size(data_size: usize) -> usize {
-        EMBED_DATA_BASE + data_size
-    }
-
-    fn compute_thumbnail_box_size(
-        box_label: &str,
-        data_size: usize,
-        media_type: &str,
-        file_name: Option<&str>,
-    ) -> usize {
-        let mut len = compute_super_box_size(box_label);
-        len += compute_media_type_box_size(media_type, file_name);
-        len += compute_embedded_box_size(data_size);
-        len
-    }
-
-    // ANCHOR: DescBox
-    #[test]
-    fn description_box() {
-        let box_label = "test.descbox";
-        let jdb = JUMBFDescriptionBox::new(box_label, None);
-        let mut mem_box: Vec<u8> = Vec::new();
-
-        jdb.write_box(&mut mem_box)
-            .expect("Unable to write description box");
-
-        println!("DescriptionBox:\t{}", Hexlify(&mem_box));
-        assert_eq!(
-            format!("{}", Hexlify(&mem_box)),
-            "000000266a756d640000000000000000000000000000000003746573742e64657363626f7800"
-        );
-
-        let expected_len = compute_desc_box_size(box_label);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is
-                                                 // correct
-    }
-
-    // ANCHOR: SuperBox
-    #[test]
-    fn super_box() {
-        let box_label = "test.superbox";
-        let jsb = JUMBFSuperBox::new(box_label, None);
-        let mut mem_box: Vec<u8> = Vec::new();
-
-        jsb.write_box(&mut mem_box)
-            .expect("Unable to write superbox");
-
-        let expected_len = compute_super_box_size(box_label);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("SuperBox:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "0000002f6a756d62000000276a756d640000000000000000000000000000000003746573742e7375706572626f7800");
-    }
-
-    // ANCHOR: SuperBox + Data Box
-    #[test]
-    fn super_box_with_one_data_box() {
-        let box_label = "test.superbox_databox";
-        let mut jsb = JUMBFSuperBox::new(box_label, None);
-
-        let data_box_label = "test.databox";
-        let jdb = Box::new(JUMBFSuperBox::new(data_box_label, None));
-        jsb.add_data_box(jdb);
-
-        // now write it and see what we get!!
-        let mut mem_box: Vec<u8> = Vec::new();
-        jsb.write_box(&mut mem_box)
-            .expect("Unable to write superbox");
-
-        let data_box_expected_len = compute_super_box_size(data_box_label);
-        let expected_len = data_box_expected_len + compute_super_box_size(box_label);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("SuperBox + DataBox:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "000000656a756d620000002f6a756d640000000000000000000000000000000003746573742e7375706572626f785f64617461626f78000000002e6a756d62000000266a756d640000000000000000000000000000000003746573742e64617461626f7800");
-    }
-
-    // ANCHOR: Signature Box
-    #[test]
-    fn cai_signature_box() {
-        let mut sigb = CAISignatureBox::new();
-
-        let some_data = String::from("this would normally be binary signature data...");
-        let sig_len = some_data.len();
-        let sigc = CAISignatureContentBox::new(some_data.into_bytes());
-        sigb.add_signature(Box::new(sigc));
-
-        let mut mem_box: Vec<u8> = Vec::new();
-        sigb.write_box(&mut mem_box)
-            .expect("Unable to write CAI Signature");
-
-        // expected_len is base + desc_box + content+box
-        let expected_len = compute_signature_box_size(sig_len);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("CAISignatureBox:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "000000776a756d62000000286a756d646332637300110010800000aa00389b7103633270612e7369676e61747572650000000047757569646332637300110010800000aa00389b717468697320776f756c64206e6f726d616c6c792062652062696e617279207369676e617475726520646174612e2e2e");
-    }
-
-    // ANCHOR: Claim Box
-    #[test]
-    fn cai_claim_box() {
-        let mut cb = CAIClaimBox::new();
-
-        let claim_json = String::from(
-            "{
-            \"recorder\" : \"Photoshop\",
-            \"parent_claim\" : \"self#jumbf=c_tpic_1/c2pa.claim?hl=6E6DD0923B57DCE\",
-            \"signature\" : \"self#jumbf=s_adbe_1\",
-            \"assertions\" : [
-                \"self#jumbf=as_adbe_1/c2pa.identity?hl=45919681DCCAF6ABAD\",
-                \"self#jumbf=as_adbe_1/c2pa.thumbnail.jpeg?hl=76142BD62363F\"
-            ],
-            \"redacted_assertions\" : [
-                \"self#jumbf=as_tp_1/c2pa.location.precise\"
-            ],
-            \"asset_hashes\": []
-        }",
-        );
-
-        let clen = claim_json.len();
-        let cjson = JUMBFJSONContentBox::new(claim_json.into_bytes());
-        cb.add_claim(Box::new(cjson));
-
-        let mut mem_box: Vec<u8> = Vec::new();
-        cb.write_box(&mut mem_box)
-            .expect("Unable to write CAI Claim");
-
-        let expected_len = compute_content_box_size(labels::CLAIM, clen);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("CAIClaimBox:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "0000023b6a756d62000000246a756d646332636c00110010800000aa00389b7103633270612e636c61696d000000020f6a736f6e7b0a202020202020202020202020227265636f7264657222203a202250686f746f73686f70222c0a20202020202020202020202022706172656e745f636c61696d22203a202273656c66236a756d62663d635f747069635f312f633270612e636c61696d3f686c3d364536444430393233423537444345222c0a202020202020202020202020227369676e617475726522203a202273656c66236a756d62663d735f616462655f31222c0a20202020202020202020202022617373657274696f6e7322203a205b0a202020202020202020202020202020202273656c66236a756d62663d61735f616462655f312f633270612e6964656e746974793f686c3d343539313936383144434341463641424144222c0a202020202020202020202020202020202273656c66236a756d62663d61735f616462655f312f633270612e7468756d626e61696c2e6a7065673f686c3d37363134324244363233363346220a2020202020202020202020205d2c0a2020202020202020202020202272656461637465645f617373657274696f6e7322203a205b0a202020202020202020202020202020202273656c66236a756d62663d61735f74705f312f633270612e6c6f636174696f6e2e70726563697365220a2020202020202020202020205d2c0a2020202020202020202020202261737365745f686173686573223a205b5d0a20202020202020207d");
-    }
-
-    // ANCHOR: Location assertion
-    #[test]
-    fn cai_location_assertion_box() {
-        let box_label = "c2pa.location.broad";
-        let location = String::from("{ \"location\": \"San Francisco\"}");
-        let loc_len = location.len();
-
-        let mut cb = CAIJSONAssertionBox::new(box_label);
-        cb.add_json(location.into_bytes());
-
-        let mut mem_box: Vec<u8> = Vec::new();
-        cb.write_box(&mut mem_box)
-            .expect("Unable to write location.broad assertion");
-
-        let expected_len = compute_content_box_size(box_label, loc_len);
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("CAI Broad Location:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "0000005b6a756d620000002d6a756d646a736f6e00110010800000aa00389b7103633270612e6c6f636174696f6e2e62726f616400000000266a736f6e7b20226c6f636174696f6e223a202253616e204672616e636973636f227d");
-    }
-
-    // ANCHOR: Assertion Store
-    #[test]
-    fn assertion_store() {
-        // create the assertion store
-        let mut a_store = CAIAssertionStore::new();
-
-        // create some assertions & add to the store
-        let th_box_label = "c2pa.claim.thumbnail";
-        let img = String::from("<image data goes here>");
-        let img_len = img.len();
-        let mut tb = JumbfEmbeddedFileBox::new(th_box_label);
-        tb.add_data(img.into_bytes(), "image/jpeg".to_string(), None);
-        a_store.add_assertion(Box::new(tb));
-        let tb_len = compute_thumbnail_box_size(th_box_label, img_len, "image/jpeg", None);
-
-        let id_box_label = "c2pa.identity";
-        let identity = String::from("{ \"uri\": \"did:adobe:lrosenth@adobe.com\"}");
-        let id_len = identity.len();
-        let mut ib = CAIJSONAssertionBox::new(id_box_label);
-        ib.add_json(identity.into_bytes());
-        a_store.add_assertion(Box::new(ib));
-        let ib_len = compute_content_box_size(id_box_label, id_len);
-
-        // write it to memory
-        let mut mem_box: Vec<u8> = Vec::new();
-        a_store
-            .write_box(&mut mem_box)
-            .expect("Unable to write assertion store");
-
-        // and test the results
-        let store_sup_len = compute_super_box_size("c2pa.assertions");
-        let expected_len = store_sup_len + tb_len + ib_len;
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("CAI Assertion Store:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "000000f86a756d62000000296a756d646332617300110010800000aa00389b7103633270612e617373657274696f6e7300000000686a756d620000002e6a756d6440cb0c32bb8a489da70b2ad6f47f436903633270612e636c61696d2e7468756d626e61696c00000000146266646200696d6167652f6a706567000000001e626964623c696d616765206461746120676f657320686572653e0000005f6a756d62000000276a756d646a736f6e00110010800000aa00389b7103633270612e6964656e7469747900000000306a736f6e7b2022757269223a20226469643a61646f62653a6c726f73656e74684061646f62652e636f6d227d");
-    }
-
-    // ANCHOR: CAI Store
-    #[test]
-    fn cai_store() {
-        // create the CAI store
-        let store_label = "cb.adobe_1";
-        let mut cai_store = CAIStore::new(store_label, false);
-
-        // create the assertion store
-        let mut a_store = CAIAssertionStore::new();
-
-        // create an assertions & add to the store
-        let th_box_label = "c2pa.claim.thumbnail";
-        let img = String::from("<image data goes here>");
-        let img_len = img.len();
-        let mut tb = JumbfEmbeddedFileBox::new(th_box_label);
-        tb.add_data(img.into_bytes(), "image/jpeg".to_string(), None);
-        a_store.add_assertion(Box::new(tb));
-
-        // add the assertion store to the cai store
-        cai_store.add_box(Box::new(a_store));
-
-        // create a claim & add it to the cai store
-        let mut cb = CAIClaimBox::new();
-        let claim_json = String::from(
-            "{
-            \"recorder\" : \"Photoshop\",
-            \"signature\" : \"self#jumbf=s_adobe_1\",
-            \"assertions\" : [
-                \"self#jumbf=as_adobe_1/c2pa.thumbnail.jpeg?hl=76142BD62363F\"
-            ]
-        }",
-        );
-
-        let clen = claim_json.len();
-        let cjson = JUMBFJSONContentBox::new(claim_json.into_bytes());
-        cb.add_claim(Box::new(cjson));
-        cai_store.add_box(Box::new(cb));
-
-        // create a signature & add to the cai store
-        let mut sigb = CAISignatureBox::new();
-        let some_data = String::from("this would normally be binary signature data...");
-        let sig_len = some_data.len();
-        let sigc = CAISignatureContentBox::new(some_data.into_bytes());
-        sigb.add_signature(Box::new(sigc));
-        cai_store.add_box(Box::new(sigb));
-
-        // write it to memory
-        let mut mem_box: Vec<u8> = Vec::new();
-        cai_store
-            .write_box(&mut mem_box)
-            .expect("Unable to write CAI store");
-
-        // and test the results
-        let cai_store_sup_len = compute_super_box_size(store_label);
-        let a_store_sup_len = compute_super_box_size("c2pa.assertions");
-        let tb_len = compute_thumbnail_box_size(th_box_label, img_len, "image/jpeg", None);
-        let claim_len = compute_content_box_size(labels::CLAIM, clen);
-        let sig_box_len = compute_signature_box_size(sig_len);
-        let expected_len = cai_store_sup_len + a_store_sup_len + tb_len + claim_len + sig_box_len;
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("C2PA Store:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "0000024b6a756d62000000246a756d6463326d6100110010800000aa00389b710363622e61646f62655f3100000000996a756d62000000296a756d646332617300110010800000aa00389b7103633270612e617373657274696f6e7300000000686a756d620000002e6a756d6440cb0c32bb8a489da70b2ad6f47f436903633270612e636c61696d2e7468756d626e61696c00000000146266646200696d6167652f6a706567000000001e626964623c696d616765206461746120676f657320686572653e0000010f6a756d62000000246a756d646332636c00110010800000aa00389b7103633270612e636c61696d00000000e36a736f6e7b0a202020202020202020202020227265636f7264657222203a202250686f746f73686f70222c0a202020202020202020202020227369676e617475726522203a202273656c66236a756d62663d735f61646f62655f31222c0a20202020202020202020202022617373657274696f6e7322203a205b0a202020202020202020202020202020202273656c66236a756d62663d61735f61646f62655f312f633270612e7468756d626e61696c2e6a7065673f686c3d37363134324244363233363346220a2020202020202020202020205d0a20202020202020207d000000776a756d62000000286a756d646332637300110010800000aa00389b7103633270612e7369676e61747572650000000047757569646332637300110010800000aa00389b717468697320776f756c64206e6f726d616c6c792062652062696e617279207369676e617475726520646174612e2e2e");
-    }
-
-    // ANCHOR: CAI block
-    #[test]
-    fn cai_block() {
-        // create the CAI block
-        let mut cai_block = Cai::new();
-
-        // create the CAI store
-        let store_label = "cb.adobe_1";
-        let mut cai_store = CAIStore::new(store_label, false);
-
-        // create the assertion store
-        let mut a_store = CAIAssertionStore::new();
-
-        // create an assertions & add to the store
-        let loc_box_label = "c2pa.location.broad";
-        let location = String::from("{ \"location\": \"Margate City, NJ\"}");
-        let loc_len = location.len();
-        let mut loc_box = CAIJSONAssertionBox::new(loc_box_label);
-        loc_box.add_json(location.into_bytes());
-        a_store.add_assertion(Box::new(loc_box));
-
-        // add the assertion store to the cai store
-        cai_store.add_box(Box::new(a_store));
-
-        // create a claim & add it to the cai store
-        let mut cb = CAIClaimBox::new();
-        let claim_json = String::from(
-            "{
-            \"recorder\" : \"Photoshop\",
-            \"signature\" : \"self#jumbf=s_adobe_1\",
-            \"assertions\" : [
-                \"self#jumbf=as_adobe_1/c2pa.location.broad?hl=76142BD62363F\"
-            ]
-        }",
-        );
-
-        let clen = claim_json.len();
-        let cjson = JUMBFJSONContentBox::new(claim_json.into_bytes());
-        cb.add_claim(Box::new(cjson));
-        cai_store.add_box(Box::new(cb));
-
-        // create a signature & add to the cai store
-        let mut sigb = CAISignatureBox::new();
-        let some_data = String::from("this would normally be binary signature data...");
-        let sig_len = some_data.len();
-        let sigc = CAISignatureContentBox::new(some_data.into_bytes());
-        sigb.add_signature(Box::new(sigc));
-        cai_store.add_box(Box::new(sigb));
-
-        // finally add the completed cai store into the cai block
-        cai_block.add_box(Box::new(cai_store));
-
-        // write it to memory
-        let mut mem_box: Vec<u8> = Vec::new();
-        cai_block
-            .write_box(&mut mem_box)
-            .expect("Unable to write CAI block");
-
-        // and test the results
-        let cai_block_sup_len = compute_super_box_size(labels::MANIFEST_STORE);
-        let cai_store_sup_len = compute_super_box_size(store_label);
-        let a_store_sup_len = compute_super_box_size("c2pa.assertions");
-        let lb_len = compute_content_box_size(loc_box_label, loc_len);
-        let claim_len = compute_content_box_size(labels::CLAIM, clen);
-        let sig_box_len = compute_signature_box_size(sig_len);
-
-        let expected_len = cai_block_sup_len
-            + cai_store_sup_len
-            + a_store_sup_len
-            + lb_len
-            + claim_len
-            + sig_box_len;
-
-        assert_eq!(mem_box.len(), expected_len); // make sure the length is correct
-
-        println!("CAI Block:\t{}", Hexlify(&mem_box));
-        assert_eq!(format!("{}", Hexlify(&mem_box)), "000002676a756d620000001e6a756d646332706100110010800000aa00389b71036332706100000002416a756d62000000246a756d6463326d6100110010800000aa00389b710363622e61646f62655f31000000008f6a756d62000000296a756d646332617300110010800000aa00389b7103633270612e617373657274696f6e73000000005e6a756d620000002d6a756d646a736f6e00110010800000aa00389b7103633270612e6c6f636174696f6e2e62726f616400000000296a736f6e7b20226c6f636174696f6e223a20224d61726761746520436974792c204e4a227d0000010f6a756d62000000246a756d646332636c00110010800000aa00389b7103633270612e636c61696d00000000e36a736f6e7b0a202020202020202020202020227265636f7264657222203a202250686f746f73686f70222c0a202020202020202020202020227369676e617475726522203a202273656c66236a756d62663d735f61646f62655f31222c0a20202020202020202020202022617373657274696f6e7322203a205b0a202020202020202020202020202020202273656c66236a756d62663d61735f61646f62655f312f633270612e6c6f636174696f6e2e62726f61643f686c3d37363134324244363233363346220a2020202020202020202020205d0a20202020202020207d000000776a756d62000000286a756d646332637300110010800000aa00389b7103633270612e7369676e61747572650000000047757569646332637300110010800000aa00389b717468697320776f756c64206e6f726d616c6c792062652062696e617279207369676e617475726520646174612e2e2e");
-    }
-
-    // ANCHOR: JUMB BlockReader
-    #[test]
-    fn jumb_box_reader() {
-        const JUMB_TEST: &str = "000000026A756D62";
-        let buffer = hex::decode(JUMB_TEST).expect("decode failed");
-        let mut buf_reader = Cursor::new(buffer);
-        let jumb_header = BoxReader::read_header(&mut buf_reader).unwrap();
-        assert_eq!(jumb_header.size, 2);
-        assert_eq!(jumb_header.name, BoxType::Jumb);
-    }
-
-    // ANCHOR: DescriptionBox Reader
-    /*
-     #[test]
-     fn desc_box_reader() {
-         const JUMD_DESC: &str =
-             "000000256A756D62000000216A756D646332706100110010800000AA00389B7103633270612E763100";
-         let buffer = hex::decode(JUMD_DESC).expect("decode failed");
-         let mut buf_reader = Cursor::new(buffer);
-
-         let jumb_header = BoxReader::read_header(&mut buf_reader).unwrap();
-         assert_eq!(jumb_header.size, 0x25);
-         assert_eq!(jumb_header.name, BoxType::JumbBox);
-
-         let jumd_header = BoxReader::read_header(&mut buf_reader).unwrap();
-         assert_eq!(jumd_header.size, 0x21);
-         assert_eq!(jumd_header.name, BoxType::JumdBox);
-
-         let desc_box = BoxReader::read_desc_box(&mut buf_reader, jumd_header.size).unwrap();
-         assert_eq!(desc_box.label(), labels::MANIFEST_STORE);
-         assert_eq!(desc_box.uuid(), "6332706100110010800000AA00389B71");
-     }
-    */
-    // ANCHOR: JSON Content Box Reader
-    #[test]
-    fn json_box_reader() {
-        const JSON_BOX: &str ="0000005a6a756d620000002d6a756d646a736f6e00110010800000aa00389b7103633270612e6c6f636174696f6e2e62726f616400000000266a736f6e7b20226c6f636174696f6e223a202253616e204672616e636973636f227d";
-
-        let buffer = hex::decode(JSON_BOX).expect("decode failed");
-        let mut buf_reader = Cursor::new(buffer);
-        let super_box = BoxReader::read_super_box(&mut buf_reader).unwrap();
-
-        let desc_box = super_box.desc_box();
-        assert_eq!(desc_box.label(), "c2pa.location.broad");
-        assert_eq!(desc_box.uuid(), CAI_JSON_ASSERTION_UUID);
-        assert_eq!(super_box.data_box_count(), 1);
-
-        let json_box = super_box.data_box_as_json_box(0).unwrap();
-        assert_eq!(json_box.box_uuid(), JUMBF_JSON_UUID);
-        assert_eq!(json_box.json().len(), 30);
-    }
-
-    #[allow(dead_code)]
-    fn check_one_box(
-        parent_box: &JUMBFSuperBox,
-        index: usize,
-        count: usize,
-        label: &str,
-        uuid: &str,
-    ) {
-        let superbox = parent_box.data_box_as_superbox(index).unwrap();
-        assert_eq!(superbox.box_uuid(), JUMB_FOURCC);
-        assert_eq!(superbox.data_box_count(), count);
-
-        let desc_box = superbox.desc_box();
-        assert_eq!(desc_box.label(), label);
-        assert_eq!(desc_box.uuid(), uuid);
-    }
-
-    // ANCHOR: Full CAI Block Reader
-    /*
-    #[test]
-    fn cai_box_reader() {
-        const CAI_BOX: &str ="0000026a6a756d62000000216a756d646332706100110010800000AA00389B71036332706100000002446a756d62000000246a756d6463326D6100110010800000AA00389B710363622e61646f62655f31000000008f6a756d62000000296a756d646332617300110010800000AA00389B7103633270612e617373657274696f6e73000000005e6a756d620000002d6a756d646a736f6e00110010800000aa00389b7103633270612e6c6f636174696f6e2e62726f616400000000296a736f6e7b20226c6f636174696f6e223a20224d61726761746520436974792c204e4a227d000001126a756d62000000276a756d646332636C00110010800000AA00389B7103633270612e636c61696d2e763100000000e36a736f6e7b0a202020202020202020202020227265636f7264657222203a202250686f746f73686f70222c0a202020202020202020202020227369676e617475726522203a202273656c66236a756d62663d735f61646f62655f31222c0a20202020202020202020202022617373657274696f6e7322203a205b0a202020202020202020202020202020202273656c66236a756d62663d61735f61646f62655f312f633270612e6c6f636174696f6e2e62726f61643f686c3d37363134324244363233363346220a2020202020202020202020205d0a20202020202020207d000000776a756d62000000286a756d646332637300110010800000AA00389B7103633270612e7369676e61747572650000000047757569646332637300110010800000AA00389B717468697320776f756c64206e6f726d616c6c792062652062696e617279207369676e617475726520646174612e2e2e";
-
-        let buffer = hex::decode(CAI_BOX).expect("decode failed");
-        let mut buf_reader = Cursor::new(buffer);
-
-        // this loads up all the boxes...
-        let super_box = BoxReader::read_super_box(&mut buf_reader).unwrap();
-        let cai_block = Cai::from(super_box);
-
-        // check the CAI Block
-        let desc_box = cai_block.desc_box();
-        assert_eq!(desc_box.label(), labels::MANIFEST_STORE);
-        assert_eq!(desc_box.uuid(), CAI_BLOCK_UUID);
-
-        // it's children are the CAI stores
-        // for this test, we only have one...
-        assert_eq!(cai_block.data_box_count(), 1);
-
-        // retrieve the CAI store & validate it
-        // a standard one has 3 children (assertion store, claim & sig)
-        check_one_box(&cai_block.super_box(), 0, 3, "cb.adobe_1", CAI_STORE_UUID);
-        let cai_store_box = cai_block.store();
-
-        // retrieve the assertion store & validate
-        check_one_box(
-            &cai_store_box,
-            0,
-            1,
-            "c2pa.assertions",
-            CAI_ASSERTION_STORE_UUID,
-        );
-
-        let assertion_store_box = cai_store_box.data_box_as_superbox(0);
-
-        // there is only one in our test, but doing a loop on general principle
-        let num_assertions = assertion_store_box.data_box_count();
-        assert_eq!(num_assertions, 1);
-
-        for idx in 0..num_assertions {
-            check_one_box(
-                &assertion_store_box,
-                idx,
-                1,
-                "c2pa.location.broad",
-                CAI_JSON_ASSERTION_UUID,
-            );
-
-            let assertion_box = assertion_store_box.data_box_as_superbox(idx);
-            let assertion_desc_box = assertion_box.desc_box();
-
-            if assertion_desc_box.uuid() == CAI_JSON_ASSERTION_UUID {
-                let json_box = assertion_box.data_box_as_json_box(0);
-                assert_eq!(json_box.box_uuid(), JUMBF_JSON_UUID);
-                assert_eq!(json_box.json().len(), 33);
-            } else if assertion_desc_box.uuid() == CAI_CODESTREAM_ASSERTION_UUID {
-                // this is where we'd validate for a thumbnail if we had one...
-            }
-        }
-
-        // retrieve the claim & validate
-        check_one_box(&cai_store_box, 1, 1, "c2pa.claim.v1", CAI_CLAIM_UUID);
-        let claim_superbox = cai_store_box.data_box_as_superbox(1);
-        let claim_desc_box = claim_superbox.desc_box();
-
-        if claim_desc_box.uuid() == CAI_JSON_ASSERTION_UUID {
-            // better be, but just in case...
-            let json_box = claim_superbox.data_box_as_json_box(0);
-            assert_eq!(json_box.box_uuid(), JUMBF_JSON_UUID);
-            assert_eq!(json_box.json().len(), 164);
-        }
-
-        // retrieve the signature & validate
-        check_one_box(&cai_store_box, 2, 1, "c2pa.signature", CAI_SIGNATURE_UUID);
-        let sig_superbox = cai_store_box.data_box_as_superbox(2);
-        let sig_desc_box = sig_superbox.desc_box();
-        if sig_desc_box.uuid() == CAI_SIGNATURE_UUID {
-            // better be, but just in case...
-            let sig_box = sig_superbox.data_box_as_uuid_box(0);
-            assert_eq!(sig_box.box_uuid(), JUMBF_UUID_UUID);
-            assert_eq!(sig_box.data().len(), 47);
-        }
-    }
-    */
-}
-
-// !SECTION
