@@ -20,13 +20,11 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use conv::ValueFrom;
 use riff::*;
-use tempfile::Builder;
 
 use crate::{
     asset_io::{
-        rename_or_move, AssetIO, AssetPatch, CAIRead, CAIReadWrapper, CAIReadWrite,
-        CAIReadWriteWrapper, CAIReader, CAIWriter, HashBlockObjectType, HashObjectPositions,
-        RemoteRefEmbed, RemoteRefEmbedType,
+        AssetIO, AssetPatch, CAIRead, CAIReadWrapper, CAIReadWrite, CAIReadWriteWrapper, CAIReader,
+        CAIWriter, HashBlockObjectType, HashObjectPositions, RemoteRefEmbed, RemoteRefEmbedType,
     },
     error::{Error, Result},
     utils::xmp_inmemory_utils::{add_provenance, MIN_XMP},
@@ -359,20 +357,6 @@ impl AssetIO for RiffIO {
         self.read_cai(&mut f)
     }
 
-    fn save_cai_store(&self, asset_path: &std::path::Path, store_bytes: &[u8]) -> Result<()> {
-        let mut input_stream = File::open(asset_path)?;
-
-        let mut temp_file = Builder::new()
-            .prefix("c2pa_temp")
-            .rand_bytes(5)
-            .tempfile()?;
-
-        self.write_cai(&mut input_stream, &mut temp_file, store_bytes)?;
-
-        // copy temp file to asset
-        rename_or_move(temp_file, asset_path)
-    }
-
     fn get_object_locations(
         &self,
         asset_path: &std::path::Path,
@@ -382,8 +366,8 @@ impl AssetIO for RiffIO {
         self.get_object_locations_from_stream(&mut f)
     }
 
-    fn remove_cai_store(&self, asset_path: &Path) -> Result<()> {
-        self.save_cai_store(asset_path, &[])
+    fn remove_cai_store(&self, _asset_path: &Path) -> Result<()> {
+        unimplemented!();
     }
 
     fn remote_ref_writer_ref(&self) -> Option<&dyn RemoteRefEmbed> {
@@ -645,104 +629,9 @@ pub mod tests {
 
     use super::*;
     use crate::utils::{
-        hash_utils::vec_compare,
         test::{fixture_path, temp_dir_path},
         xmp_inmemory_utils::extract_provenance,
     };
-
-    #[test]
-    fn test_write_wav() {
-        let more_data = "some more test data".as_bytes();
-        let source = fixture_path("sample1.wav");
-
-        let mut success = false;
-        if let Ok(temp_dir) = tempdir() {
-            let output = temp_dir_path(&temp_dir, "sample1-wav.wav");
-
-            if let Ok(_size) = std::fs::copy(source, &output) {
-                let riff_io = RiffIO::new("wav");
-
-                if let Ok(()) = riff_io.save_cai_store(&output, more_data) {
-                    if let Ok(read_test_data) = riff_io.read_cai_store(&output) {
-                        assert!(vec_compare(more_data, &read_test_data));
-                        success = true;
-                    }
-                }
-            }
-        }
-        assert!(success)
-    }
-
-    #[test]
-    fn test_write_wav_stream() {
-        let more_data = "some more test data".as_bytes();
-        let mut source = File::open(fixture_path("sample1.wav")).unwrap();
-
-        let riff_io = RiffIO::new("wav");
-        if let Ok(temp_dir) = tempdir() {
-            let output = temp_dir_path(&temp_dir, "sample1-wav.wav");
-
-            let mut output_stream = File::create(&output).unwrap();
-
-            riff_io
-                .write_cai(&mut source, &mut output_stream, more_data)
-                .unwrap();
-
-            let mut source = File::open(output).unwrap();
-            let read_test_data = riff_io.read_cai(&mut source).unwrap();
-            assert!(vec_compare(more_data, &read_test_data));
-        }
-    }
-
-    #[test]
-    fn test_patch_write_wav() {
-        let test_data = "some test data".as_bytes();
-        let source = fixture_path("sample1.wav");
-
-        let mut success = false;
-        if let Ok(temp_dir) = tempdir() {
-            let output = temp_dir_path(&temp_dir, "sample1-wav.wav");
-
-            if let Ok(_size) = std::fs::copy(source, &output) {
-                let riff_io = RiffIO::new("wav");
-
-                if let Ok(()) = riff_io.save_cai_store(&output, test_data) {
-                    if let Ok(source_data) = riff_io.read_cai_store(&output) {
-                        // create replacement data of same size
-                        let mut new_data = vec![0u8; source_data.len()];
-                        new_data[..test_data.len()].copy_from_slice(test_data);
-                        riff_io.patch_cai_store(&output, &new_data).unwrap();
-
-                        let replaced = riff_io.read_cai_store(&output).unwrap();
-
-                        assert_eq!(new_data, replaced);
-
-                        success = true;
-                    }
-                }
-            }
-        }
-        assert!(success)
-    }
-
-    #[test]
-    fn test_remove_c2pa() {
-        let source = fixture_path("sample1.wav");
-
-        let temp_dir = tempdir().unwrap();
-        let output = temp_dir_path(&temp_dir, "sample1-wav.wav");
-
-        std::fs::copy(source, &output).unwrap();
-        let riff_io = RiffIO::new("wav");
-
-        riff_io.remove_cai_store(&output).unwrap();
-
-        // read back in asset, JumbfNotFound is expected since it was removed
-        match riff_io.read_cai_store(&output) {
-            Err(Error::JumbfNotFound) => (),
-            _ => unreachable!(),
-        }
-    }
 
     #[test]
     fn test_read_xmp() {

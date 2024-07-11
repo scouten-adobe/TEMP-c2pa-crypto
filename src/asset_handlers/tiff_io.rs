@@ -1421,23 +1421,6 @@ impl AssetIO for TiffIO {
         self.read_cai(&mut reader)
     }
 
-    fn save_cai_store(&self, asset_path: &std::path::Path, store_bytes: &[u8]) -> Result<()> {
-        let mut input_stream = std::fs::OpenOptions::new()
-            .read(true)
-            .open(asset_path)
-            .map_err(Error::IoError)?;
-
-        let mut temp_file = Builder::new()
-            .prefix("c2pa_temp")
-            .rand_bytes(5)
-            .tempfile()?;
-
-        self.write_cai(&mut input_stream, &mut temp_file, store_bytes)?;
-
-        // copy temp file to asset
-        rename_or_move(temp_file, asset_path)
-    }
-
     fn get_object_locations(
         &self,
         asset_path: &std::path::Path,
@@ -1689,34 +1672,10 @@ pub mod tests {
     #![allow(clippy::panic)]
     #![allow(clippy::unwrap_used)]
 
-    use core::panic;
-
     use tempfile::tempdir;
 
     use super::*;
     use crate::utils::test::temp_dir_path;
-
-    #[test]
-    fn test_read_write_manifest() {
-        let data = "some data";
-
-        let source = crate::utils::test::fixture_path("TUSCANY.TIF");
-
-        let temp_dir = tempdir().unwrap();
-        let output = temp_dir_path(&temp_dir, "test.tif");
-
-        std::fs::copy(source, &output).unwrap();
-
-        let tiff_io = TiffIO {};
-
-        // save data to tiff
-        tiff_io.save_cai_store(&output, data.as_bytes()).unwrap();
-
-        // read data back
-        let loaded = tiff_io.read_cai_store(&output).unwrap();
-
-        assert_eq!(&loaded, data.as_bytes());
-    }
 
     #[test]
     fn test_write_xmp() {
@@ -1743,111 +1702,4 @@ pub mod tests {
 
         assert_eq!(&loaded, data);
     }
-
-    #[test]
-    fn test_remove_manifest() {
-        let data = "some data";
-
-        let source = crate::utils::test::fixture_path("TUSCANY.TIF");
-
-        let temp_dir = tempdir().unwrap();
-        let output = temp_dir_path(&temp_dir, "test.tif");
-
-        std::fs::copy(source, &output).unwrap();
-
-        let tiff_io = TiffIO {};
-
-        // first make sure that calling this without a manifest does not error
-        tiff_io.remove_cai_store(&output).unwrap();
-
-        // save data to tiff
-        tiff_io.save_cai_store(&output, data.as_bytes()).unwrap();
-
-        // read data back
-        let loaded = tiff_io.read_cai_store(&output).unwrap();
-
-        assert_eq!(&loaded, data.as_bytes());
-
-        tiff_io.remove_cai_store(&output).unwrap();
-
-        match tiff_io.read_cai_store(&output) {
-            Err(Error::JumbfNotFound) => (),
-            _ => panic!("should be no C2PA store"),
-        }
-    }
-
-    #[test]
-    fn test_get_object_location() {
-        let data = "some data";
-
-        let source = crate::utils::test::fixture_path("TUSCANY.TIF");
-
-        let temp_dir = tempdir().unwrap();
-        let output = temp_dir_path(&temp_dir, "test.tif");
-
-        std::fs::copy(source, &output).unwrap();
-
-        let tiff_io = TiffIO {};
-
-        // save data to tiff
-        tiff_io.save_cai_store(&output, data.as_bytes()).unwrap();
-
-        // read data back
-        let loaded = tiff_io.read_cai_store(&output).unwrap();
-
-        assert_eq!(&loaded, data.as_bytes());
-
-        let mut success = false;
-        if let Ok(locations) = tiff_io.get_object_locations(&output) {
-            for op in locations {
-                if op.htype == HashBlockObjectType::Cai {
-                    let mut of = std::fs::File::open(&output).unwrap();
-
-                    let mut manifests_buf: Vec<u8> = vec![0u8; op.length];
-                    of.seek(SeekFrom::Start(op.offset as u64)).unwrap();
-                    of.read_exact(manifests_buf.as_mut_slice()).unwrap();
-                    if crate::hash_utils::vec_compare(&manifests_buf, data.as_bytes()) {
-                        success = true;
-                    }
-                }
-            }
-        }
-        assert!(success);
-    }
-    /*  disable until I find smaller DNG
-    #[test]
-    fn test_read_write_dng_manifest() {
-        let data = "some data";
-
-        let source = crate::utils::test::fixture_path("test.DNG");
-        //let source = crate::utils::test::fixture_path("sample1.dng");
-
-        let temp_dir = tempdir().unwrap();
-        let output = temp_dir_path(&temp_dir, "test.DNG");
-
-        std::fs::copy(&source, &output).unwrap();
-
-        let tiff_io = TiffIO {};
-
-        // save data to tiff
-        tiff_io.save_cai_store(&output, data.as_bytes()).unwrap();
-
-        // read data back
-        println!("Reading TIFF");
-        let loaded = tiff_io.read_cai_store(&output).unwrap();
-
-        assert_eq!(&loaded, data.as_bytes());
-    }
-    #[test]
-    fn test_read_write_dng_parse() {
-        //let data = "some data";
-
-        let source = crate::utils::test::fixture_path("test.DNG");
-        let mut f = std::fs::File::open(&source).unwrap();
-
-        let (idfs, token, _endianness, _big_tiff) = map_tiff(&mut f).unwrap();
-
-        println!("IFD {}", idfs[token].data.entry_cnt);
-    }
-    */
 }

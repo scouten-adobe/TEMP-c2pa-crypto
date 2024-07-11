@@ -163,9 +163,6 @@ pub trait AssetIO: Sync + Send {
     #[allow(dead_code)]
     fn read_cai_store(&self, asset_path: &Path) -> Result<Vec<u8>>;
 
-    // Write the CAI block to an asset
-    fn save_cai_store(&self, asset_path: &Path, store_bytes: &[u8]) -> Result<()>;
-
     /// List of standard object offsets
     /// If the offsets exist return the start of those locations other it should
     /// return the calculated location of when it should start.  There may still

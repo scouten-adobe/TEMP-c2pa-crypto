@@ -18,7 +18,7 @@ use crate::{
         AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, ComposedManifestRef,
         HashBlockObjectType, HashObjectPositions,
     },
-    error::{Error, Result},
+    error::Result,
 };
 
 static SUPPORTED_TYPES: [&str; 3] = [
@@ -78,14 +78,6 @@ impl AssetIO for C2paIO {
     fn read_cai_store(&self, asset_path: &Path) -> Result<Vec<u8>> {
         let mut f = File::open(asset_path)?;
         self.read_cai(&mut f)
-    }
-
-    fn save_cai_store(&self, asset_path: &std::path::Path, store_bytes: &[u8]) -> Result<()> {
-        // just save the data in a file
-        std::fs::write(asset_path, store_bytes)
-            .map_err(|_err| Error::BadParam("C2PA write error".to_owned()))?;
-
-        Ok(())
     }
 
     fn get_object_locations(
