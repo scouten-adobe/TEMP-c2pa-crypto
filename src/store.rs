@@ -2814,65 +2814,9 @@ impl Store {
         )
     }
 
-    // fetch remote manifest if possible
-    #[cfg(feature = "fetch_remote_manifests")]
-    fn fetch_remote_manifest(url: &str) -> Result<Vec<u8>> {
-        use conv::ValueFrom;
-        use ureq::Error as uError;
-
-        //const MANIFEST_CONTENT_TYPE: &str = "application/x-c2pa-manifest-store"; //
-        // todo verify once these are served
-        const DEFAULT_MANIFEST_RESPONSE_SIZE: usize = 10 * 1024 * 1024; // 10 MB
-
-        match ureq::get(url).call() {
-            Ok(response) => {
-                if response.status() == 200 {
-                    let len = response
-                        .header("Content-Length")
-                        .and_then(|s| s.parse::<usize>().ok())
-                        .unwrap_or(DEFAULT_MANIFEST_RESPONSE_SIZE); // todo figure out good max to accept
-
-                    let mut response_bytes: Vec<u8> = Vec::with_capacity(len);
-
-                    let len64 = u64::value_from(len)
-                        .map_err(|_err| Error::BadParam("value out of range".to_string()))?;
-
-                    response
-                        .into_reader()
-                        .take(len64)
-                        .read_to_end(&mut response_bytes)
-                        .map_err(|_err| {
-                            Error::RemoteManifestFetch("error reading content stream".to_string())
-                        })?;
-
-                    Ok(response_bytes)
-                } else {
-                    Err(Error::RemoteManifestFetch(format!(
-                        "fetch failed: code: {}, status: {}",
-                        response.status(),
-                        response.status_text()
-                    )))
-                }
-            }
-            Err(uError::Status(code, resp)) => Err(Error::RemoteManifestFetch(format!(
-                "code: {}, response: {}",
-                code,
-                resp.status_text()
-            ))),
-            Err(uError::Transport(_)) => Err(Error::RemoteManifestFetch(url.to_string())),
-        }
-    }
-
-    /// Handles remote manifests when file_io/fetch_remote_manifests feature is
-    /// enabled
     fn handle_remote_manifest(ext_ref: &str) -> Result<Vec<u8>> {
         // verify provenance path is remote url
         if Store::is_valid_remote_url(ext_ref) {
-            #[cfg(feature = "fetch_remote_manifests")]
-            {
-                Store::fetch_remote_manifest(ext_ref)
-            }
-            #[cfg(not(feature = "fetch_remote_manifests"))]
             Err(Error::RemoteManifestUrl(ext_ref.to_owned()))
         } else {
             Err(Error::JumbfNotFound)

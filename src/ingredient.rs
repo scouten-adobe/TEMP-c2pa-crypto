@@ -1735,19 +1735,6 @@ mod tests_file_io {
     }
 
     #[test]
-    #[cfg(feature = "fetch_remote_manifests")]
-    fn test_jpg_cloud_failure() {
-        let ap = fixture_path("cloudx.jpg");
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        println!("ingredient = {ingredient}");
-        assert!(ingredient.validation_status().is_some());
-        assert_eq!(
-            ingredient.validation_status().unwrap()[0].code(),
-            validation_status::MANIFEST_INACCESSIBLE
-        );
-    }
-
-    #[test]
     #[cfg(feature = "file_io")]
     fn test_jpg_with_path() {
         let ap = fixture_path("CA.jpg");
