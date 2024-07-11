@@ -25,7 +25,7 @@ use crate::error::Error;
 use crate::{
     claim::ClaimAssetData, error::Result, manifest_store::ManifestStore,
     settings::get_settings_value, status_tracker::DetailedStatusTracker, store::Store,
-    validation_status::ValidationStatus, Manifest, ManifestStoreReport,
+    validation_status::ValidationStatus, Manifest,
 };
 
 /// A reader for the manifest store.
@@ -242,8 +242,6 @@ impl std::fmt::Display for Reader {
 
 impl std::fmt::Debug for Reader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let report = ManifestStoreReport::from_store(self.manifest_store.store())
-            .map_err(|_| std::fmt::Error)?;
-        f.write_str(&report.to_string())
+        f.write_str("Debug for Reader no longer implemented")
     }
 }

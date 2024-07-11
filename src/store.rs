@@ -52,7 +52,6 @@ use crate::{
         get_assetio_handler, is_bmff_format, load_jumbf_from_stream, object_locations_from_stream,
         save_jumbf_to_memory, save_jumbf_to_stream,
     },
-    manifest_store_report::ManifestStoreReport,
     salt::DefaultSalt,
     settings::get_settings_value,
     status_tracker::{log_item, DetailedStatusTracker, OneShotStatusTracker, StatusTracker},
@@ -3399,8 +3398,7 @@ impl Store {
 
 impl std::fmt::Display for Store {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let report = &ManifestStoreReport::from_store(self).unwrap_or_default();
-        f.write_str(&format!("{}", &report))
+        f.,write_str("Store::display no longer implemented")
     }
 }
 
