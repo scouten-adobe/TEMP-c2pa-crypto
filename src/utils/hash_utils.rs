@@ -262,72 +262,47 @@ where
         }
     };
 
-    if cfg!(feature = "no_interleaved_io") || cfg!(target_arch = "wasm32") {
-        // hash the data for ranges
-        for r in ranges {
-            let start = r.start();
-            let end = r.end();
-            let mut chunk_left = end - start + 1;
+    // hash the data for ranges
+    for r in ranges {
+        let start = r.start();
+        let end = r.end();
+        let mut chunk_left = end - start + 1;
 
-            // move to start of range
-            data.seek(SeekFrom::Start(*start))?;
+        // move to start of range
+        data.seek(SeekFrom::Start(*start))?;
 
-            loop {
-                let mut chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
+        let mut chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
+        data.read_exact(&mut chunk)?;
 
-                data.read_exact(&mut chunk)?;
+        loop {
+            let (tx, rx) = std::sync::mpsc::channel();
 
+            chunk_left -= chunk.len() as u64;
+
+            std::thread::spawn(move || {
                 hasher_enum.update(&chunk);
+                tx.send(hasher_enum).unwrap_or_default();
+            });
 
-                chunk_left -= chunk.len() as u64;
-                if chunk_left == 0 {
-                    break;
-                }
-            }
-        }
-    } else {
-        // hash the data for ranges
-        for r in ranges {
-            let start = r.start();
-            let end = r.end();
-            let mut chunk_left = end - start + 1;
-
-            // move to start of range
-            data.seek(SeekFrom::Start(*start))?;
-
-            let mut chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
-            data.read_exact(&mut chunk)?;
-
-            loop {
-                let (tx, rx) = std::sync::mpsc::channel();
-
-                chunk_left -= chunk.len() as u64;
-
-                std::thread::spawn(move || {
-                    hasher_enum.update(&chunk);
-                    tx.send(hasher_enum).unwrap_or_default();
-                });
-
-                // are we done
-                if chunk_left == 0 {
-                    hasher_enum = match rx.recv() {
-                        Ok(hasher) => hasher,
-                        Err(_) => return Err(Error::ThreadReceiveError),
-                    };
-                    break;
-                }
-
-                // read next chunk while we wait for hash
-                let mut next_chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
-                data.read_exact(&mut next_chunk)?;
-
+            // are we done
+            if chunk_left == 0 {
                 hasher_enum = match rx.recv() {
                     Ok(hasher) => hasher,
                     Err(_) => return Err(Error::ThreadReceiveError),
                 };
-
-                chunk = next_chunk;
+                break;
             }
+
+            // read next chunk while we wait for hash
+            let mut next_chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
+            data.read_exact(&mut next_chunk)?;
+
+            hasher_enum = match rx.recv() {
+                Ok(hasher) => hasher,
+                Err(_) => return Err(Error::ThreadReceiveError),
+            };
+
+            chunk = next_chunk;
         }
     }
 
