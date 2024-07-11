@@ -42,7 +42,3 @@ pub(crate) use user::User;
 
 mod user_cbor;
 pub(crate) use user_cbor::UserCbor;
-
-mod uuid_assertion;
-#[allow(unused_imports)]
-pub(crate) use uuid_assertion::Uuid;
