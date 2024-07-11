@@ -14,11 +14,6 @@
 #![allow(clippy::unwrap_used)]
 
 use std::path::PathBuf;
-#[cfg(feature = "file_io")]
-use std::{
-    io::{Cursor, Read, Write},
-    path::Path,
-};
 
 use tempfile::TempDir;
 
@@ -28,11 +23,6 @@ use crate::{
     salt::DefaultSalt,
     store::Store,
     RemoteSigner, Result, Signer, SigningAlg,
-};
-#[cfg(feature = "file_io")]
-use crate::{
-    asset_io::CAIReadWrite, create_signer, hash_utils::Hasher,
-    jumbf_io::get_assetio_handler_from_path,
 };
 #[cfg(feature = "openssl_sign")]
 use crate::{
@@ -197,79 +187,6 @@ pub fn temp_fixture_path(temp_dir: &TempDir, file_name: &str) -> PathBuf {
     fixture_copy
 }
 
-/// Create a [`Signer`] instance that can be used for testing purposes.
-///
-/// This is a suitable default for use when you need a [`Signer`], but
-/// don't care what the format is.
-///
-/// # Returns
-///
-/// Returns a boxed [`Signer`] instance.
-///
-/// # Panics
-///
-/// Can panic if the certs cannot be read. (This function should only
-/// be used as part of testing infrastructure.)
-#[cfg(feature = "file_io")]
-pub fn temp_signer_file() -> RsaSigner {
-    #![allow(clippy::expect_used)]
-    let mut sign_cert_path = fixture_path("certs");
-    sign_cert_path.push("ps256");
-    sign_cert_path.set_extension("pub");
-
-    let mut pem_key_path = fixture_path("certs");
-    pem_key_path.push("ps256");
-    pem_key_path.set_extension("pem");
-
-    RsaSigner::from_files(&sign_cert_path, &pem_key_path, SigningAlg::Ps256, None)
-        .expect("get_temp_signer")
-}
-
-/// Utility to create a test file with a placeholder for a manifest
-#[cfg(feature = "file_io")]
-pub fn write_jpeg_placeholder_file(
-    placeholder: &[u8],
-    input: &Path,
-    output_file: &mut dyn CAIReadWrite,
-    mut hasher: Option<&mut Hasher>,
-) -> Result<usize> {
-    // get where we will put the data
-    let mut f = std::fs::File::open(input).unwrap();
-    let jpeg_io = get_assetio_handler_from_path(input).unwrap();
-    let box_mapper = jpeg_io.asset_box_hash_ref().unwrap();
-    let boxes = box_mapper.get_box_map(&mut f).unwrap();
-    let sof = boxes.iter().find(|b| b.names[0] == "SOF0").unwrap();
-
-    // build new asset with hole for new manifest
-    let outbuf = Vec::new();
-    let mut out_stream = Cursor::new(outbuf);
-    let mut input_file = std::fs::File::open(input).unwrap();
-
-    // write before
-    let mut before = vec![0u8; sof.range_start];
-    input_file.read_exact(before.as_mut_slice()).unwrap();
-    if let Some(hasher) = hasher.as_deref_mut() {
-        hasher.update(&before);
-    }
-    out_stream.write_all(&before).unwrap();
-
-    // write placeholder
-    out_stream.write_all(placeholder).unwrap();
-
-    // write bytes after
-    let mut after_buf = Vec::new();
-    input_file.read_to_end(&mut after_buf).unwrap();
-    if let Some(hasher) = hasher {
-        hasher.update(&after_buf);
-    }
-    out_stream.write_all(&after_buf).unwrap();
-
-    // save to output file
-    output_file.write_all(&out_stream.into_inner()).unwrap();
-
-    Ok(sof.range_start)
-}
-
 pub(crate) struct TestGoodSigner {}
 impl crate::Signer for TestGoodSigner {
     fn sign(&self, _data: &[u8]) -> Result<Vec<u8>> {
@@ -364,33 +281,6 @@ pub fn temp_async_signer() -> Box<dyn crate::signer::AsyncSigner> {
         let signer = WebCryptoSigner::new("es256", sign_cert, pem_key);
         Box::new(signer)
     }
-}
-
-/// Create a [`Signer`] instance for a specific algorithm that can be used for
-/// testing purposes.
-///
-/// # Returns
-///
-/// Returns a boxed [`Signer`] instance.
-///
-/// # Panics
-///
-/// Can panic if the certs cannot be read. (This function should only
-/// be used as part of testing infrastructure.)
-#[cfg(feature = "file_io")]
-pub fn temp_signer_with_alg(alg: SigningAlg) -> Box<dyn Signer> {
-    #![allow(clippy::expect_used)]
-    // sign and embed into the target file
-    let mut sign_cert_path = fixture_path("certs");
-    sign_cert_path.push(alg.to_string());
-    sign_cert_path.set_extension("pub");
-
-    let mut pem_key_path = fixture_path("certs");
-    pem_key_path.push(alg.to_string());
-    pem_key_path.set_extension("pem");
-
-    create_signer::from_files(sign_cert_path.clone(), pem_key_path, alg, None)
-        .expect("get_temp_signer_with_alg")
 }
 
 struct TempRemoteSigner {}

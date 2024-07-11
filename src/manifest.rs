@@ -12,8 +12,6 @@
 // each license.
 
 use std::{borrow::Cow, collections::HashMap, io::Cursor, slice::Iter};
-#[cfg(feature = "file_io")]
-use std::{fs::create_dir_all, path::Path};
 
 use async_generic::async_generic;
 use log::{debug, error};
@@ -505,28 +503,8 @@ impl Manifest {
         serde_json::from_slice(json.as_bytes()).map_err(Error::JsonError)
     }
 
-    /// Setting a base path will make the manifest use resource files instead of
-    /// memory buffers
-    ///
-    /// The files will be relative to the given base path
-    /// Ingredients resources will also be relative to this path
-    #[cfg(feature = "file_io")]
-    pub fn with_base_path<P: AsRef<Path>>(&mut self, base_path: P) -> Result<&Self> {
-        create_dir_all(&base_path)?;
-        self.resources.set_base_path(base_path.as_ref());
-        for i in 0..self.ingredients.len() {
-            // todo: create different subpath for each ingredient?
-            self.ingredients[i].with_base_path(base_path.as_ref())?;
-        }
-        Ok(self)
-    }
-
     // Generates a Manifest given a store and a manifest label
-    pub(crate) fn from_store(
-        store: &Store,
-        manifest_label: &str,
-        #[cfg(feature = "file_io")] resource_path: Option<&Path>,
-    ) -> Result<Self> {
+    pub(crate) fn from_store(store: &Store, manifest_label: &str) -> Result<Self> {
         let claim = store
             .get_claim(manifest_label)
             .ok_or_else(|| Error::ClaimMissing {
@@ -537,11 +515,6 @@ impl Manifest {
         let claim_generator = claim.claim_generator().to_owned();
 
         let mut manifest = Manifest::new(claim_generator);
-
-        #[cfg(feature = "file_io")]
-        if let Some(base_path) = resource_path {
-            manifest.with_base_path(base_path)?;
-        }
 
         if let Some(info_vec) = claim.claim_generator_info() {
             let mut generators = Vec::new();
@@ -655,13 +628,8 @@ impl Manifest {
                 base if base.starts_with(labels::INGREDIENT) => {
                     // note that we use the original label here, not the base label
                     let assertion_uri = jumbf::labels::to_assertion_uri(claim.label(), &label);
-                    let ingredient = Ingredient::from_ingredient_uri(
-                        store,
-                        manifest_label,
-                        &assertion_uri,
-                        #[cfg(feature = "file_io")]
-                        resource_path,
-                    )?;
+                    let ingredient =
+                        Ingredient::from_ingredient_uri(store, manifest_label, &assertion_uri)?;
                     manifest.add_ingredient(ingredient);
                 }
                 labels::DATA_HASH | labels::BOX_HASH => {
@@ -718,26 +686,6 @@ impl Manifest {
         };
 
         Ok(manifest)
-    }
-
-    /// Sets the asset field from data in a file
-    /// the information in the claim should reflect the state of the asset it is
-    /// embedded in this method can be used to ensure that data is correct
-    /// it will extract filename,format and xmp info and generate a thumbnail
-    #[cfg(feature = "file_io")]
-    pub fn set_asset_from_path<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
-        // Gather the information we need from the target path
-        let ingredient = Ingredient::from_file_info(path.as_ref());
-
-        self.set_format(ingredient.format());
-        self.set_instance_id(ingredient.instance_id());
-
-        // if there is already an asset title preserve it
-        if self.title().is_none() {
-            self.set_title(ingredient.title());
-        }
-
-        Ok(())
     }
 
     // Convert a Manifest into a Claim
@@ -979,80 +927,6 @@ impl Manifest {
         Ok(store)
     }
 
-    // factor out this code to set up the destination path with a file
-    // so we can use set_asset_from_path to initialize the right fields in Manifest
-    #[cfg(feature = "file_io")]
-    fn embed_prep<P: AsRef<Path>>(&mut self, source_path: P, dest_path: P) -> Result<P> {
-        let mut copied = false;
-
-        if !source_path.as_ref().exists() {
-            let path = source_path.as_ref().to_string_lossy().into_owned();
-            return Err(Error::FileNotFound(path));
-        }
-        // we need to copy the source to target before setting the asset info
-        if !dest_path.as_ref().exists() {
-            // ensure the path to the file exists
-            if let Some(output_dir) = dest_path.as_ref().parent() {
-                create_dir_all(output_dir)?;
-            }
-            std::fs::copy(&source_path, &dest_path)?;
-            copied = true;
-        }
-        // first add the information about the target file
-        self.set_asset_from_path(dest_path.as_ref())?;
-
-        if copied {
-            Ok(dest_path)
-        } else {
-            Ok(source_path)
-        }
-    }
-
-    /// Embed a signed manifest into the target file using a supplied signer.
-    ///
-    /// # Example: Embed a manifest in a file
-    ///
-    /// ```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::{create_signer, Manifest, SigningAlg};
-    /// use serde::Serialize;
-    ///
-    /// #[derive(Serialize)]
-    /// struct Test {
-    ///     my_tag: usize,
-    /// }
-    ///
-    /// # fn main() -> Result<()> {
-    /// let mut manifest = Manifest::new("my_app".to_owned());
-    /// manifest.add_labeled_assertion("org.contentauth.test", &Test { my_tag: 42 })?;
-    ///
-    /// // Create a PS256 signer using certs and public key files.
-    /// let signcert_path = "tests/fixtures/certs/ps256.pub";
-    /// let pkey_path = "tests/fixtures/certs/ps256.pem";
-    /// let signer = create_signer::from_files(signcert_path, pkey_path, SigningAlg::Ps256, None)?;
-    ///
-    /// // Embed a manifest using the signer.
-    /// manifest.embed("tests/fixtures/C.jpg", "../target/test_file.jpg", &*signer)?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[cfg(feature = "file_io")]
-    pub fn embed<P: AsRef<Path>>(
-        &mut self,
-        source_path: P,
-        dest_path: P,
-        signer: &dyn Signer,
-    ) -> Result<Vec<u8>> {
-        // Add manifest info for this target file
-        let source_path = self.embed_prep(source_path.as_ref(), dest_path.as_ref())?;
-
-        // convert the manifest to a store
-        let mut store = self.to_store()?;
-
-        // sign and write our store to to the output image file
-        store.save_to_asset(source_path.as_ref(), signer, dest_path.as_ref())
-    }
-
     /// Embed a signed manifest into a stream using a supplied signer.
     /// returns the bytes of the  manifest that was embedded
     #[async_generic(async_signature(
@@ -1161,54 +1035,6 @@ impl Manifest {
             .await?;
 
         Ok((output_asset, output_manifest))
-    }
-
-    /// Embed a signed manifest into the target file using a supplied
-    /// [`AsyncSigner`].
-    #[cfg(feature = "file_io")]
-    pub async fn embed_async_signed<P: AsRef<Path>>(
-        &mut self,
-        source_path: P,
-        dest_path: P,
-        signer: &dyn AsyncSigner,
-    ) -> Result<Vec<u8>> {
-        // Add manifest info for this target file
-        let source_path = self.embed_prep(source_path.as_ref(), dest_path.as_ref())?;
-        // convert the manifest to a store
-        let mut store = self.to_store()?;
-        // sign and write our store to to the output image file
-        store
-            .save_to_asset_async(source_path.as_ref(), signer, dest_path.as_ref())
-            .await
-    }
-
-    /// Embed a signed manifest into the target file using a supplied
-    /// [`RemoteSigner`].
-    #[cfg(feature = "file_io")]
-    pub async fn embed_remote_signed<P: AsRef<Path>>(
-        &mut self,
-        source_path: P,
-        dest_path: P,
-        signer: &dyn RemoteSigner,
-    ) -> Result<Vec<u8>> {
-        // Add manifest info for this target file
-        let source_path = self.embed_prep(source_path.as_ref(), dest_path.as_ref())?;
-        // convert the manifest to a store
-        let mut store = self.to_store()?;
-        // sign and write our store to to the output image file
-        store
-            .save_to_asset_remote_signed(source_path.as_ref(), signer, dest_path.as_ref())
-            .await
-    }
-
-    /// Removes any existing manifest from a file
-    ///
-    /// This should only be used for special cases, such as converting an
-    /// embedded manifest to a cloud manifest
-    #[cfg(feature = "file_io")]
-    pub fn remove_manifest<P: AsRef<Path>>(asset_path: P) -> Result<()> {
-        use crate::jumbf_io::remove_jumbf_from_file;
-        remove_jumbf_from_file(asset_path.as_ref())
     }
 
     /// Generates a data hashed placeholder manifest for a file
@@ -1463,13 +1289,8 @@ pub(crate) mod tests {
         manifest.add_assertion(&cbor).expect("add_assertion");
         let store = manifest.to_store().expect("to_store");
 
-        let _manifest2 = Manifest::from_store(
-            &store,
-            &store.provenance_label().unwrap(),
-            #[cfg(feature = "file_io")]
-            None,
-        )
-        .expect("from_store");
+        let _manifest2 =
+            Manifest::from_store(&store, &store.provenance_label().unwrap()).expect("from_store");
         println!("{store}");
         println!("{_manifest2:?}");
         let cbor2: UserCbor = manifest.find_assertion(LABEL).expect("get_assertion");
@@ -1490,13 +1311,7 @@ pub(crate) mod tests {
         println!("{store}");
         let active_label = store.provenance_label().unwrap();
 
-        let manifest2 = Manifest::from_store(
-            &store,
-            &active_label,
-            #[cfg(feature = "file_io")]
-            None,
-        )
-        .expect("from_store");
+        let manifest2 = Manifest::from_store(&store, &active_label).expect("from_store");
         println!("{manifest2}");
 
         // now check to see if we have three separate assertions with different

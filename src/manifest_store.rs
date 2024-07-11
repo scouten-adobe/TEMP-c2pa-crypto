@@ -11,8 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(feature = "file_io")]
-use std::path::Path;
 use std::{
     collections::HashMap,
     io::{Read, Seek, Write},
@@ -114,30 +112,11 @@ impl ManifestStore {
 
     /// creates a ManifestStore from a Store with validation
     pub(crate) fn from_store(store: Store, validation_log: &impl StatusTracker) -> ManifestStore {
-        Self::from_store_impl(
-            store,
-            validation_log,
-            #[cfg(feature = "file_io")]
-            None,
-        )
-    }
-
-    /// creates a ManifestStore from a Store writing resources to resource_path
-    #[cfg(feature = "file_io")]
-    pub(crate) fn from_store_with_resources(
-        store: Store,
-        validation_log: &impl StatusTracker,
-        resource_path: &Path,
-    ) -> ManifestStore {
-        Self::from_store_impl(store, validation_log, Some(resource_path))
+        Self::from_store_impl(store, validation_log)
     }
 
     // internal implementation of from_store
-    fn from_store_impl(
-        store: Store,
-        validation_log: &impl StatusTracker,
-        #[cfg(feature = "file_io")] resource_path: Option<&Path>,
-    ) -> ManifestStore {
+    fn from_store_impl(store: Store, validation_log: &impl StatusTracker) -> ManifestStore {
         let mut statuses = status_for_store(&store, validation_log);
 
         let mut manifest_store = ManifestStore::new();
@@ -147,9 +126,6 @@ impl ManifestStore {
         let store = &manifest_store.store;
         for claim in store.claims() {
             let manifest_label = claim.label();
-            #[cfg(feature = "file_io")]
-            let result = Manifest::from_store(store, manifest_label, resource_path);
-            #[cfg(not(feature = "file_io"))]
             let result = Manifest::from_store(store, manifest_label);
             match result {
                 Ok(manifest) => {
@@ -179,12 +155,7 @@ impl ManifestStore {
     pub fn from_manifest(manifest: &Manifest) -> Result<Self> {
         use crate::status_tracker::OneShotStatusTracker;
         let store = manifest.to_store()?;
-        Ok(Self::from_store_impl(
-            store,
-            &OneShotStatusTracker::new(),
-            #[cfg(feature = "file_io")]
-            manifest.resources().base_path(),
-        ))
+        Ok(Self::from_store_impl(store, &OneShotStatusTracker::new()))
     }
 
     /// Generate a Store from a format string and bytes.
@@ -229,58 +200,6 @@ impl ManifestStore {
             }
         }
         Ok(Self::from_store(store, &validation_log))
-    }
-
-    #[cfg(feature = "file_io")]
-    /// Loads a ManifestStore from a file
-    /// Example:
-    ///
-    /// ```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::ManifestStore;
-    /// # fn main() -> Result<()> {
-    /// let manifest_store = ManifestStore::from_file("tests/fixtures/C.jpg")?;
-    /// println!("{}", manifest_store);
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[cfg(feature = "v1_api")]
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<ManifestStore> {
-        let mut validation_log = DetailedStatusTracker::new();
-
-        let store = Store::load_from_asset(path.as_ref(), true, &mut validation_log)?;
-        Ok(Self::from_store(store, &validation_log))
-    }
-
-    #[cfg(feature = "file_io")]
-    /// Loads a ManifestStore from a file adding resources to a folder
-    /// Example:
-    ///
-    /// ```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::ManifestStore;
-    /// # fn main() -> Result<()> {
-    /// let manifest_store = ManifestStore::from_file_with_resources(
-    ///     "tests/fixtures/C.jpg",
-    ///     "../target/tmp/manifest_store",
-    /// )?;
-    /// println!("{}", manifest_store);
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[allow(dead_code)]
-    pub fn from_file_with_resources<P: AsRef<Path>>(
-        path: P,
-        resource_path: P,
-    ) -> Result<ManifestStore> {
-        let mut validation_log = DetailedStatusTracker::new();
-
-        let store = Store::load_from_asset(path.as_ref(), true, &mut validation_log)?;
-        Ok(Self::from_store_with_resources(
-            store,
-            &validation_log,
-            resource_path.as_ref(),
-        ))
     }
 
     /// Loads a ManifestStore from a file
@@ -525,23 +444,6 @@ mod tests {
         assert!(manifest.time().is_some());
     }
 
-    #[test]
-    #[cfg(feature = "file_io")]
-    #[cfg(feature = "v1_api")]
-    fn manifest_report_from_file() {
-        let manifest_store = ManifestStore::from_file("tests/fixtures/CA.jpg").unwrap();
-        println!("{manifest_store}");
-
-        assert!(manifest_store.active_label().is_some());
-        assert!(manifest_store.get_active().is_some());
-        assert!(!manifest_store.manifests().is_empty());
-        assert!(manifest_store.validation_status().is_none());
-        let manifest = manifest_store.get_active().unwrap();
-        assert!(!manifest.ingredients().is_empty());
-        assert_eq!(manifest.issuer().unwrap(), "C2PA Test Signing Cert");
-        assert!(manifest.time().is_some());
-    }
-
     #[cfg_attr(not(target_arch = "wasm32"), actix::test)]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     #[cfg(feature = "v1_api")]
@@ -559,27 +461,6 @@ mod tests {
         assert!(!manifest_store.manifests().is_empty());
         assert!(manifest_store.validation_status().is_none());
         println!("{manifest_store}");
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    #[cfg(feature = "v1_api")]
-    fn manifest_report_from_file_with_resources() {
-        let manifest_store = ManifestStore::from_file_with_resources(
-            "tests/fixtures/CIE-sig-CA.jpg",
-            "../target/ms",
-        )
-        .expect("from_store_with_resources");
-        println!("{manifest_store}");
-
-        assert!(manifest_store.active_label().is_some());
-        assert!(manifest_store.get_active().is_some());
-        assert!(!manifest_store.manifests().is_empty());
-        assert!(manifest_store.validation_status().is_none());
-        let manifest = manifest_store.get_active().unwrap();
-        assert!(!manifest.ingredients().is_empty());
-        assert_eq!(manifest.issuer().unwrap(), "C2PA Test Signing Cert");
-        assert!(manifest.time().is_some());
     }
 
     #[test]

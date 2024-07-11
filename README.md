@@ -62,15 +62,10 @@ Add this to your `Cargo.toml`:
 c2pa = "0.32.5"
 ```
 
-If you want to read or write a manifest file, add the `file_io` dependency to your `Cargo.toml`.
-
-NOTE: If you are building for WASM, omit the `file_io` dependency.
-
 ## Crate features
 
 The Rust library crate provides:
 
-* `file_io` enables manifest generation, signing via OpenSSL, and embedding manifests in various file formats.
 * `serialize_thumbnails` includes binary thumbnail data in the [Serde](https://serde.rs/) serialization output.
 * `psxxx_ocsp_stapling_experimental` this is an demonstration feature that will attempt to fetch the OCSP data from the OCSP responders listed in the manifest signing certificate.  The response becomes part of the manifest and is used to prove the certificate was not revoked at the time of signing.  This is only implemented for PS256, PS384 and PS512 signatures and is intended as a demonstration.
 

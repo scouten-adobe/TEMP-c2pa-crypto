@@ -11,8 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(feature = "file_io")]
-use std::path::Path;
 use std::{collections::HashMap, fmt};
 
 use chrono::{DateTime, Utc};
@@ -70,8 +68,6 @@ const GH_UA: &str = "Sec-CH-UA";
 // having different implementations for functions as a single entry point can be
 // used to handle different data types.
 pub enum ClaimAssetData<'a> {
-    #[cfg(feature = "file_io")]
-    Path(&'a Path),
     Bytes(&'a [u8], &'a str),
     Stream(&'a mut dyn CAIRead, &'a str),
     StreamFragment(&'a mut dyn CAIRead, &'a mut dyn CAIRead, &'a str),
@@ -1312,10 +1308,6 @@ impl Claim {
                     if !dh.is_remote_hash() {
                         // only verify local hashes here
                         let hash_result = match asset_data {
-                            #[cfg(feature = "file_io")]
-                            ClaimAssetData::Path(asset_path) => {
-                                dh.verify_hash(asset_path, Some(claim.alg()))
-                            }
                             ClaimAssetData::Bytes(asset_bytes, _) => {
                                 dh.verify_in_memory_hash(asset_bytes, Some(claim.alg()))
                             }
@@ -1359,18 +1351,6 @@ impl Claim {
                     let bh = BoxHash::from_assertion(hash_binding_assertion)?;
 
                     let hash_result = match asset_data {
-                        #[cfg(feature = "file_io")]
-                        ClaimAssetData::Path(asset_path) => {
-                            let box_hash_processor =
-                                crate::jumbf_io::get_assetio_handler_from_path(asset_path)
-                                    .ok_or(Error::UnsupportedType)?
-                                    .asset_box_hash_ref()
-                                    .ok_or(Error::HashMismatch(
-                                        "Box hash not supported".to_string(),
-                                    ))?;
-
-                            bh.verify_hash(asset_path, Some(claim.alg()), box_hash_processor)
-                        }
                         ClaimAssetData::Bytes(asset_bytes, asset_type) => {
                             let box_hash_processor = get_assetio_handler(asset_type)
                                 .ok_or(Error::UnsupportedType)?

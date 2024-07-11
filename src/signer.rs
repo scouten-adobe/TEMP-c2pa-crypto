@@ -93,7 +93,6 @@ pub trait Signer {
 #[allow(dead_code)] // this here for wasm builds to pass clippy  (todo: remove)
 pub(crate) trait ConfigurableSigner: Signer + Sized {
     /// Create signer form credential files
-    #[cfg(feature = "file_io")]
     fn from_files<P: AsRef<std::path::Path>>(
         signcert_path: P,
         pkey_path: P,

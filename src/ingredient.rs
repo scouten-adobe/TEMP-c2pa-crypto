@@ -12,16 +12,12 @@
 // each license.
 
 #![deny(missing_docs)]
-#[cfg(feature = "file_io")]
-use std::path::{Path, PathBuf};
 use std::{borrow::Cow, io::Cursor};
 
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[cfg(feature = "file_io")]
-use crate::utils::mime::extension_to_mime;
 #[cfg(doc)]
 use crate::Manifest;
 use crate::{
@@ -411,14 +407,8 @@ impl Ingredient {
         bytes: B,
     ) -> Result<&mut Self> {
         // Do not write this as a file when reading from files
-        #[cfg(feature = "file_io")]
-        let base_path = self.resources_mut().take_base_path();
         let base_id = self.instance_id().to_string();
         self.thumbnail = Some(self.resources.add_with(&base_id, &format.into(), bytes)?);
-        #[cfg(feature = "file_io")]
-        if let Some(path) = base_path {
-            self.resources_mut().set_base_path(path)
-        }
         Ok(self)
     }
 
@@ -506,46 +496,6 @@ impl Ingredient {
     /// Return an mutable reference to the ingredient resources
     pub fn resources_mut(&mut self) -> &mut ResourceStore {
         &mut self.resources
-    }
-
-    /// Gathers filename, extension, and format from a file path.
-    #[cfg(feature = "file_io")]
-    fn get_path_info(path: &std::path::Path) -> (String, String, String) {
-        let title = path
-            .file_name()
-            .map(|name| name.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "".into());
-
-        let extension = path
-            .extension()
-            .map(|e| e.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "".into())
-            .to_lowercase();
-
-        let format = extension_to_mime(&extension)
-            .unwrap_or("application/octet-stream")
-            .to_owned();
-        (title, extension, format)
-    }
-
-    /// Generates an `Ingredient` from a file path, including XMP info
-    /// from the file if available.
-    ///
-    /// This does not read c2pa_data in a file, it only reads XMP
-    #[cfg(feature = "file_io")]
-    pub fn from_file_info<P: AsRef<Path>>(path: P) -> Self {
-        // get required information from the file path
-        let (title, _, format) = Self::get_path_info(path.as_ref());
-
-        // if we can open the file try tto get xmp info
-        match std::fs::File::open(path).map_err(Error::IoError) {
-            Ok(mut file) => Self::from_stream_info(&mut file, &format, &title),
-            Err(_) => Self {
-                title,
-                format,
-                ..Default::default()
-            },
-        }
     }
 
     /// Generates an `Ingredient` from a stream, including XMP info
@@ -679,23 +629,6 @@ impl Ingredient {
         }
     }
 
-    #[cfg(feature = "file_io")]
-    /// Creates an `Ingredient` from a file path.
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        Self::from_file_with_options(path.as_ref(), &DefaultOptions { base: None })
-    }
-
-    #[cfg(feature = "file_io")]
-    /// Creates an `Ingredient` from a file path.
-    pub fn from_file_with_folder<P: AsRef<Path>>(path: P, folder: P) -> Result<Self> {
-        Self::from_file_with_options(
-            path.as_ref(),
-            &DefaultOptions {
-                base: Some(PathBuf::from(folder.as_ref())),
-            },
-        )
-    }
-
     fn thumbnail_from_assertion(assertion: &Assertion) -> (String, Vec<u8>) {
         (
             format!(
@@ -704,86 +637,6 @@ impl Ingredient {
             ),
             assertion.data().to_vec(),
         )
-    }
-
-    /// Creates an `Ingredient` from a file path and options.
-    #[cfg(feature = "file_io")]
-    pub fn from_file_with_options<P: AsRef<Path>>(
-        path: P,
-        options: &dyn IngredientOptions,
-    ) -> Result<Self> {
-        Self::from_file_impl(path.as_ref(), options)
-    }
-
-    // Internal implementation to avoid code bloat.
-    #[cfg(feature = "file_io")]
-    fn from_file_impl(path: &Path, options: &dyn IngredientOptions) -> Result<Self> {
-        #[cfg(feature = "diagnostics")]
-        let _t = crate::utils::time_it::TimeIt::new("Ingredient:from_file_with_options");
-
-        // from the source file we need to get the XMP, JUMBF and generate a thumbnail
-        debug!("ingredient {:?}", path);
-
-        // get required information from the file path
-        let mut ingredient = Self::from_file_info(path);
-
-        if !path.exists() {
-            return Err(Error::FileNotFound(ingredient.title));
-        }
-
-        // configure for writing to folders if that option is set
-        if let Some(folder) = options.base_path().as_ref() {
-            ingredient.with_base_path(folder)?;
-        }
-
-        // if options includes a title, use it
-        if let Some(opt_title) = options.title(path) {
-            ingredient.title = opt_title;
-        }
-
-        // optionally generate a hash so we know if the file has changed
-        ingredient.hash = options.hash(path);
-
-        let mut validation_log = DetailedStatusTracker::new();
-
-        // retrieve the manifest bytes from embedded, sidecar or remote and convert to
-        // store if found
-        let (result, manifest_bytes) = match Store::load_jumbf_from_path(path) {
-            Ok(manifest_bytes) => {
-                (
-                    // generate a store from the buffer and then validate from the asset path
-                    Store::from_jumbf(&manifest_bytes, &mut validation_log)
-                        .and_then(|mut store| {
-                            // verify the store
-                            store
-                                .verify_from_path(path, &mut validation_log)
-                                .map(|_| store)
-                        })
-                        .map_err(|e| {
-                            // add a log entry for the error so we act like verify
-                            validation_log.log_silent(
-                                log_item!("asset", "error loading file", "Ingredient::from_file")
-                                    .set_error(&e),
-                            );
-                            e
-                        }),
-                    Some(manifest_bytes),
-                )
-            }
-            Err(err) => (Err(err), None),
-        };
-
-        // set validation status from result and log
-        ingredient.update_validation_status(result, manifest_bytes, &validation_log)?;
-
-        // create a thumbnail if we don't already have a manifest with a thumb we can
-        // use
-        if ingredient.thumbnail.is_none() {
-            if let Some((format, image)) = options.thumbnail(path) {
-                ingredient.set_thumbnail(format, image)?;
-            }
-        }
-        Ok(ingredient)
     }
 
     /// Creates an `Ingredient` from a memory buffer.
@@ -916,7 +769,6 @@ impl Ingredient {
         store: &Store,
         claim_label: &str,
         ingredient_uri: &str,
-        #[cfg(feature = "file_io")] resource_path: Option<&Path>,
     ) -> Result<Self> {
         let assertion =
             store
@@ -950,11 +802,6 @@ impl Ingredient {
         );
         ingredient.document_id = ingredient_assertion.document_id;
         ingredient.resources.set_label(claim_label); // set the label for relative paths
-
-        #[cfg(feature = "file_io")]
-        if let Some(base_path) = resource_path {
-            ingredient.resources_mut().set_base_path(base_path)
-        }
 
         if let Some(hashed_uri) = ingredient_assertion.thumbnail.as_ref() {
             // This could be a relative or absolute thumbnail reference to another manifest
@@ -1216,17 +1063,6 @@ impl Ingredient {
         claim.add_assertion(&ingredient_assertion)
     }
 
-    /// Setting a base path will make the ingredient use resource files instead
-    /// of memory buffers
-    ///
-    /// The files will be relative to the given base path
-    #[cfg(feature = "file_io")]
-    pub fn with_base_path<P: AsRef<Path>>(&mut self, base_path: P) -> Result<&Self> {
-        std::fs::create_dir_all(&base_path)?;
-        self.resources.set_base_path(base_path.as_ref());
-        Ok(self)
-    }
-
     /// Asynchronously create an Ingredient from a binary manifest (.c2pa) and
     /// asset bytes
     ///
@@ -1303,64 +1139,6 @@ impl std::fmt::Display for Ingredient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let report = serde_json::to_string_pretty(self).unwrap_or_default();
         f.write_str(&report)
-    }
-}
-
-/// This defines optional operations when creating [`Ingredient`] structs from
-/// files.
-#[cfg(feature = "file_io")]
-pub trait IngredientOptions {
-    /// This allows setting the title for the ingredient.
-    ///
-    /// If it returns `None`, then the default behavior is to use the file's
-    /// name.
-    fn title(&self, _path: &Path) -> Option<String> {
-        None
-    }
-
-    /// Returns an optional hash value for the ingredient
-    ///
-    /// This can be used to test for duplicate ingredients or if a source file
-    /// has changed. If hash is_some() Manifest.add_ingredient will dedup
-    /// matching hashes
-    fn hash(&self, _path: &Path) -> Option<String> {
-        None
-    }
-
-    /// Returns an optional thumbnail image representing the asset
-    ///
-    /// The first value is the content type of the thumbnail, i.e. image/jpeg
-    /// The second value is bytes of the thumbnail image
-    /// The default is to have no thumbnail, so you must provide an override to
-    /// have a thumbnail image
-    fn thumbnail(&self, _path: &Path) -> Option<(String, Vec<u8>)> {
-        None
-    }
-
-    /// Returns an optional folder path
-    ///
-    /// If Some, binary data will be stored in files in the given folder
-    fn base_path(&self) -> Option<&Path> {
-        None
-    }
-}
-
-/// DefaultOptions returns None for Title and Hash and generates thumbnail for
-/// supported thumbnails
-///
-/// This can be use with Ingredient::from_file_with_options
-#[cfg(feature = "file_io")]
-pub struct DefaultOptions {
-    /// If Some, the ingredient will read/write binary assets using this folder.
-    ///
-    /// If None, the assets will be kept in memory.
-    pub base: Option<std::path::PathBuf>,
-}
-
-#[cfg(feature = "file_io")]
-impl IngredientOptions for DefaultOptions {
-    fn base_path(&self) -> Option<&Path> {
-        self.base.as_deref()
     }
 }
 
@@ -1498,27 +1276,9 @@ mod tests {
     }
 
     #[allow(dead_code)]
-    #[cfg_attr(not(any(target_arch = "wasm32", feature = "file_io")), actix::test)]
-    #[cfg(not(target_arch = "wasm32"))]
-    async fn test_jpg_cloud_from_memory() {
-        let image_bytes = include_bytes!("../tests/fixtures/cloud.jpg");
-        let format = "image/jpeg";
-        let ingredient = Ingredient::from_memory_async(format, image_bytes)
-            .await
-            .expect("from_memory_async");
-        // println!("ingredient = {ingredient}");
-        assert_eq!(&ingredient.title, "untitled");
-        assert_eq!(ingredient.format(), format);
-        assert!(ingredient.provenance().is_some());
-        assert!(ingredient.provenance().unwrap().starts_with("https:"));
-        assert!(ingredient.manifest_data().is_some());
-        assert!(ingredient.validation_status().is_none());
-    }
-
-    #[allow(dead_code)]
-    #[cfg_attr(not(any(target_arch = "wasm32", feature = "file_io")), actix::test)]
+    #[cfg_attr(not(target_arch = "wasm32"), actix::test)]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_jpg_cloud_from_memory_no_file_io() {
+    async fn test_jpg_cloud_from_memory() {
         let image_bytes = include_bytes!("../tests/fixtures/cloud.jpg");
         let format = "image/jpeg";
         let ingredient = Ingredient::from_memory_async(format, image_bytes)
@@ -1558,275 +1318,5 @@ mod tests {
         assert!(ingredient.validation_status().is_none());
         assert!(ingredient.manifest_data().is_some());
         assert!(ingredient.provenance().is_some());
-    }
-}
-
-#[cfg(test)]
-#[cfg(feature = "file_io")]
-mod tests_file_io {
-    #![allow(clippy::expect_used)]
-    #![allow(clippy::unwrap_used)]
-
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::*;
-
-    use super::*;
-    use crate::utils::test::fixture_path;
-    #[cfg(target_arch = "wasm32")]
-    wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
-    const NO_MANIFEST_JPEG: &str = "earth_apollo17.jpg";
-    const MANIFEST_JPEG: &str = "C.jpg";
-    const BAD_SIGNATURE_JPEG: &str = "E-sig-CA.jpg";
-    const PRERELEASE_JPEG: &str = "prerelease.jpg";
-
-    fn stats(ingredient: &Ingredient) -> usize {
-        let thumb_size = ingredient.thumbnail_bytes().map_or(0, |i| i.len());
-        let manifest_data_size = ingredient.manifest_data().map_or(0, |r| r.len());
-
-        println!(
-            "  {} instance_id: {}, thumb size: {}, manifest_data size: {}",
-            ingredient.title(),
-            ingredient.instance_id(),
-            thumb_size,
-            manifest_data_size,
-        );
-        ingredient.title().len() + ingredient.instance_id().len() + thumb_size + manifest_data_size
-    }
-
-    fn test_thumbnail(ingredient: &Ingredient, _format: &str) {
-        assert!(ingredient.thumbnail().is_none());
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_psd() {
-        // std::env::set_var("RUST_LOG", "debug");
-        // env_logger::init();
-        let ap = fixture_path("Purple Square.psd");
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        stats(&ingredient);
-
-        println!("ingredient = {ingredient}");
-        assert_eq!(ingredient.title(), "Purple Square.psd");
-        assert_eq!(ingredient.format(), "image/vnd.adobe.photoshop");
-        assert!(ingredient.thumbnail().is_none()); // should always be none
-        assert!(ingredient.manifest_data().is_none());
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_manifest_jpg() {
-        let ap = fixture_path(MANIFEST_JPEG);
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        stats(&ingredient);
-
-        println!("ingredient = {ingredient}");
-        assert_eq!(&ingredient.title, MANIFEST_JPEG);
-        assert_eq!(ingredient.format(), "image/jpeg");
-        assert!(ingredient.thumbnail_ref().is_some()); // we don't generate this thumbnail
-        assert!(ingredient
-            .thumbnail_ref()
-            .unwrap()
-            .identifier
-            .starts_with("self#jumbf="));
-        assert!(ingredient.manifest_data().is_some());
-        assert!(ingredient.metadata().is_none());
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_no_manifest_jpg() {
-        let ap = fixture_path(NO_MANIFEST_JPEG);
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        stats(&ingredient);
-
-        println!("ingredient = {ingredient}");
-        assert_eq!(&ingredient.title, NO_MANIFEST_JPEG);
-        assert_eq!(ingredient.format(), "image/jpeg");
-        test_thumbnail(&ingredient, "image/jpeg");
-        assert!(ingredient.provenance().is_none());
-        assert!(ingredient.manifest_data().is_none());
-        assert!(ingredient.metadata().is_none());
-        assert!(ingredient.instance_id().starts_with("xmp.iid:"));
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_jpg_options() {
-        struct MyOptions {}
-        impl IngredientOptions for MyOptions {
-            fn title(&self, _path: &Path) -> Option<String> {
-                Some("MyTitle".to_string())
-            }
-
-            fn hash(&self, _path: &Path) -> Option<String> {
-                Some("1234568abcdef".to_string())
-            }
-
-            fn thumbnail(&self, _path: &Path) -> Option<(String, Vec<u8>)> {
-                Some(("image/foo".to_string(), "bits".as_bytes().to_owned()))
-            }
-        }
-
-        let ap = fixture_path(NO_MANIFEST_JPEG);
-        let ingredient = Ingredient::from_file_with_options(ap, &MyOptions {}).expect("from_file");
-        stats(&ingredient);
-
-        assert_eq!(ingredient.title(), "MyTitle");
-        assert_eq!(ingredient.format(), "image/jpeg");
-        assert_eq!(ingredient.hash(), Some("1234568abcdef"));
-        assert_eq!(ingredient.thumbnail_ref().unwrap().format, "image/foo"); // always generated
-        assert!(ingredient.manifest_data().is_none());
-        assert!(ingredient.metadata().is_none());
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_jpg_bad_signature() {
-        let ap = fixture_path(BAD_SIGNATURE_JPEG);
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        stats(&ingredient);
-
-        println!("ingredient = {ingredient}");
-        assert_eq!(ingredient.title(), BAD_SIGNATURE_JPEG);
-        assert_eq!(ingredient.format(), "image/jpeg");
-        test_thumbnail(&ingredient, "image/jpeg");
-        assert!(ingredient.manifest_data().is_some());
-        assert!(ingredient.validation_status().is_some());
-        assert!(ingredient
-            .validation_status()
-            .unwrap()
-            .iter()
-            .any(|s| s.code() == validation_status::CLAIM_SIGNATURE_MISMATCH));
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_jpg_prerelease() {
-        let ap = fixture_path(PRERELEASE_JPEG);
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        stats(&ingredient);
-
-        println!("ingredient = {ingredient}");
-        assert_eq!(ingredient.title(), PRERELEASE_JPEG);
-        assert_eq!(ingredient.format(), "image/jpeg");
-        test_thumbnail(&ingredient, "image/jpeg");
-        assert!(ingredient.provenance().is_some());
-        assert!(ingredient.manifest_data().is_none());
-        assert!(ingredient.validation_status().is_some());
-        assert_eq!(
-            ingredient.validation_status().unwrap()[0].code(),
-            validation_status::STATUS_PRERELEASE
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_jpg_nested() {
-        let ap = fixture_path("CIE-sig-CA.jpg");
-        let ingredient = Ingredient::from_file(ap).expect("from_file");
-        println!("ingredient = {ingredient}");
-        assert!(ingredient.validation_status().is_none());
-        assert!(ingredient.manifest_data().is_some());
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_jpg_with_path() {
-        let ap = fixture_path("CA.jpg");
-        let mut folder = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        folder.push("../target/tmp/ingredient");
-        let ingredient = Ingredient::from_file_with_folder(ap, folder).expect("from_file");
-        println!("ingredient = {ingredient}");
-        assert_eq!(ingredient.validation_status(), None);
-
-        // verify ingredient thumbnail is an absolute url reference to a claim thumbnail
-        assert!(ingredient
-            .thumbnail_ref()
-            .unwrap()
-            .identifier
-            .contains(labels::JPEG_CLAIM_THUMBNAIL));
-
-        // verify  manifest_data exists
-        assert!(ingredient.manifest_data_ref().is_some());
-        assert_eq!(ingredient.thumbnail_ref().unwrap().format, "image/jpeg");
-        assert!(ingredient
-            .thumbnail_ref()
-            .unwrap()
-            .identifier
-            .starts_with("self#jumbf="));
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_file_based_ingredient() {
-        let mut folder = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        folder.push("tests/fixtures");
-        let mut ingredient = Ingredient::new("title", "format", "instance_id");
-        ingredient.resources.set_base_path(folder);
-
-        assert!(ingredient.thumbnail_ref().is_none());
-        // assert!(ingredient
-        //     .set_manifest_data_ref(ResourceRef::new("image/jpg", "foo"))
-        //     .is_err());
-        assert!(ingredient.manifest_data_ref().is_none());
-        // verify we can set a reference
-        assert!(ingredient
-            .set_thumbnail_ref(ResourceRef::new("image/jpg", "C.jpg"))
-            .is_ok());
-        assert!(ingredient.thumbnail_ref().is_some());
-        assert!(ingredient
-            .set_manifest_data_ref(ResourceRef::new("application/c2pa", "cloud_manifest.c2pa"))
-            .is_ok());
-        assert!(ingredient.manifest_data_ref().is_some());
-    }
-
-    #[test]
-    fn test_input_to_ingredient() {
-        // create an inputTo ingredient
-        let mut ingredient = Ingredient::new_v2("prompt", "text/plain");
-        ingredient.relationship = Relationship::InputTo;
-
-        // add a resource containing our data
-        ingredient
-            .resources_mut()
-            .add("prompt_id", "pirate with bird on shoulder")
-            .expect("add");
-
-        // create a resource reference for the data
-        let mut data_ref = ResourceRef::new("text/plain", "prompt_id");
-        let data_type = crate::assertions::AssetType {
-            asset_type: "c2pa.types.generator.prompt".to_string(),
-            version: None,
-        };
-        data_ref.data_types = Some([data_type].to_vec());
-
-        // add the data reference to the ingredient
-        ingredient.set_data_ref(data_ref).expect("set_data_ref");
-
-        println!("ingredient = {ingredient}");
-
-        assert_eq!(ingredient.title(), "prompt");
-        assert_eq!(ingredient.format(), "text/plain");
-        assert_eq!(ingredient.instance_id(), "");
-        assert_eq!(ingredient.data_ref().unwrap().identifier, "prompt_id");
-        assert_eq!(ingredient.data_ref().unwrap().format, "text/plain");
-        assert_eq!(ingredient.relationship(), &Relationship::InputTo);
-        assert_eq!(
-            ingredient.data_ref().unwrap().data_types.as_ref().unwrap()[0].asset_type,
-            "c2pa.types.generator.prompt"
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "file_io")]
-    fn test_input_to_file_based_ingredient() {
-        let mut folder = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        folder.push("tests/fixtures");
-        let mut ingredient = Ingredient::new_v2("title", "format");
-        ingredient.resources.set_base_path(folder);
-        //let mut _data_ref = ResourceRef::new("image/jpg", "foo");
-        //data_ref.data_types = vec!["c2pa.types.dataset.pytorch".to_string()];
     }
 }

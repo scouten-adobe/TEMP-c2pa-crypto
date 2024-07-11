@@ -31,10 +31,8 @@
 #![allow(clippy::panic)]
 #![allow(clippy::unwrap_used)]
 
-#[cfg(feature = "file_io")]
 use std::path::{Path, PathBuf};
 
-#[cfg(feature = "file_io")]
 use crate::{
     openssl::{EcSigner, EdSigner, RsaSigner},
     signer::ConfigurableSigner,
@@ -60,7 +58,6 @@ use crate::{
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-#[cfg(feature = "file_io")]
 pub fn get_ec_signer<P: AsRef<Path>>(
     path: P,
     alg: SigningAlg,
@@ -105,7 +102,6 @@ pub fn get_ec_signer<P: AsRef<Path>>(
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-#[cfg(feature = "file_io")]
 pub fn get_ed_signer<P: AsRef<Path>>(
     path: P,
     alg: SigningAlg,
@@ -147,7 +143,6 @@ pub fn get_ed_signer<P: AsRef<Path>>(
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-#[cfg(feature = "file_io")]
 pub fn get_rsa_signer<P: AsRef<Path>>(
     path: P,
     alg: SigningAlg,

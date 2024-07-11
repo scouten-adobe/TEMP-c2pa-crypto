@@ -24,13 +24,6 @@
 //! the existing methods of reading and writing C2PA data.
 //! The new API focuses on stream support and can do more with fewer methods.
 //! It will be supported in all language bindings and build environments.
-//!
-//! To read with file based methods, you must add the `file_io` dependency to
-//! your Cargo.toml. For example:
-//!
-//! ```text
-//! c2pa = {version="0.32.0", features=["file_io"]}
-//! ```
 
 /// The internal name of the C2PA SDK
 pub const NAME: &str = "c2pa-rs";
@@ -58,8 +51,6 @@ pub use error::{Error, Result};
 pub use external_manifest::ManifestPatchCallback;
 pub use hash_utils::{hash_stream_by_alg, HashRange};
 pub use ingredient::Ingredient;
-#[cfg(feature = "file_io")]
-pub use ingredient::{DefaultOptions, IngredientOptions};
 pub use manifest::Manifest;
 pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
 #[cfg(feature = "v1_api")]

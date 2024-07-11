@@ -34,28 +34,6 @@ pub fn patch_bytes(data: &mut Vec<u8>, search_bytes: &[u8], replace_bytes: &[u8]
     }
 }
 
-/**
-Patch new content into a file
-path - path to file to be patched
-search_bytes - bytes to be replaced
-replace_bytes - replacement bytes
-returns the location where splice occurred
-*/
-#[cfg(all(test, feature = "file_io"))]
-pub fn patch_file(
-    path: &std::path::Path,
-    search_bytes: &[u8],
-    replace_bytes: &[u8],
-) -> Result<usize> {
-    let mut buf = std::fs::read(path).map_err(Error::IoError)?;
-
-    let splice_point = patch_bytes(&mut buf, search_bytes, replace_bytes)?;
-
-    std::fs::write(path, &buf).map_err(Error::IoError)?;
-
-    Ok(splice_point)
-}
-
 #[cfg(test)]
 pub mod tests {
     #![allow(clippy::unwrap_used)]

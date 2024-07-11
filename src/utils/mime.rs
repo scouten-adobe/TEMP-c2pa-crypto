@@ -53,38 +53,6 @@ pub fn format_to_mime(format: &str) -> String {
     .to_string()
 }
 
-/// Converts a format to a file extension
-#[cfg(feature = "file_io")]
-pub fn format_to_extension(format: &str) -> Option<&'static str> {
-    Some(match format {
-        "jpg" | "jpeg" | "image/jpeg" => "jpg",
-        "gif" | "image/gif" => "gif",
-        "psd" | "image/vnd.adobe.photoshop" => "psd",
-        "tiff" | "tif" | "image/tiff" => "tiff",
-        "ico" | "image/x-icon" => "ico",
-        "bmp" | "image/bmp" => "bmp",
-        "webp" | "image/webp" => "webp",
-        "dng" | "image/dng" => "dng",
-        "heic" | "image/heic" => "heic",
-        "heif" | "image/heif" => "heif",
-        "mp2" | "mpa" | "mpe" | "mpeg" | "mpg" | "mpv2" | "video/mpeg" => "mp2",
-        "mp4" | "video/mp4" => "mp4",
-        "avif" | "image/avif" => "avif",
-        "avi" | "video/avi" => "avi",
-        "mov" | "qt" | "video/quicktime" => "mov",
-        "m4a" | "audio/mp4" => "m4a",
-        "mid" | "rmi" | "audio/mid" => "mid",
-        "wav" | "audio/wav" | "audio/wave" | "audio.vnd.wave" => "wav",
-        "aif" | "aifc" | "aiff" | "audio/aiff" => "aif",
-        "ogg" | "audio/ogg" => "ogg",
-        "ai" | "application/postscript" => "ai",
-        "arw" | "image/x-sony-arw" => "arw",
-        "nef" | "image/x-nikon-nef" => "nef",
-        "c2pa" | "application/x-c2pa-manifest-store" | "application/c2pa" => "c2pa",
-        _ => return None,
-    })
-}
-
 /// Return a MIME type given a file path.
 ///
 /// This function will use the file extension to determine the MIME type.

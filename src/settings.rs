@@ -11,8 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(feature = "file_io")]
-use std::path::Path;
 use std::{
     io::{BufRead, BufReader, Cursor},
     sync::RwLock,
@@ -207,19 +205,6 @@ pub(crate) struct Settings {
 
 impl Settings {
     #[allow(unused)]
-    #[cfg(feature = "file_io")]
-    pub fn from_file<P: AsRef<Path>>(setting_path: P) -> Result<Self> {
-        let ext = setting_path
-            .as_ref()
-            .extension()
-            .ok_or(Error::UnsupportedType)?
-            .to_string_lossy();
-
-        let setting_buf = std::fs::read(&setting_path).map_err(Error::IoError)?;
-        Settings::from_string(&String::from_utf8_lossy(&setting_buf), &ext)
-    }
-
-    #[allow(unused)]
     pub fn from_string(settings_str: &str, format: &str) -> Result<Self> {
         let f = match format.to_lowercase().as_str() {
             "json" => FileFormat::Json,
@@ -296,38 +281,11 @@ pub(crate) fn get_settings() -> Option<Settings> {
     }
 }
 
-// Load settings from configuration file
-#[allow(unused)]
-#[cfg(feature = "file_io")]
-pub(crate) fn load_settings<P: AsRef<Path>>(settings_path: P) -> Result<()> {
-    let ext = settings_path
-        .as_ref()
-        .extension()
-        .ok_or(Error::UnsupportedType)?
-        .to_string_lossy();
-
-    let setting_buf = std::fs::read(&settings_path).map_err(Error::IoError)?;
-
-    load_settings_from_str(&String::from_utf8_lossy(&setting_buf), &ext)
-}
-
 /// Load settings form string representation of the configuration.  Format of
 /// configuration must be supplied.
 #[allow(unused)]
 pub fn load_settings_from_str(settings_str: &str, format: &str) -> Result<()> {
     Settings::from_string(settings_str, format).map(|_| ())
-}
-
-// Save the current configuration to a json file.
-#[allow(unused)]
-#[cfg(feature = "file_io")]
-pub(crate) fn save_settings_as_json<P: AsRef<Path>>(settings_path: P) -> Result<()> {
-    let settings =
-        get_settings().ok_or(Error::OtherError("could not get current settings".into()))?;
-
-    let settings_json = serde_json::to_string_pretty(&settings).map_err(Error::JsonError)?;
-
-    std::fs::write(settings_path, settings_json.as_bytes()).map_err(Error::IoError)
 }
 
 // Set a Settings value by path reference.  The path is nested names of of the
@@ -528,44 +486,6 @@ pub mod tests {
             get_settings_value::<Trust>("trust").unwrap(),
             Trust::default()
         );
-
-        reset_default_settings().unwrap();
-    }
-
-    #[cfg(feature = "file_io")]
-    #[test]
-    fn test_save_load() {
-        let _protect = PROTECT.lock().unwrap();
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        let op = crate::utils::test::temp_dir_path(&temp_dir, "sdk_config.json");
-
-        save_settings_as_json(&op).unwrap();
-
-        load_settings(&op).unwrap();
-        let settings = get_settings().unwrap();
-
-        assert_eq!(settings, Settings::default());
-
-        reset_default_settings().unwrap();
-    }
-
-    #[cfg(feature = "file_io")]
-    #[test]
-    fn test_save_load_from_string() {
-        let _protect = PROTECT.lock().unwrap();
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        let op = crate::utils::test::temp_dir_path(&temp_dir, "sdk_config.json");
-
-        save_settings_as_json(&op).unwrap();
-
-        let setting_buf = std::fs::read(&op).unwrap();
-
-        load_settings_from_str(&String::from_utf8_lossy(&setting_buf), "json").unwrap();
-        let settings = get_settings().unwrap();
-
-        assert_eq!(settings, Settings::default());
 
         reset_default_settings().unwrap();
     }

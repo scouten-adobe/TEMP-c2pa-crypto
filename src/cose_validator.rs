@@ -1316,7 +1316,6 @@ pub mod tests {
     };
 
     #[test]
-    #[cfg(feature = "file_io")]
     fn test_expired_cert() {
         let mut validation_log = DetailedStatusTracker::new();
         let th = crate::openssl::OpenSSLTrustHandlerConfig::new();

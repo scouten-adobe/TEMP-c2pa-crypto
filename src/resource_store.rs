@@ -16,11 +16,6 @@ use std::{
     collections::HashMap,
     io::{Read, Seek, Write},
 };
-#[cfg(feature = "file_io")]
-use std::{
-    fs::{create_dir_all, read, write},
-    path::{Path, PathBuf},
-};
 
 use serde::{Deserialize, Serialize};
 
@@ -134,9 +129,6 @@ impl ResourceRef {
 #[derive(Debug, Serialize)]
 pub struct ResourceStore {
     resources: HashMap<String, Vec<u8>>,
-    #[cfg(feature = "file_io")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    base_path: Option<PathBuf>,
     #[serde(skip_serializing_if = "Option::is_none")]
     label: Option<String>,
 }
@@ -146,8 +138,6 @@ impl ResourceStore {
     pub fn new() -> Self {
         ResourceStore {
             resources: HashMap::new(),
-            #[cfg(feature = "file_io")]
-            base_path: None,
             label: None,
         }
     }
@@ -156,27 +146,6 @@ impl ResourceStore {
     pub fn set_label<S: Into<String>>(&mut self, label: S) -> &Self {
         self.label = Some(label.into());
         self
-    }
-
-    #[cfg(feature = "file_io")]
-    // Returns the base path for relative file paths if it is set.
-    pub fn base_path(&self) -> Option<&Path> {
-        self.base_path.as_deref()
-    }
-
-    #[cfg(feature = "file_io")]
-    /// Sets a base path for relative file paths.
-    ///
-    /// Identifiers will be interpreted as file paths and resources will be
-    /// written to files if this is set.
-    pub fn set_base_path<P: Into<PathBuf>>(&mut self, base_path: P) {
-        self.base_path = Some(base_path.into());
-    }
-
-    #[cfg(feature = "file_io")]
-    /// Returns and removes the base path.
-    pub fn take_base_path(&mut self) -> Option<PathBuf> {
-        self.base_path.take()
     }
 
     /// Generates a unique ID for a given content type (adds a file extension).
@@ -223,34 +192,11 @@ impl ResourceStore {
     where
         R: Into<Vec<u8>>,
     {
-        #[cfg(feature = "file_io")]
-        let mut id = uri.to_string();
-        #[cfg(not(feature = "file_io"))]
         let id = uri.to_string();
 
         // if it isn't jumbf, assume it's an external uri and use it as is
-        #[allow(clippy::collapsible_if)]
-        if id.starts_with("self#jumbf=") {
-            #[cfg(feature = "file_io")]
-            if self.base_path.is_some() {
-                // convert to a file path always including the manifest label
-                id = id.replace("self#jumbf=", "");
-                if id.starts_with("/c2pa/") {
-                    id = id.replacen("/c2pa/", "", 1);
-                } else if let Some(label) = self.label.as_ref() {
-                    id = format!("{}/{id}", label);
-                }
-                id = id.replace([':'], "_");
-                // add a file extension if it doesn't have one
-                if !id.ends_with(".jpeg") {
-                    if let Some(ext) = crate::utils::mime::format_to_extension(format) {
-                        id = format!("{}.{}", id, ext);
-                    }
-                }
-            }
-            if !self.exists(&id) {
-                self.add(&id, value)?;
-            }
+        if id.starts_with("self#jumbf=") && !self.exists(&id) {
+            self.add(&id, value)?;
         }
         Ok(ResourceRef::new(format, id))
     }
@@ -261,13 +207,6 @@ impl ResourceStore {
         S: Into<String>,
         R: Into<Vec<u8>>,
     {
-        #[cfg(feature = "file_io")]
-        if let Some(base) = self.base_path.as_ref() {
-            let path = base.join(id.into());
-            create_dir_all(path.parent().unwrap_or(Path::new("")))?;
-            write(path, value.into())?;
-            return Ok(self);
-        }
         self.resources.insert(id.into(), value.into());
         Ok(self)
     }
@@ -282,21 +221,6 @@ impl ResourceStore {
     /// Returns [`Error::ResourceNotFound`] if it cannot find a resource
     /// matching that ID.
     pub fn get(&self, id: &str) -> Result<Cow<Vec<u8>>> {
-        #[cfg(feature = "file_io")]
-        if !self.resources.contains_key(id) {
-            match self.base_path.as_ref() {
-                Some(base) => {
-                    // read the file, save in Map and then return a reference
-                    let path = base.join(id);
-                    let value = read(path).map_err(|_| {
-                        let path = base.join(id).to_string_lossy().into_owned();
-                        Error::ResourceNotFound(path)
-                    })?;
-                    return Ok(Cow::Owned(value));
-                }
-                None => return Err(Error::ResourceNotFound(id.to_string())),
-            }
-        }
         self.resources.get(id).map_or_else(
             || Err(Error::ResourceNotFound(id.to_string())),
             |v| Ok(Cow::Borrowed(v)),
@@ -308,18 +232,6 @@ impl ResourceStore {
         id: &str,
         mut stream: impl Write + Read + Seek + Send,
     ) -> Result<u64> {
-        #[cfg(feature = "file_io")]
-        if !self.resources.contains_key(id) {
-            match self.base_path.as_ref() {
-                Some(base) => {
-                    // read from, the file to stream
-                    let path = base.join(id);
-                    let mut file = std::fs::File::open(path)?;
-                    return std::io::copy(&mut file, &mut stream).map_err(Error::IoError);
-                }
-                None => return Err(Error::ResourceNotFound(id.to_string())),
-            }
-        }
         match self.resources().get(id) {
             Some(data) => {
                 stream.write_all(data).map_err(Error::IoError)?;
@@ -331,28 +243,7 @@ impl ResourceStore {
 
     /// Returns `true` if the resource has been added or exists as file.
     pub fn exists(&self, id: &str) -> bool {
-        #[allow(clippy::collapsible_if)]
-        #[allow(clippy::needless_bool)]
-        if !self.resources.contains_key(id) {
-            #[cfg(feature = "file_io")]
-            match self.base_path.as_ref() {
-                Some(base) => {
-                    let path = base.join(id);
-                    path.exists()
-                }
-                None => false,
-            }
-            #[cfg(not(feature = "file_io"))]
-            false
-        } else {
-            true
-        }
-    }
-
-    #[cfg(feature = "file_io")]
-    // Returns the full path for an ID.
-    pub fn path_for_id(&self, id: &str) -> Option<PathBuf> {
-        self.base_path.as_ref().map(|base| base.join(id))
+        self.resources.contains_key(id)
     }
 }
 

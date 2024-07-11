@@ -196,7 +196,6 @@ fn der_to_p1363(data: &[u8], alg: SigningAlg) -> Result<Vec<u8>> {
 }
 
 #[cfg(test)]
-#[cfg(feature = "file_io")]
 mod tests {
     #![allow(clippy::unwrap_used)]
 

@@ -39,7 +39,6 @@ impl CoseValidator for EdValidator {
 }
 
 #[cfg(test)]
-#[cfg(feature = "file_io")]
 mod tests {
     #![allow(clippy::unwrap_used)]
 
