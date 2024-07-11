@@ -451,16 +451,16 @@ impl Store {
         placeholder
     }
 
-    /// Return certificate chain for the provenance claim
-    #[cfg(feature = "v1_api")]
-    pub(crate) fn get_provenance_cert_chain(&self) -> Result<String> {
-        let claim = self.provenance_claim().ok_or(Error::ProvenanceMissing)?;
-
-        match claim.get_cert_chain() {
-            Ok(chain) => String::from_utf8(chain).map_err(|_e| Error::CoseInvalidCert),
-            Err(e) => Err(e),
-        }
-    }
+    //     /// Return certificate chain for the provenance claim
+    //     #[cfg(feature = "v1_api")]
+    //     pub(crate) fn get_provenance_cert_chain(&self) -> Result<String> {
+    //         let claim = self.provenance_claim().ok_or(Error::ProvenanceMissing)?;
+    //
+    //         match claim.get_cert_chain() {
+    //             Ok(chain) => String::from_utf8(chain).map_err(|_e|
+    // Error::CoseInvalidCert),             Err(e) => Err(e),
+    //         }
+    //     }
 
     /// Return OCSP info if available
     // Currently only called from manifest_store behind a feature flag but this is allowable
@@ -3398,7 +3398,7 @@ impl Store {
 
 impl std::fmt::Display for Store {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.,write_str("Store::display no longer implemented")
+        f.write_str("Store::display no longer implemented")
     }
 }
 

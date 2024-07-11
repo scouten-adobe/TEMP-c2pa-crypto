@@ -26,8 +26,6 @@ use std::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "unstable_api")]
-use crate::asset_io::CAIRead;
 use crate::{
     assertions::{labels, AssetType},
     claim::Claim,
@@ -374,21 +372,6 @@ impl Default for ResourceStore {
     }
 }
 
-#[cfg(feature = "unstable_api")]
-pub trait ResourceResolver {
-    /// Read the data in a [`ResourceRef`][ResourceRef] via a stream.
-    fn open(&self, reference: &ResourceRef) -> Result<Box<dyn CAIRead>>;
-}
-
-#[cfg(feature = "unstable_api")]
-impl ResourceResolver for ResourceStore {
-    fn open(&self, reference: &ResourceRef) -> Result<Box<dyn CAIRead>> {
-        let data = self.get(&reference.identifier)?.into_owned();
-        let cursor = std::io::Cursor::new(data);
-        Ok(Box::new(cursor))
-    }
-}
-
 pub fn mime_from_uri(uri: &str) -> String {
     if let Some(label) = assertion_label_from_uri(uri) {
         if label.starts_with(labels::THUMBNAIL) {
@@ -401,78 +384,4 @@ pub fn mime_from_uri(uri: &str) -> String {
 
     // Unknown binary data.
     String::from("application/octet-stream")
-}
-
-#[cfg(test)]
-#[cfg(feature = "openssl_sign")]
-mod tests {
-    #![allow(clippy::expect_used)]
-    #![allow(clippy::unwrap_used)]
-
-    use std::io::Cursor;
-
-    use super::*;
-    use crate::{utils::test::temp_signer, Builder, Reader};
-
-    #[test]
-    #[cfg(feature = "openssl_sign")]
-    fn resource_store() {
-        let mut c = ResourceStore::new();
-        let value = b"my value";
-        c.add("abc123.jpg", value.to_vec()).expect("add");
-        let v = c.get("abc123.jpg").unwrap();
-        assert_eq!(v.to_vec(), b"my value");
-        c.add("cba321.jpg", value.to_vec()).expect("add");
-        assert!(c.exists("cba321.jpg"));
-        assert!(!c.exists("foo"));
-
-        let json = r#"{
-            "claim_generator": "test",
-            "format" : "image/jpeg",
-            "instance_id": "12345",
-            "assertions": [],
-            "thumbnail": {
-                "format": "image/jpeg",
-                "identifier": "abc123"
-            },
-            "ingredients": [{
-                "title": "A.jpg",
-                "format": "image/jpeg",
-                "document_id": "xmp.did:813ee422-9736-4cdc-9be6-4e35ed8e41cb",
-                "instance_id": "xmp.iid:813ee422-9736-4cdc-9be6-4e35ed8e41cb",
-                "relationship": "parentOf",
-                "thumbnail": {
-                    "format": "image/jpeg",
-                    "identifier": "cba321"
-                }
-            }]
-        }"#;
-
-        let mut builder = Builder::from_json(json).expect("from json");
-        builder
-            .add_resource("abc123", &mut Cursor::new(value))
-            .expect("add_resource");
-        builder
-            .add_resource("cba321", &mut Cursor::new(value))
-            .expect("add_resource");
-
-        let image = include_bytes!("../tests/fixtures/earth_apollo17.jpg");
-
-        let signer = temp_signer();
-        // Embed a manifest using the signer.
-        let mut output_image = Cursor::new(Vec::new());
-        builder
-            .sign(
-                &*signer,
-                "image/jpeg",
-                &mut Cursor::new(image),
-                &mut output_image,
-            )
-            .expect("sign");
-
-        output_image.set_position(0);
-        let reader = Reader::from_stream("jpeg", &mut output_image).expect("from_bytes");
-        let _json = reader.json();
-        println!("{_json}");
-    }
 }

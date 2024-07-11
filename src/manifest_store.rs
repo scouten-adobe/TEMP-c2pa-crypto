@@ -173,9 +173,9 @@ impl ManifestStore {
         manifest_store
     }
 
-    pub(crate) fn store(&self) -> &Store {
-        &self.store
-    }
+    // pub(crate) fn store(&self) -> &Store {
+    //     &self.store
+    // }
 
     /// Creates a new Manifest Store from a Manifest
     #[allow(dead_code)]

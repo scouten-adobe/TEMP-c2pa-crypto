@@ -34,27 +34,10 @@ openssl_sign = ["openssl"]
 json_schema = ["dep:schemars"]
 pdf = ["dep:lopdf"]
 v1_api = []
-unstable_api = []
 
 # The diagnostics feature is unsupported and might be removed.
 # It enables some low-overhead timing features used in our development cycle.
 diagnostics = []
-
-[[example]]
-name = "client"
-required-features = ["file_io"]
-
-[[example]]
-name = "show"
-required-features = ["file_io"]
-
-[[example]]
-name = "v2show"
-required-features = ["unstable_api"]
-
-[[example]]
-name = "v2api"
-required-features = ["unstable_api"]
 
 [lib]
 crate-type = ["lib"]
@@ -157,9 +140,6 @@ web-sys = { version = "0.3.58", features = [
 [dev-dependencies]
 anyhow = "1.0.40"
 mockall = "0.11.2"
-c2pa-crypto = { path = ".", features = [
-	"unstable_api",
-] } # allow integration tests to use the new API
 jumbf = "0.4.0"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]

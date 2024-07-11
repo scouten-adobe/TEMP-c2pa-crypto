@@ -24,72 +24,12 @@
 //! the existing methods of reading and writing C2PA data.
 //! The new API focuses on stream support and can do more with fewer methods.
 //! It will be supported in all language bindings and build environments.
-//! To try these out, you need to enable the `unstable_api` feature.
 //!
 //! To read with file based methods, you must add the `file_io` dependency to
 //! your Cargo.toml. For example:
 //!
 //! ```text
 //! c2pa = {version="0.32.0", features=["file_io"]}
-//! ```
-//!
-//! # Example: Reading a ManifestStore
-//!
-//! ```
-//! # use c2pa_crypto::Result;
-//! use c2pa_crypto::{assertions::Actions, Reader};
-//!
-//! # fn main() -> Result<()> {
-//! let stream = std::fs::File::open("tests/fixtures/C.jpg")?;
-//! let reader = Reader::from_stream("image/jpeg", stream)?;
-//! println!("{}", reader.json());
-//!
-//! if let Some(manifest) = reader.active_manifest() {
-//!     let actions: Actions = manifest.find_assertion(Actions::LABEL)?;
-//!     for action in actions.actions {
-//!         println!("{}\n", action.action());
-//!     }
-//! }
-//! # Ok(())
-//! # }
-//! ```
-//!
-//! # Example: Adding a Manifest to a file
-//!
-//! ```
-//! # use c2pa_crypto::Result;
-//! use std::path::PathBuf;
-//!
-//! use c2pa_crypto::{create_signer, Builder, SigningAlg};
-//! use serde::Serialize;
-//! use tempfile::tempdir;
-//!
-//! #[derive(Serialize)]
-//! struct Test {
-//!     my_tag: usize,
-//! }
-//!
-//! # fn main() -> Result<()> {
-//! let mut builder = Builder::from_json(r#"{"title": "Test"}"#)?;
-//! builder.add_assertion("org.contentauth.test", &Test { my_tag: 42 })?;
-//!
-//! // Create a ps256 signer using certs and key files
-//! let signer = create_signer::from_files(
-//!     "tests/fixtures/certs/ps256.pub",
-//!     "tests/fixtures/certs/ps256.pem",
-//!     SigningAlg::Ps256,
-//!     None,
-//! )?;
-//!
-//! // embed a manifest using the signer
-//! std::fs::remove_file("../target/tmp/lib_sign.jpg"); // ensure the file does not exist
-//! builder.sign_file(
-//!     &*signer,
-//!     "tests/fixtures/C.jpg",
-//!     "../target/tmp/lib_sign.jpg",
-//! )?;
-//! # Ok(())
-//! # }
 //! ```
 
 /// The internal name of the C2PA SDK
@@ -112,8 +52,6 @@ pub mod wasm;
 // Public exports
 #[cfg(feature = "v1_api")]
 pub use asset_io::{CAIRead, CAIReadWrite};
-#[cfg(feature = "unstable_api")]
-pub use builder::{Builder, ManifestDefinition};
 pub use callback_signer::{CallbackFunc, CallbackSigner};
 pub use claim_generator_info::ClaimGeneratorInfo;
 pub use error::{Error, Result};
@@ -126,8 +64,6 @@ pub use manifest::Manifest;
 pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
 #[cfg(feature = "v1_api")]
 pub use manifest_store::ManifestStore;
-#[cfg(feature = "unstable_api")]
-pub use reader::Reader;
 pub use resource_store::{ResourceRef, ResourceStore};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
@@ -139,8 +75,6 @@ pub(crate) mod asn1;
 pub(crate) mod assertion;
 pub(crate) mod asset_handlers;
 pub(crate) mod asset_io;
-#[cfg(feature = "unstable_api")]
-pub(crate) mod builder;
 pub(crate) mod callback_signer;
 pub(crate) mod claim;
 pub(crate) mod claim_generator_info;
@@ -154,13 +88,10 @@ pub(crate) mod jumbf;
 pub(crate) mod manifest;
 pub(crate) mod manifest_assertion;
 pub(crate) mod manifest_store;
-pub(crate) mod manifest_store_report;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
 #[allow(dead_code)]
-// TODO: Remove this when the feature is released (used in tests only for some builds now)
-pub(crate) mod reader;
 pub(crate) mod resource_store;
 pub(crate) mod salt;
 pub(crate) mod signer;

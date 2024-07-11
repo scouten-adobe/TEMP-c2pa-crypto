@@ -815,51 +815,6 @@ impl Ingredient {
         serde_json::from_str(json).map_err(Error::JsonError)
     }
 
-    /// Adds a stream to an ingredient
-    ///
-    /// This allows you to predefine fields before adding the stream.
-    /// Sets manifest_data if the stream contains a manifest_store.
-    /// Sets thumbnail if not defined and a valid claim thumbnail is found or
-    /// add_thumbnails is enabled. Instance_id, document_id, and provenance
-    /// will be overridden if found in the stream. Format will be overridden
-    /// only if it is the default (application/octet-stream).
-    #[cfg(feature = "unstable_api")]
-    pub(crate) fn with_stream<S: Into<String>>(
-        mut self,
-        format: S,
-        stream: &mut dyn CAIRead,
-    ) -> Result<Self> {
-        let format = format.into();
-
-        // try to get xmp info, if this fails all XmpInfo fields will be None
-        let xmp_info = XmpInfo::from_source(stream, &format);
-
-        if let Some(id) = xmp_info.instance_id {
-            self.instance_id = Some(id);
-        };
-
-        if let Some(id) = xmp_info.document_id {
-            self.document_id = Some(id);
-        };
-
-        if let Some(provenance) = xmp_info.provenance {
-            self.provenance = Some(provenance);
-        };
-
-        // only override format if it is the default
-        if self.format == "application/octet-stream" {
-            self.format = format.to_string();
-        };
-
-        // ensure we have an instance Id for v1 ingredients
-        if self.instance_id.is_none() {
-            self.instance_id = Some(default_instance_id());
-        };
-
-        stream.rewind()?;
-        self.add_stream_internal(&format, stream)
-    }
-
     // Internal implementation to avoid code bloat.
     fn add_stream_internal(mut self, format: &str, stream: &mut dyn CAIRead) -> Result<Self> {
         let mut validation_log = DetailedStatusTracker::new();
