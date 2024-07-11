@@ -19,7 +19,7 @@ use std::{
 use lazy_static::lazy_static;
 
 use crate::{
-    asset_handlers::{c2pa_io::C2paIO, jpeg_io::JpegIO, riff_io::RiffIO, tiff_io::TiffIO},
+    asset_handlers::{c2pa_io::C2paIO, jpeg_io::JpegIO, tiff_io::TiffIO},
     asset_io::{AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashObjectPositions},
     error::{Error, Result},
 };
@@ -30,7 +30,6 @@ lazy_static! {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
         ];
 
@@ -54,7 +53,6 @@ lazy_static! {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
         ];
         let mut handler_map = HashMap::new();
@@ -201,7 +199,6 @@ pub mod tests {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
         ];
 
@@ -219,7 +216,6 @@ pub mod tests {
         let handlers: Vec<Box<dyn AssetIO>> = vec![
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
-            Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
         ];
 
@@ -234,8 +230,7 @@ pub mod tests {
 
     #[test]
     fn test_get_writer() {
-        let handlers: Vec<Box<dyn AssetIO>> =
-            vec![Box::new(JpegIO::new("")), Box::new(RiffIO::new(""))];
+        let handlers: Vec<Box<dyn AssetIO>> = vec![Box::new(JpegIO::new(""))];
 
         // build handler map
         for h in handlers {
@@ -252,9 +247,6 @@ pub mod tests {
 
         assert!(supported.iter().any(|s| s == "jpg"));
         assert!(supported.iter().any(|s| s == "jpeg"));
-        assert!(supported.iter().any(|s| s == "avi"));
-        assert!(supported.iter().any(|s| s == "webp"));
-        assert!(supported.iter().any(|s| s == "wav"));
         assert!(supported.iter().any(|s| s == "tif"));
         assert!(supported.iter().any(|s| s == "tiff"));
         assert!(supported.iter().any(|s| s == "dng"));
@@ -279,10 +271,7 @@ pub mod tests {
             .unwrap();
         removed.set_position(0);
         let result = load_jumbf_from_stream(asset_type, &mut removed);
-        if (asset_type != "wav") && (asset_type != "webp") {
-            assert!(matches!(&result.err().unwrap(), Error::JumbfNotFound));
-        }
-        //assert!(matches!(result.err().unwrap(), Error::JumbfNotFound));
+        assert!(matches!(&result.err().unwrap(), Error::JumbfNotFound));
     }
 
     fn test_remote_ref(asset_type: &str, reader: &mut dyn CAIRead) {
@@ -306,22 +295,6 @@ pub mod tests {
         test_jumbf("jpeg", &mut reader);
         reader.rewind().unwrap();
         test_remote_ref("jpeg", &mut reader);
-    }
-
-    #[test]
-    fn test_streams_webp() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.webp").unwrap();
-        test_jumbf("webp", &mut reader);
-        reader.rewind().unwrap();
-        test_remote_ref("webp", &mut reader);
-    }
-
-    #[test]
-    fn test_streams_wav() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.wav").unwrap();
-        test_jumbf("wav", &mut reader);
-        reader.rewind().unwrap();
-        test_remote_ref("wav", &mut reader);
     }
 
     #[test]
