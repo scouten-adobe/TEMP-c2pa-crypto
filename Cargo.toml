@@ -44,6 +44,7 @@ base64 = "0.21.2"
 bcder = "0.7.1"
 bytes = "1.4.0"
 byteorder = { version = "1.4.3", default-features = false }
+byteordered = "0.6.0"
 chrono = { version = "0.4.27", default-features = false, features = [
 	"serde",
 	"wasmbind",
@@ -127,4 +128,4 @@ actix = "0.13.1"
 tokio = { version = "1.36.0", features = ["full"] }
 
 [package.metadata.cargo-udeps.ignore]
-normal = ["ed25519-dalek"]
+normal = ["byteordered", "ed25519-dalek"]
