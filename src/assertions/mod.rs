@@ -14,19 +14,21 @@
 //! Assertion helpers to build, validate, and parse assertions.
 
 mod actions;
-pub use actions::{c2pa_action, Action, Actions, SoftwareAgent};
+pub use actions::SoftwareAgent;
+#[allow(unused_imports)]
+pub(crate) use actions::{c2pa_action, Action, Actions};
 
 mod box_hash;
-pub use box_hash::{BoxHash, BoxMap, C2PA_BOXHASH};
+pub(crate) use box_hash::{BoxHash, BoxMap, C2PA_BOXHASH};
 
 mod data_hash;
 pub use data_hash::DataHash;
 
 mod creative_work;
-pub use creative_work::CreativeWork;
+pub(crate) use creative_work::CreativeWork;
 
 mod exif;
-pub use exif::Exif;
+pub(crate) use exif::Exif;
 
 #[allow(dead_code)] // will become public later
 mod ingredient;
@@ -35,12 +37,10 @@ pub(crate) use ingredient::{Ingredient, Relationship};
 pub mod labels;
 
 mod metadata;
-pub use metadata::{
-    c2pa_source, Actor, AssetType, DataBox, DataSource, Metadata, ReviewCode, ReviewRating,
-};
+pub use metadata::{Actor, AssetType, DataBox, Metadata, ReviewRating};
 
 mod schema_org;
-pub use schema_org::{SchemaDotOrg, SchemaDotOrgPerson};
+pub(crate) use schema_org::{SchemaDotOrg, SchemaDotOrgPerson};
 
 mod thumbnail;
 pub(crate) use thumbnail::Thumbnail;

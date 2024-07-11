@@ -27,35 +27,35 @@ use crate::{
 
 const ASSERTION_CREATION_VERSION: usize = 1;
 
-pub const C2PA_BOXHASH: &str = "C2PA";
+pub(crate) const C2PA_BOXHASH: &str = "C2PA";
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct BoxMap {
-    pub names: Vec<String>,
+pub(crate) struct BoxMap {
+    pub(crate) names: Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub alg: Option<String>,
+    pub(crate) alg: Option<String>,
 
-    pub hash: ByteBuf,
-    pub pad: ByteBuf,
-
-    #[serde(skip)]
-    pub range_start: usize,
+    pub(crate) hash: ByteBuf,
+    pub(crate) pad: ByteBuf,
 
     #[serde(skip)]
-    pub range_len: usize,
+    pub(crate) range_start: usize,
+
+    #[serde(skip)]
+    pub(crate) range_len: usize,
 }
 
-/// Helper class to create BoxHash assertion
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct BoxHash {
+pub(crate) struct BoxHash {
     boxes: Vec<BoxMap>,
 }
 
+#[allow(dead_code)] // some still used in tests
 impl BoxHash {
-    pub const LABEL: &'static str = labels::BOX_HASH;
+    pub(crate) const LABEL: &'static str = labels::BOX_HASH;
 
-    pub fn verify_hash(
+    pub(crate) fn verify_hash(
         &self,
         asset_path: &Path,
         alg: Option<&str>,
@@ -66,7 +66,7 @@ impl BoxHash {
         self.verify_stream_hash(&mut file, alg, bhp)
     }
 
-    pub fn verify_in_memory_hash(
+    pub(crate) fn verify_in_memory_hash(
         &self,
         data: &[u8],
         alg: Option<&str>,
@@ -77,7 +77,7 @@ impl BoxHash {
         self.verify_stream_hash(&mut reader, alg, bhp)
     }
 
-    pub fn verify_stream_hash(
+    pub(crate) fn verify_stream_hash(
         &self,
         reader: &mut dyn CAIRead,
         alg: Option<&str>,
@@ -166,7 +166,7 @@ impl BoxHash {
     }
 
     #[allow(dead_code)]
-    pub fn generate_box_hash_from_stream(
+    pub(crate) fn generate_box_hash_from_stream(
         &mut self,
         reader: &mut dyn CAIRead,
         alg: &str,

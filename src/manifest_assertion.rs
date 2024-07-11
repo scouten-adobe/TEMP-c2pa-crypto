@@ -153,22 +153,6 @@ impl ManifestAssertion {
         })
     }
 
-    /// Creates a ManifestAssertion from an AssertionBase object
-    ///
-    /// # Example: Creating a custom assertion an Action assertion
-    ///
-    ///```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::{
-    ///     assertions::{c2pa_action, Action, Actions},
-    ///     ManifestAssertion,
-    /// };
-    /// # fn main() -> Result<()> {
-    /// let actions = Actions::new().add_action(Action::new(c2pa_action::EDITED));
-    /// let _ma = ManifestAssertion::from_labeled_assertion(Actions::LABEL, &actions)?;
-    /// # Ok(())
-    /// # }
-    /// ```
     pub fn from_assertion<T: Serialize + AssertionBase>(data: &T) -> Result<Self> {
         Ok(Self::new(
             data.label().to_owned(),
@@ -176,26 +160,6 @@ impl ManifestAssertion {
         ))
     }
 
-    /// Creates an Assertion object from a ManifestAssertion
-    ///
-    /// # Example: extracting an Actions Assertion
-    /// ```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::{
-    ///     assertions::{c2pa_action, Action, Actions},
-    ///     ManifestAssertion,
-    /// };
-    /// # fn main() -> Result<()> {
-    /// let actions = Actions::new().add_action(Action::new(c2pa_action::EDITED));
-    /// let manifest_assertion = ManifestAssertion::from_labeled_assertion(Actions::LABEL, &actions)?;
-    ///
-    /// let actions: Actions = manifest_assertion.to_assertion()?;
-    /// for action in actions.actions {
-    ///     println!("{}", action.action());
-    /// }
-    /// # Ok(())
-    /// # }
-    /// ```
     pub fn to_assertion<T: DeserializeOwned>(&self) -> Result<T> {
         serde_json::from_value(self.value()?.to_owned()).map_err(|e| {
             Error::AssertionDecoding(AssertionDecodeError::from_json_err(

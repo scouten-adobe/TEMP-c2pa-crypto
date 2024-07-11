@@ -28,43 +28,12 @@ use crate::{
 const ASSERTION_CREATION_VERSION: usize = 2;
 
 /// Specification defined C2PA actions
-pub mod c2pa_action {
-    /// Changes to tone, saturation, etc.
-    pub const COLOR_ADJUSTMENTS: &str = "c2pa.color_adjustments";
-    /// The format of the asset was changed.
-    pub const CONVERTED: &str = "c2pa.converted";
-    /// The asset was first created, usually the asset's origin.
-    pub const CREATED: &str = "c2pa.created";
-    /// Areas of the asset's "editorial" content were cropped out.
-    pub const CROPPED: &str = "c2pa.cropped";
-    /// Changes using drawing tools including brushes or eraser.
-    pub const DRAWING: &str = "c2pa.drawing";
-    /// Generalized actions that affect the "editorial" meaning of the content.
-    pub const EDITED: &str = "c2pa.edited";
-    /// Changes to appearance with applied filters, styles, etc.
-    pub const FILTERED: &str = "c2pa.filtered";
-    /// An existing asset was opened and is being set as the `parentOf`
-    /// ingredient.
-    pub const OPENED: &str = "c2pa.opened";
-    /// Changes to the direction and position of content.
-    pub const ORIENTATION: &str = "c2pa.orientation";
-    /// Added/Placed a `componentOf` ingredient into the asset.
-    pub const PLACED: &str = "c2pa.placed";
-    /// Asset is released to a wider audience.
-    pub const PUBLISHED: &str = "c2pa.published";
-    /// A conversion of one packaging or container format to another. Content
-    /// may be repackaged without transcoding. Does not include any
-    /// adjustments that would affect the "editorial" meaning of the content.
-    pub const REPACKAGED: &str = "c2pa.repackaged";
-    /// Changes to content dimensions and/or file size
-    pub const RESIZED: &str = "c2pa.resized";
-    /// A direct conversion of one encoding to another, including resolution
-    /// scaling, bitrate adjustment and encoding format change.
-    /// Does not include any adjustments that would affect the "editorial"
-    /// meaning of the content.
-    pub const TRANSCODED: &str = "c2pa.transcoded";
-    /// Something happened, but the claim_generator cannot specify what.
-    pub const UNKNOWN: &str = "c2pa.unknown";
+pub(crate) mod c2pa_action {
+    #[allow(dead_code)]
+    pub(crate) const CROPPED: &str = "c2pa.cropped";
+
+    #[allow(dead_code)]
+    pub(crate) const EDITED: &str = "c2pa.edited";
 }
 
 /// We use this to allow SourceAgent to be either a string or a
@@ -88,15 +57,8 @@ impl From<ClaimGeneratorInfo> for SoftwareAgent {
     }
 }
 
-/// Defines a single action taken on an asset.
-///
-/// An [`Action`] describes what took place on the asset, when it took place,
-/// along with possible other information such as what software performed
-/// the action.
-///
-/// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_actions>.
 #[derive(Deserialize, Serialize, Clone, Debug, Default, PartialEq, Eq)]
-pub struct Action {
+pub(crate) struct Action {
     /// The label associated with this action. See ([`c2pa_action`]).
     action: String,
 
@@ -133,7 +95,6 @@ pub struct Action {
     /// An array of the creators that undertook this action.
     #[serde(skip_serializing_if = "Option::is_none")]
     actors: Option<Vec<Actor>>,
-
     /// One of the defined URI values at `<https://cv.iptc.org/newscodes/digitalsourcetype/>`
     #[serde(rename = "digitalSourceType", skip_serializing_if = "Option::is_none")]
     source_type: Option<String>,
@@ -147,12 +108,9 @@ pub struct Action {
     reason: Option<String>,
 }
 
+#[allow(dead_code)] // some funcs still used in test
 impl Action {
-    /// Create a new action with a specific action label.
-    ///
-    /// This label is often one of the labels defined in [`c2pa_action`],
-    /// but can also be a custom string in reverse-domain format.
-    pub fn new(label: &str) -> Self {
+    pub(crate) fn new(label: &str) -> Self {
         Self {
             action: label.to_owned(),
             ..Default::default()
@@ -166,110 +124,74 @@ impl Action {
         ) || self.changes.is_some() // only defined for v2
     }
 
-    /// Returns the label for this action.
-    ///
-    /// This label is often one of the labels defined in [`c2pa_action`],
-    /// but can also be a custom string in reverse-domain format.
-    pub fn action(&self) -> &str {
+    pub(crate) fn action(&self) -> &str {
         &self.action
     }
 
-    /// Returns the timestamp of when the action occurred.
-    ///
-    /// This string, if present, will be in ISO-8601 date format.
-    pub fn when(&self) -> Option<&str> {
+    pub(crate) fn when(&self) -> Option<&str> {
         self.when.as_deref()
     }
 
-    /// Returns the software agent that performed the action.
-    pub fn software_agent(&self) -> Option<&SoftwareAgent> {
+    pub(crate) fn software_agent(&self) -> Option<&SoftwareAgent> {
         self.software_agent.as_ref()
     }
 
-    /// Returns a mutable software agent that performed the action.
-    pub fn software_agent_mut(&mut self) -> Option<&mut SoftwareAgent> {
+    pub(crate) fn software_agent_mut(&mut self) -> Option<&mut SoftwareAgent> {
         self.software_agent.as_mut()
     }
 
-    /// Returns the value of the `xmpMM:InstanceID` property for the modified
-    /// (output) resource.
-    pub fn instance_id(&self) -> Option<&str> {
+    pub(crate) fn instance_id(&self) -> Option<&str> {
         self.instance_id.as_deref()
     }
 
-    /// Returns the additional parameters for this action.
-    ///
-    /// These vary by the type of action.
-    pub fn parameters(&self) -> Option<&HashMap<String, Value>> {
+    pub(crate) fn parameters(&self) -> Option<&HashMap<String, Value>> {
         self.parameters.as_ref()
     }
 
-    /// Returns an individual action parameter if it exists.
-    pub fn get_parameter(&self, key: &str) -> Option<&Value> {
+    pub(crate) fn get_parameter(&self, key: &str) -> Option<&Value> {
         match self.parameters.as_ref() {
             Some(parameters) => parameters.get(key),
             None => None,
         }
     }
 
-    /// An array of the [`Actor`]s that undertook this action.
-    pub fn actors(&self) -> Option<&[Actor]> {
+    pub(crate) fn actors(&self) -> Option<&[Actor]> {
         self.actors.as_deref()
     }
 
-    /// Returns a digitalSourceType as defined at <https://cv.iptc.org/newscodes/digitalsourcetype/>.
-    pub fn source_type(&self) -> Option<&str> {
+    pub(crate) fn source_type(&self) -> Option<&str> {
         self.source_type.as_deref()
     }
 
-    /// Returns the list of related actions.
-    ///
-    /// This is only present in C2PA v2.
-    /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_related>.
-    pub fn related(&self) -> Option<&[Action]> {
+    pub(crate) fn related(&self) -> Option<&[Action]> {
         self.related.as_deref()
     }
 
-    /// Returns the reason why this action was performed.
-    ///
-    /// This is only present in C2PA v2.
-    /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_reason>.
-    pub fn reason(&self) -> Option<&str> {
+    pub(crate) fn reason(&self) -> Option<&str> {
         self.reason.as_deref()
     }
 
-    /// Sets the timestamp for when the action occurred.
-    ///
-    /// This timestamp must be in ISO-8601 date.
-    pub fn set_when<S: Into<String>>(mut self, when: S) -> Self {
+    pub(crate) fn set_when<S: Into<String>>(mut self, when: S) -> Self {
         self.when = Some(DateT(when.into()));
         self
     }
 
-    /// Sets the software agent that performed the action.
-    pub fn set_software_agent<S: Into<SoftwareAgent>>(mut self, software_agent: S) -> Self {
+    pub(crate) fn set_software_agent<S: Into<SoftwareAgent>>(mut self, software_agent: S) -> Self {
         self.software_agent = Some(software_agent.into());
         self
     }
 
-    /// Sets the list of the parts of the resource that were changed
-    /// since the previous event history.
-    pub fn set_changed(mut self, changed: Option<&Vec<&str>>) -> Self {
+    pub(crate) fn set_changed(mut self, changed: Option<&Vec<&str>>) -> Self {
         self.changed = changed.map(|v| v.join(";"));
         self
     }
 
-    /// Sets the value of the `xmpMM:InstanceID` property for the
-    /// modified (output) resource.
-    pub fn set_instance_id<S: Into<String>>(mut self, id: S) -> Self {
+    pub(crate) fn set_instance_id<S: Into<String>>(mut self, id: S) -> Self {
         self.instance_id = Some(id.into());
         self
     }
 
-    /// Sets the additional parameters for this action.
-    ///
-    /// These vary by the type of action.
-    pub fn set_parameter<S: Into<String>, T: Serialize>(
+    pub(crate) fn set_parameter<S: Into<String>, T: Serialize>(
         mut self,
         key: S,
         value: T,
@@ -291,32 +213,22 @@ impl Action {
         Ok(self)
     }
 
-    /// Sets the array of [`Actor`]s that undertook this action.
-    pub fn set_actors(mut self, actors: Option<&Vec<Actor>>) -> Self {
+    pub(crate) fn set_actors(mut self, actors: Option<&Vec<Actor>>) -> Self {
         self.actors = actors.cloned();
         self
     }
 
-    /// Set a digitalSourceType URI as defined at <https://cv.iptc.org/newscodes/digitalsourcetype/>.
-    pub fn set_source_type<S: Into<String>>(mut self, uri: S) -> Self {
+    pub(crate) fn set_source_type<S: Into<String>>(mut self, uri: S) -> Self {
         self.source_type = Some(uri.into());
         self
     }
 
-    /// Sets the list of related actions.
-    ///
-    /// This is only present in C2PA v2.
-    /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_related>.
-    pub fn set_related(mut self, related: Option<&Vec<Action>>) -> Self {
+    pub(crate) fn set_related(mut self, related: Option<&Vec<Action>>) -> Self {
         self.related = related.cloned();
         self
     }
 
-    /// Sets the reason why this action was performed.
-    ///
-    /// This is only present in C2PA v2.
-    /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_reason>.
-    pub fn set_reason<S: Into<String>>(mut self, reason: S) -> Self {
+    pub(crate) fn set_reason<S: Into<String>>(mut self, reason: S) -> Self {
         self.reason = Some(reason.into());
         self
     }
@@ -324,31 +236,31 @@ impl Action {
 
 #[derive(Deserialize, Serialize, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
-pub struct ActionTemplate {
+pub(crate) struct ActionTemplate {
     /// The label associated with this action. See ([`c2pa_action`]).
-    pub action: String,
+    pub(crate) action: String,
 
     /// The software agent that performed the action.
     #[serde(rename = "softwareAgent", skip_serializing_if = "Option::is_none")]
-    pub software_agent: Option<SoftwareAgent>,
+    pub(crate) software_agent: Option<SoftwareAgent>,
 
     /// One of the defined URI values at `<https://cv.iptc.org/newscodes/digitalsourcetype/>`
     #[serde(rename = "digitalSourceType", skip_serializing_if = "Option::is_none")]
-    pub source_type: Option<String>,
+    pub(crate) source_type: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<UriOrResource>,
+    pub(crate) icon: Option<UriOrResource>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    pub(crate) description: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parameters: Option<HashMap<String, Value>>,
+    pub(crate) parameters: Option<HashMap<String, Value>>,
 }
 
+#[allow(dead_code)] // some funcs still used in test
 impl ActionTemplate {
-    /// Creates a new ActionTemplate.
-    pub fn new<S: Into<String>>(action: S) -> Self {
+    pub(crate) fn new<S: Into<String>>(action: S) -> Self {
         Self {
             action: action.into(),
             ..Default::default()
@@ -356,37 +268,23 @@ impl ActionTemplate {
     }
 }
 
-/// An `Actions` assertion provides information on edits and other
-/// actions taken that affect the asset’s content.
-///
-/// This assertion contains a list of [`Action`], each one declaring
-/// what took place on the asset, when it took place, along with possible
-/// other information such as what software performed the action.
-///
-/// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_actions>.
 #[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub struct Actions {
-    /// A list of [`Action`]s.
-    pub actions: Vec<Action>,
+pub(crate) struct Actions {
+    pub(crate) actions: Vec<Action>,
 
-    /// list of templates for the [`Action`]s
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub templates: Option<Vec<ActionTemplate>>,
+    pub(crate) templates: Option<Vec<ActionTemplate>>,
 
-    /// Additional information about the assertion.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<Metadata>,
+    pub(crate) metadata: Option<Metadata>,
 }
 
+#[allow(dead_code)] // some funcs still used in test
 impl Actions {
-    /// Label prefix for an [`Actions`] assertion.
-    ///
-    /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_actions>.
-    pub const LABEL: &'static str = labels::ACTIONS;
+    pub(crate) const LABEL: &'static str = labels::ACTIONS;
 
-    /// Creates a new [`Actions`] assertion struct.
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             actions: Vec::new(),
             templates: None,
@@ -394,7 +292,6 @@ impl Actions {
         }
     }
 
-    /// determines if actions is V2
     fn is_v2(&self) -> bool {
         if self.templates.is_some() {
             return true;
@@ -402,41 +299,34 @@ impl Actions {
         self.actions.iter().any(|a| a.is_v2())
     }
 
-    /// Returns the list of [`Action`]s.
-    pub fn actions(&self) -> &[Action] {
+    pub(crate) fn actions(&self) -> &[Action] {
         &self.actions
     }
 
-    /// Returns mutable list of [`Action`]s.
-    pub fn actions_mut(&mut self) -> &mut [Action] {
+    pub(crate) fn actions_mut(&mut self) -> &mut [Action] {
         &mut self.actions
     }
 
-    /// Returns the assertion's [`Metadata`], if it exists.
-    pub fn metadata(&self) -> Option<&Metadata> {
+    pub(crate) fn metadata(&self) -> Option<&Metadata> {
         self.metadata.as_ref()
     }
 
-    /// Internal method to update actions to meet spec requirements
     pub(crate) fn update_action(mut self, index: usize, action: Action) -> Self {
         self.actions[index] = action;
         self
     }
 
-    /// Adds an [`Action`] to this assertion's list of actions.
-    pub fn add_action(mut self, action: Action) -> Self {
+    pub(crate) fn add_action(mut self, action: Action) -> Self {
         self.actions.push(action);
         self
     }
 
-    /// Sets [`Metadata`] for the action.
-    pub fn add_metadata(mut self, metadata: Metadata) -> Self {
+    pub(crate) fn add_metadata(mut self, metadata: Metadata) -> Self {
         self.metadata = Some(metadata);
         self
     }
 
-    /// Creates a CBOR [`Actions`] assertion from a compatible JSON value.
-    pub fn from_json_value(json: &serde_json::Value) -> Result<Self> {
+    pub(crate) fn from_json_value(json: &serde_json::Value) -> Result<Self> {
         let buf: Vec<u8> = Vec::new();
         let json_str = json.to_string();
         let mut from = serde_json::Deserializer::from_str(&json_str);
@@ -456,7 +346,6 @@ impl AssertionBase for Actions {
     const LABEL: &'static str = labels::ACTIONS;
     const VERSION: Option<usize> = Some(ASSERTION_CREATION_VERSION);
 
-    /// if we require v2 fields then use V2
     fn version(&self) -> Option<usize> {
         if self.is_v2() {
             Some(2)
@@ -465,7 +354,6 @@ impl AssertionBase for Actions {
         }
     }
 
-    /// if we require v2 fields then use V2
     fn label(&self) -> &str {
         if self.is_v2() {
             "c2pa.actions.v2"

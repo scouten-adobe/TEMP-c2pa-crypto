@@ -26,7 +26,7 @@ use crate::{
 const ASSERTION_CREATION_VERSION: usize = 1;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SchemaDotOrg {
+pub(crate) struct SchemaDotOrg {
     #[serde(rename = "@context", skip_serializing_if = "Option::is_none")]
     object_context: Option<Value>,
     #[serde(rename = "@type", default = "default_type")]
@@ -40,10 +40,9 @@ fn default_type() -> String {
     "Thing".to_string()
 }
 
+#[allow(dead_code)] // still used in tests
 impl SchemaDotOrg {
-    /// constructs an empty Schema.org object of the specified @type with
-    /// @context
-    pub fn new(object_type: String) -> Self {
+    pub(crate) fn new(object_type: String) -> Self {
         Self {
             object_context: None,
             object_type,
@@ -51,47 +50,32 @@ impl SchemaDotOrg {
         }
     }
 
-    /// sets the @context field for Schema dot org.
-    pub fn set_default_context(mut self) -> Self {
+    pub(crate) fn set_default_context(mut self) -> Self {
         self.object_context = Some(json!("https://schema.org"));
         self
     }
 
-    /// sets the @context field for Schema dot org.
-    pub fn set_context(mut self, context: Value) -> Self {
+    pub(crate) fn set_context(mut self, context: Value) -> Self {
         self.object_context = Some(context);
         self
     }
 
-    /// return the @type value from the object
-    pub fn object_type(&self) -> &str {
+    pub(crate) fn object_type(&self) -> &str {
         self.object_type.as_str()
     }
 
-    /// get values by key as an instance of type `T`.
-    /// This return T is owned, not a reference
-    /// # Errors
-    ///
-    /// This conversion can fail if the structure of the field at key does not
-    /// match the structure expected by `T`
-    pub fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+    pub(crate) fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.value
             .get(key)
             .and_then(|v| serde_json::from_value(v.clone()).ok())
     }
 
-    /// insert key / value pair of instance of type `T`
-    /// # Errors
-    ///
-    /// This conversion can fail if `T`'s implementation of `Serialize` decides
-    /// to fail, or if `T` contains a map with non-string keys.
-    pub fn insert<T: Serialize>(mut self, key: String, value: T) -> Result<Self> {
+    pub(crate) fn insert<T: Serialize>(mut self, key: String, value: T) -> Result<Self> {
         self.value.insert(key, serde_json::to_value(value)?);
         Ok(self)
     }
 
-    // add a value to a Vec stored at key
-    pub fn insert_push<T: Serialize + DeserializeOwned>(
+    pub(crate) fn insert_push<T: Serialize + DeserializeOwned>(
         self,
         key: String,
         value: T,
@@ -105,8 +89,7 @@ impl SchemaDotOrg {
         })
     }
 
-    /// creates the struct from a correctly formatted JSON string
-    pub fn from_json_str(json: &str) -> Result<Self> {
+    pub(crate) fn from_json_str(json: &str) -> Result<Self> {
         serde_json::from_slice(json.as_bytes()).map_err(Error::JsonError)
     }
 }
@@ -132,61 +115,57 @@ impl AssertionBase for SchemaDotOrg {
     }
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SchemaDotOrgPerson(SchemaDotOrg);
+pub(crate) struct SchemaDotOrgPerson(SchemaDotOrg);
 
+#[allow(dead_code)]
 impl SchemaDotOrgPerson {
-    pub const CREDENTIAL: &'static str = "credential";
-    pub const IDENTIFIER: &'static str = "identifier";
-    pub const NAME: &'static str = "name";
-    pub const PERSON: &'static str = "Person";
+    pub(crate) const CREDENTIAL: &'static str = "credential";
+    pub(crate) const IDENTIFIER: &'static str = "identifier";
+    pub(crate) const NAME: &'static str = "name";
+    pub(crate) const PERSON: &'static str = "Person";
 
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(SchemaDotOrg::new(Self::PERSON.to_owned()))
     }
 
-    pub fn new_person<S: Into<String>>(name: S, identifier: S) -> Result<Self> {
+    pub(crate) fn new_person<S: Into<String>>(name: S, identifier: S) -> Result<Self> {
         Self(SchemaDotOrg::new(Self::PERSON.to_owned()))
             .set_name(name)?
             .set_identifier(identifier)
     }
 
-    /// get values by key
-    pub fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+    pub(crate) fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.0.get(key)
     }
 
-    /// insert key / value pair
-    pub fn insert<S: Into<String>, T: Serialize>(self, key: S, value: T) -> Result<Self> {
+    pub(crate) fn insert<S: Into<String>, T: Serialize>(self, key: S, value: T) -> Result<Self> {
         self.0.insert(key.into(), value).map(Self)
     }
 
-    // add a value to a Vec stored at key
-    pub fn insert_push<S: Into<String>, T>(self, key: S, value: T) -> Result<Self>
+    pub(crate) fn insert_push<S: Into<String>, T>(self, key: S, value: T) -> Result<Self>
     where
         T: Serialize + DeserializeOwned,
     {
         self.0.insert_push(key.into(), value).map(Self)
     }
 
-    // get name field if it exists
-    pub fn name(&self) -> Option<String> {
+    pub(crate) fn name(&self) -> Option<String> {
         self.get(Self::NAME)
     }
 
-    pub fn set_name<S: Into<String>>(self, author: S) -> Result<Self> {
+    pub(crate) fn set_name<S: Into<String>>(self, author: S) -> Result<Self> {
         self.insert(Self::NAME.to_string(), author.into())
     }
 
-    // get identifier field if it exists
-    pub fn identifier(&self) -> Option<String> {
+    pub(crate) fn identifier(&self) -> Option<String> {
         self.get(Self::IDENTIFIER)
     }
 
-    pub fn set_identifier<S: Into<String>>(self, identifier: S) -> Result<Self> {
+    pub(crate) fn set_identifier<S: Into<String>>(self, identifier: S) -> Result<Self> {
         self.insert(Self::IDENTIFIER.to_owned(), identifier.into())
     }
 
-    pub fn add_credential(self, credential: HashedUri) -> Result<Self> {
+    pub(crate) fn add_credential(self, credential: HashedUri) -> Result<Self> {
         self.insert_push(Self::CREDENTIAL.to_owned(), credential)
     }
 }
@@ -205,7 +184,7 @@ impl std::ops::Deref for SchemaDotOrgPerson {
     }
 }
 #[cfg(test)]
-pub mod tests {
+mod tests {
     #![allow(clippy::expect_used)]
     #![allow(clippy::unwrap_used)]
 

@@ -23,21 +23,17 @@ use crate::{
     Error, Result,
 };
 
-/// The EXIF assertion as defined in the C2PA spec section 17.13
-///  See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_exif_information>
-///
-/// This does not yet define or validate individual fields, but will ensure the
-/// correct assertion structure
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Exif {
+pub(crate) struct Exif {
     #[serde(rename = "@context", skip_serializing_if = "Option::is_none")]
     object_context: Option<Value>,
     #[serde(flatten)]
     value: HashMap<String, Value>,
 }
 
+#[allow(dead_code)]
 impl Exif {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             object_context: Some(json!({
               "dc": "http://purl.org/dc/elements/1.1/",
@@ -51,36 +47,27 @@ impl Exif {
         }
     }
 
-    /// sets the @context field for Schema dot org.
-    pub fn set_context(mut self, context: Value) -> Self {
+    pub(crate) fn set_context(mut self, context: Value) -> Self {
         self.object_context = Some(context);
         self
     }
 
-    /// get values by key as an instance of type `T`.
-    /// This return T is owned, not a reference
-    /// # Errors
-    ///
-    /// This conversion can fail if the structure of the field at key does not
-    /// match the structure expected by `T`
-    pub fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+    pub(crate) fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.value
             .get(key)
             .and_then(|v| serde_json::from_value(v.clone()).ok())
     }
 
-    /// insert key / value pair of instance of type `T`
-    /// # Errors
-    ///
-    /// This conversion can fail if `T`'s implementation of `Serialize` decides
-    /// to fail, or if `T` contains a map with non-string keys.
-    pub fn insert<S: Into<String>, T: Serialize>(mut self, key: S, value: T) -> Result<Self> {
+    pub(crate) fn insert<S: Into<String>, T: Serialize>(
+        mut self,
+        key: S,
+        value: T,
+    ) -> Result<Self> {
         self.value.insert(key.into(), serde_json::to_value(value)?);
         Ok(self)
     }
 
-    // add a value to a Vec stored at key
-    pub fn insert_push<S: Into<String>, T: Serialize + DeserializeOwned>(
+    pub(crate) fn insert_push<S: Into<String>, T: Serialize + DeserializeOwned>(
         self,
         key: S,
         value: T,
@@ -95,8 +82,7 @@ impl Exif {
         })
     }
 
-    /// creates the struct from a correctly formatted JSON string
-    pub fn from_json_str(json: &str) -> Result<Self> {
+    pub(crate) fn from_json_str(json: &str) -> Result<Self> {
         serde_json::from_slice(json.as_bytes()).map_err(Error::JsonError)
     }
 }

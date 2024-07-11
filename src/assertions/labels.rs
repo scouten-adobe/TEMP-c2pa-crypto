@@ -12,6 +12,7 @@
 // each license.
 
 #![deny(missing_docs)]
+#![allow(dead_code)] // while in test
 
 //! Labels for assertion types as defined in C2PA 1.0 Specification.
 //!
@@ -119,28 +120,6 @@ pub const CLAIM_REVIEW: &str = "stds.schema-org.ClaimReview";
 /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_creative_work>.
 pub const CREATIVE_WORK: &str = "stds.schema-org.CreativeWork";
 
-/// Return the version suffix from an assertion label if it exists.
-///
-/// When an assertion's schema is changed in a backwards-compatible manner,
-/// the label would consist of an incremented version number, for example
-/// moving from `c2pa.ingredient` to `c2pa.ingredient.v2`.
-///
-/// If such a suffix exists (`.v(integer)`), that will be returned; otherwise,
-/// `None` will be returned.
-///
-/// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_versioning>.
-///
-/// # Examples
-///
-/// ```
-/// use c2pa_crypto::assertions::labels;
-///
-/// assert_eq!(labels::version("c2pa.ingredient"), None);
-/// assert_eq!(labels::version("c2pa.ingredient.v2"), Some(2));
-/// assert_eq!(labels::version("c2pa.ingredient.V2"), None);
-/// assert_eq!(labels::version("c2pa.ingredient.x2"), None);
-/// assert_eq!(labels::version("c2pa.ingredient.v-2"), None);
-/// ```
 pub fn version(label: &str) -> Option<usize> {
     let components: Vec<&str> = label.split('.').collect();
     if let Some(last) = components.last() {

@@ -379,50 +379,12 @@ impl Manifest {
         Ok(self)
     }
 
-    /// Adds ManifestAssertions from existing assertions
-    /// The data for standard assertions must be in correct format
-    ///
-    /// # Example: Creating a from an Actions object.
-    ///```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::{
-    ///     assertions::{c2pa_action, Action, Actions},
-    ///     Manifest,
-    /// };
-    /// # fn main() -> Result<()> {
-    /// let mut manifest = Manifest::new("my_app");
-    /// let actions = Actions::new().add_action(Action::new(c2pa_action::EDITED));
-    /// manifest.add_assertion(&actions)?;
-    /// # Ok(())
-    /// # }
-    /// ```
     pub fn add_assertion<T: Serialize + AssertionBase>(&mut self, data: &T) -> Result<&mut Self> {
         self.assertions
             .push(ManifestAssertion::from_assertion(data)?);
         Ok(self)
     }
 
-    /// Retrieves an assertion by label if it exists or Error::NotFound
-    ///
-    /// Example: Find an Actions Assertion
-    /// ```
-    /// # use c2pa_crypto::Result;
-    /// use c2pa_crypto::{
-    ///     assertions::{c2pa_action, Action, Actions},
-    ///     Manifest,
-    /// };
-    /// # fn main() -> Result<()> {
-    /// let mut manifest = Manifest::new("my_app");
-    /// let actions = Actions::new().add_action(Action::new(c2pa_action::EDITED));
-    /// manifest.add_assertion(&actions)?;
-    ///
-    /// let actions: Actions = manifest.find_assertion(Actions::LABEL)?;
-    /// for action in actions.actions {
-    ///     println!("{}", action.action());
-    /// }
-    /// # Ok(())
-    /// # }
-    /// ```
     pub fn find_assertion<T: DeserializeOwned>(&self, label: &str) -> Result<T> {
         if let Some(manifest_assertion) = self.assertions.iter().find(|a| a.label() == label) {
             manifest_assertion.to_assertion()

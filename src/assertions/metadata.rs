@@ -154,17 +154,17 @@ impl AssertionBase for Metadata {
     }
 }
 
-/// DATA_SOURCE Type values
-pub mod c2pa_source {
-    pub const SIGNER: &str = "signer";
-    pub const GENERATOR_REE: &str = "claimGenerator.REE";
-    pub const GENERATOR_TEE: &str = "claimGenerator.TEE";
-    pub const LOCAL_REE: &str = "localProvider.REE";
-    pub const LOCAL_TEE: &str = "localProvider.TEE";
-    pub const REMOTE_REE: &str = "remoteProvider.1stParty";
-    pub const REMOTE_TEE: &str = "remoteProvider.3rdParty";
-    pub const HUMAN_ANONYMOUS: &str = "humanEntry.anonymous";
-    pub const HUMAN_IDENTIFIED: &str = "humanEntry.identified";
+#[allow(dead_code)]
+pub(crate) mod c2pa_source {
+    pub(crate) const SIGNER: &str = "signer";
+    pub(crate) const GENERATOR_REE: &str = "claimGenerator.REE";
+    pub(crate) const GENERATOR_TEE: &str = "claimGenerator.TEE";
+    pub(crate) const LOCAL_REE: &str = "localProvider.REE";
+    pub(crate) const LOCAL_TEE: &str = "localProvider.TEE";
+    pub(crate) const REMOTE_REE: &str = "remoteProvider.1stParty";
+    pub(crate) const REMOTE_TEE: &str = "remoteProvider.3rdParty";
+    pub(crate) const HUMAN_ANONYMOUS: &str = "humanEntry.anonymous";
+    pub(crate) const HUMAN_IDENTIFIED: &str = "humanEntry.identified";
 }
 
 /// A description of the source for assertion data

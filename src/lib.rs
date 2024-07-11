@@ -32,7 +32,7 @@ pub const NAME: &str = "c2pa-rs";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Public modules
-pub mod assertions;
+pub(crate) mod assertions;
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
 pub mod create_signer;

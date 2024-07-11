@@ -26,15 +26,13 @@ const ASSERTION_CREATION_VERSION: usize = 1;
 const CW_AUTHOR: &str = "author";
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreativeWork(SchemaDotOrg);
+pub(crate) struct CreativeWork(SchemaDotOrg);
 
+#[allow(dead_code)] // some still used in tests
 impl CreativeWork {
-    /// Label prefix for a creative work assertion.
-    ///
-    /// See <https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_creative_work>.
-    pub const LABEL: &'static str = labels::CREATIVE_WORK;
+    pub(crate) const LABEL: &'static str = labels::CREATIVE_WORK;
 
-    pub fn new() -> CreativeWork {
+    pub(crate) fn new() -> CreativeWork {
         Self(
             SchemaDotOrg::new("CreativeWork".to_owned()).set_context(json!("http://schema.org/")),
             // todo: this should reflect the c2pa extensions in some way to be correct
@@ -42,31 +40,27 @@ impl CreativeWork {
         )
     }
 
-    /// get values by key
-    pub fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+    pub(crate) fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.0.get(key)
     }
 
-    /// insert key / value pair
-    pub fn insert<S: Into<String>, T: Serialize>(self, key: S, value: T) -> Result<Self> {
+    pub(crate) fn insert<S: Into<String>, T: Serialize>(self, key: S, value: T) -> Result<Self> {
         self.0.insert(key.into(), value).map(Self)
     }
 
-    /// get creative work from json string
-    pub fn from_json_str(json: &str) -> Result<Self> {
+    pub(crate) fn from_json_str(json: &str) -> Result<Self> {
         SchemaDotOrg::from_json_str(json).map(Self)
     }
 
-    // get author field if it exists
-    pub fn author(&self) -> Option<Vec<SchemaDotOrgPerson>> {
+    pub(crate) fn author(&self) -> Option<Vec<SchemaDotOrgPerson>> {
         self.get(CW_AUTHOR)
     }
 
-    pub fn set_author(self, author: &[SchemaDotOrgPerson]) -> Result<Self> {
+    pub(crate) fn set_author(self, author: &[SchemaDotOrgPerson]) -> Result<Self> {
         self.insert(CW_AUTHOR.to_owned(), author)
     }
 
-    pub fn add_author(self, author: SchemaDotOrgPerson) -> Result<Self> {
+    pub(crate) fn add_author(self, author: SchemaDotOrgPerson) -> Result<Self> {
         let mut v = self.author().unwrap_or_default();
         v.push(author);
         self.insert(CW_AUTHOR.to_owned(), &v)
