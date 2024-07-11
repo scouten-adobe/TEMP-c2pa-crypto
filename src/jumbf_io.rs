@@ -24,9 +24,7 @@ use std::{
 use lazy_static::lazy_static;
 
 use crate::{
-    asset_handlers::{
-        c2pa_io::C2paIO, jpeg_io::JpegIO, riff_io::RiffIO, svg_io::SvgIO, tiff_io::TiffIO,
-    },
+    asset_handlers::{c2pa_io::C2paIO, jpeg_io::JpegIO, riff_io::RiffIO, tiff_io::TiffIO},
     asset_io::{AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashObjectPositions},
     error::{Error, Result},
 };
@@ -38,7 +36,6 @@ lazy_static! {
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
             Box::new(RiffIO::new("")),
-            Box::new(SvgIO::new("")),
             Box::new(TiffIO::new("")),
         ];
 
@@ -63,7 +60,6 @@ lazy_static! {
             Box::new(C2paIO::new("")),
             Box::new(JpegIO::new("")),
             Box::new(RiffIO::new("")),
-            Box::new(SvgIO::new("")),
             Box::new(TiffIO::new("")),
         ];
         let mut handler_map = HashMap::new();
@@ -349,7 +345,6 @@ pub mod tests {
             Box::new(JpegIO::new("")),
             Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
-            Box::new(SvgIO::new("")),
         ];
 
         // build handler map
@@ -368,7 +363,6 @@ pub mod tests {
             Box::new(JpegIO::new("")),
             Box::new(RiffIO::new("")),
             Box::new(TiffIO::new("")),
-            Box::new(SvgIO::new("")),
         ];
 
         // build handler map
@@ -382,11 +376,8 @@ pub mod tests {
 
     #[test]
     fn test_get_writer() {
-        let handlers: Vec<Box<dyn AssetIO>> = vec![
-            Box::new(JpegIO::new("")),
-            Box::new(SvgIO::new("")),
-            Box::new(RiffIO::new("")),
-        ];
+        let handlers: Vec<Box<dyn AssetIO>> =
+            vec![Box::new(JpegIO::new("")), Box::new(RiffIO::new(""))];
 
         // build handler map
         for h in handlers {
@@ -409,7 +400,6 @@ pub mod tests {
         assert!(supported.iter().any(|s| s == "tif"));
         assert!(supported.iter().any(|s| s == "tiff"));
         assert!(supported.iter().any(|s| s == "dng"));
-        assert!(supported.iter().any(|s| s == "svg"));
     }
 
     fn test_jumbf(asset_type: &str, reader: &mut dyn CAIRead) {
@@ -482,15 +472,6 @@ pub mod tests {
         test_jumbf("tiff", &mut reader);
         reader.rewind().unwrap();
         test_remote_ref("tiff", &mut reader);
-    }
-
-    #[test]
-    fn test_streams_svg() {
-        let mut reader = std::fs::File::open("tests/fixtures/sample1.svg").unwrap();
-        test_jumbf("svg", &mut reader);
-        //reader.rewind().unwrap();
-        //test_remote_ref("svg", &mut reader); // svg doesn't support remote
-        // refs
     }
 
     #[test]

@@ -49,7 +49,6 @@ The library has been tested on the following operating systems:
  | `dng`         | `image/x-adobe-dng`                                 |
  | `jpg`, `jpeg` | `image/jpeg`                                        |
  | `mov`         | `video/quicktime`                                   |
- | `svg`         | `image/svg+xml`                                     |
  | `tif`,`tiff`  | `image/tiff`                                        |
  | `wav`         | `audio/wav`                                         |
  | `webp`        | `image/webp`                                        |
