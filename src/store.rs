@@ -2692,7 +2692,6 @@ impl Store {
         let pc = self.provenance_claim_mut().ok_or(Error::ClaimEncoding)?;
 
         let mut data;
-        let jumbf_size;
 
         // we will not do automatic hashing if we detect a box hash present
         let mut needs_hashing = false;
@@ -2722,7 +2721,7 @@ impl Store {
         // source and dest the same so save_jumbf_to_file will use the same file since
         // we have already cloned
         data = self.to_jumbf_internal(reserve_size)?;
-        jumbf_size = data.len();
+        let jumbf_size = data.len();
         save_jumbf_to_file(&data, &output_path, Some(&output_path))?;
 
         // 4) determine final object locations and patch the asset hashes with correct
