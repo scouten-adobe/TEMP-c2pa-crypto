@@ -810,39 +810,6 @@ impl CAISaltContentBox {
         CAISaltContentBox { salt: data_in }
     }
 }
-// ANCHOR Signature Content Box
-/// Signature Content Box
-#[derive(Debug)]
-pub struct CAISignatureContentBox {
-    uuid: [u8; 16],    // a 128-bit UUID
-    sig_data: Vec<u8>, // signature data...
-}
-
-impl BMFFBox for CAISignatureContentBox {
-    fn box_type(&self) -> &'static [u8; 4] {
-        b"uuid"
-    }
-
-    fn box_uuid(&self) -> &'static str {
-        "" // base JUMBF boxes don't have any...
-    }
-
-    fn box_payload_size(&self) -> IoResult<u32> {
-        let size = boxio::ByteCounter::calculate(|w| self.write_box_payload(w))?;
-        Ok(size as u32)
-    }
-
-    fn write_box_payload(&self, writer: &mut dyn Write) -> IoResult<()> {
-        write_all!(writer, &self.uuid);
-        write_all!(writer, &self.sig_data);
-        Ok(())
-    }
-
-    // Necessary method to enable conversion between types...
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
 
 // ANCHOR Signature Box
 /// Signature Box
