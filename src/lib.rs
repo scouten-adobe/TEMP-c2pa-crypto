@@ -50,7 +50,6 @@ pub use claim_generator_info::ClaimGeneratorInfo;
 pub use error::{Error, Result};
 pub use external_manifest::ManifestPatchCallback;
 pub use hash_utils::{hash_stream_by_alg, HashRange};
-pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
 pub use utils::mime::format_from_path;
@@ -69,7 +68,6 @@ pub(crate) mod error;
 pub(crate) mod external_manifest;
 pub(crate) mod hashed_uri;
 pub(crate) mod jumbf;
-pub(crate) mod manifest_assertion;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.

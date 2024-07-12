@@ -457,20 +457,6 @@ impl AssertionDecodeError {
             AssertionData::Uuid(_, _) => "uuid".to_string(),
         }
     }
-
-    pub(crate) fn from_json_err(
-        label: String,
-        version: Option<usize>,
-        content_type: String,
-        source: serde_json::error::Error,
-    ) -> Self {
-        Self {
-            label,
-            version,
-            content_type,
-            source: source.into(),
-        }
-    }
 }
 
 impl std::fmt::Debug for AssertionDecodeError {
