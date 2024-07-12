@@ -1,4 +1,4 @@
-f// Copyright 2023 Adobe. All rights reserved.
+// Copyright 2023 Adobe. All rights reserved.
 // This file is licensed to you under the Apache License,
 // Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 // or the MIT license (http://opensource.org/licenses/MIT),
@@ -19,13 +19,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    assertions::{labels, AssetType},
-    claim::Claim,
-    hashed_uri::HashedUri,
-    jumbf::labels::assertion_label_from_uri,
-    Error, Result,
-};
+use crate::{assertions::AssetType, claim::Claim, hashed_uri::HashedUri, Error, Result};
 
 /// Function that is used by serde to determine whether or not we should
 /// serialize resources based on the `serialize_resources` flag.
@@ -230,18 +224,4 @@ impl Default for ResourceStore {
     fn default() -> Self {
         ResourceStore::new()
     }
-}
-
-pub fn mime_from_uri(uri: &str) -> String {
-    if let Some(label) = assertion_label_from_uri(uri) {
-        if label.starts_with(labels::THUMBNAIL) {
-            // https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_thumbnail
-            if let Some(ext) = label.rsplit('.').next() {
-                return format!("image/{ext}");
-            }
-        }
-    }
-
-    // Unknown binary data.
-    String::from("application/octet-stream")
 }
