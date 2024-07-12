@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
 use crate::{
-    assertion::{Assertion, AssertionBase, AssertionCbor, AssertionJson},
+    assertion::{Assertion, AssertionBase, AssertionCbor},
     assertions::labels,
     asset_io::{AssetBoxHash, CAIRead},
     error::{Error, Result},
@@ -286,8 +286,6 @@ impl BoxHash {
 }
 
 impl AssertionCbor for BoxHash {}
-
-impl AssertionJson for BoxHash {}
 
 impl AssertionBase for BoxHash {
     const LABEL: &'static str = Self::LABEL;

@@ -21,13 +21,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{assertions::AssetType, claim::Claim, hashed_uri::HashedUri, Error, Result};
 
-/// Function that is used by serde to determine whether or not we should
-/// serialize resources based on the `serialize_resources` flag.
-/// (Serialization is disabled by default.)
-pub(crate) fn skip_serializing_resources(_: &ResourceStore) -> bool {
-    !cfg!(feature = "serialize_thumbnails") || cfg!(test) || cfg!(not(target_arch = "wasm32"))
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum UriOrResource {

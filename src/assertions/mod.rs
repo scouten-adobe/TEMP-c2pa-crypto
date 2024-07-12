@@ -19,26 +19,8 @@ pub(crate) use box_hash::{BoxHash, BoxMap, C2PA_BOXHASH};
 mod data_hash;
 pub use data_hash::DataHash;
 
-mod creative_work;
-pub(crate) use creative_work::CreativeWork;
-
-mod exif;
-pub(crate) use exif::Exif;
-
 pub mod labels;
 
 mod metadata;
 #[allow(unused_imports)] // TEMPORARY while working on actions
 pub use metadata::{Actor, AssetType, DataBox, Metadata, ReviewRating};
-
-mod schema_org;
-pub(crate) use schema_org::{SchemaDotOrg, SchemaDotOrgPerson};
-
-mod thumbnail;
-pub(crate) use thumbnail::Thumbnail;
-
-mod user;
-pub(crate) use user::User;
-
-mod user_cbor;
-pub(crate) use user_cbor::UserCbor;

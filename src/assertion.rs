@@ -154,28 +154,6 @@ pub trait AssertionCbor: Serialize + DeserializeOwned + AssertionBase {
     }
 }
 
-/// Trait to handle default Json encoding/decoding of Assertions
-pub trait AssertionJson: Serialize + DeserializeOwned + AssertionBase {
-    fn to_json_assertion(&self) -> Result<Assertion> {
-        let data = AssertionData::Json(
-            serde_json::to_string(self).map_err(|_err| Error::AssertionEncoding)?,
-        );
-        Ok(Assertion::new(self.label(), self.version(), data).set_content_type("application/json"))
-    }
-
-    fn from_json_assertion(assertion: &Assertion) -> Result<Self> {
-        assertion.check_max_version(Self::VERSION)?;
-
-        match assertion.decode_data() {
-            AssertionData::Json(data) => Ok(serde_json::from_str(data)
-                .map_err(|e| AssertionDecodeError::from_assertion_and_json_err(assertion, e))?),
-            data => Err(Error::AssertionDecoding(
-                AssertionDecodeError::from_assertion_unexpected_data_type(assertion, data, "json"),
-            )),
-        }
-    }
-}
-
 /// Assertion data as binary CBOR or JSON depending upon
 /// the Assertion type (see spec).
 /// For JSON assertions the data is a JSON string and a Vec of u8 values for
@@ -235,16 +213,6 @@ impl Assertion {
             content_type: "application/cbor".to_owned(),
             data,
         }
-    }
-
-    pub(crate) fn set_content_type(mut self, content_type: &str) -> Self {
-        content_type.clone_into(&mut self.content_type);
-        self
-    }
-
-    /// return content_type for the the data enclosed in the Assertion
-    pub(crate) fn content_type(&self) -> String {
-        self.content_type.clone()
     }
 
     // pub(crate) fn set_data(mut self, data: &AssertionData) -> Self {
@@ -456,18 +424,6 @@ impl AssertionDecodeError {
     pub(crate) fn from_assertion_and_cbor_err(
         assertion: &Assertion,
         source: serde_cbor::error::Error,
-    ) -> Self {
-        Self {
-            label: assertion.label.clone(),
-            version: assertion.version,
-            content_type: assertion.content_type.clone(),
-            source: source.into(),
-        }
-    }
-
-    pub(crate) fn from_assertion_and_json_err(
-        assertion: &Assertion,
-        source: serde_json::error::Error,
     ) -> Self {
         Self {
             label: assertion.label.clone(),

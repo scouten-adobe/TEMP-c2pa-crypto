@@ -159,6 +159,7 @@ pub(crate) fn manifest_label_from_uri(uri: &str) -> Option<String> {
 }
 
 // Extract an assertion label from a JUMBF URI.
+#[allow(dead_code)]
 pub(crate) fn assertion_label_from_uri(uri: &str) -> Option<String> {
     let raw_uri = to_normalized_uri(uri);
     let parts: Vec<&str> = raw_uri.split('/').collect();

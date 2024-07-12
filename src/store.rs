@@ -41,7 +41,7 @@ use crate::{
     },
     jumbf_io::{
         get_assetio_handler, load_jumbf_from_stream, object_locations_from_stream,
-        save_jumbf_to_memory, save_jumbf_to_stream,
+        save_jumbf_to_stream,
     },
     salt::DefaultSalt,
     settings::get_settings_value,
@@ -1877,51 +1877,6 @@ impl Store {
         }
     }
 
-    /// Async RemoteSigner used to embed the claims store and  returns memory
-    /// representation of the asset and manifest. Updates XMP with
-    /// provenance record. When called, the stream should contain an asset
-    /// matching format. Returns a tuple (output asset, manifest store) with
-    /// a `Vec<u8>` containing the output asset and a `Vec<u8>` containing the
-    /// insert manifest store.  (output asset, )
-    pub(crate) async fn save_to_memory_remote_signed(
-        &mut self,
-        format: &str,
-        asset: &[u8],
-        remote_signer: &dyn crate::signer::RemoteSigner,
-    ) -> Result<(Vec<u8>, Vec<u8>)> {
-        let mut input_stream = Cursor::new(asset);
-        let output_vec: Vec<u8> = Vec::new();
-        let mut output_stream = Cursor::new(output_vec);
-
-        let jumbf_bytes = self.start_save_stream(
-            format,
-            &mut input_stream,
-            &mut output_stream,
-            remote_signer.reserve_size(),
-        )?;
-
-        let pc = self.provenance_claim().ok_or(Error::ClaimEncoding)?;
-        let sig = remote_signer.sign_remote(&pc.data()?).await?;
-        let sig_placeholder = Store::sign_claim_placeholder(pc, remote_signer.reserve_size());
-
-        match self.finish_save_to_memory(
-            jumbf_bytes,
-            format,
-            &output_stream.into_inner(),
-            sig,
-            &sig_placeholder,
-        ) {
-            Ok((s, output_asset, output_jumbf)) => {
-                // save sig so store is up to date
-                let pc_mut = self.provenance_claim_mut().ok_or(Error::ClaimEncoding)?;
-                pc_mut.set_signature_val(s);
-
-                Ok((output_asset, output_jumbf))
-            }
-            Err(e) => Err(e),
-        }
-    }
-
     fn start_save_stream(
         &mut self,
         format: &str,
@@ -2097,29 +2052,6 @@ impl Store {
         }
 
         Ok((sig, jumbf_bytes))
-    }
-
-    fn finish_save_to_memory(
-        &self,
-        mut jumbf_bytes: Vec<u8>,
-        format: &str,
-        source_asset: &[u8],
-        sig: Vec<u8>,
-        sig_placeholder: &[u8],
-    ) -> Result<(Vec<u8>, Vec<u8>, Vec<u8>)> {
-        if sig_placeholder.len() != sig.len() {
-            return Err(Error::CoseSigboxTooSmall);
-        }
-
-        patch_bytes(&mut jumbf_bytes, sig_placeholder, &sig)
-            .map_err(|_| Error::JumbfCreationError)?;
-
-        // return sig and output
-        Ok((
-            sig,
-            save_jumbf_to_memory(format, source_asset, &jumbf_bytes)?,
-            jumbf_bytes,
-        ))
     }
 
     // verify from a buffer without file i/o

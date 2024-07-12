@@ -50,7 +50,6 @@ pub use claim_generator_info::ClaimGeneratorInfo;
 pub use error::{Error, Result};
 pub use external_manifest::ManifestPatchCallback;
 pub use hash_utils::{hash_stream_by_alg, HashRange};
-pub use manifest::Manifest;
 pub use manifest_assertion::{ManifestAssertion, ManifestAssertionKind};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
@@ -70,7 +69,6 @@ pub(crate) mod error;
 pub(crate) mod external_manifest;
 pub(crate) mod hashed_uri;
 pub(crate) mod jumbf;
-pub(crate) mod manifest;
 pub(crate) mod manifest_assertion;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
