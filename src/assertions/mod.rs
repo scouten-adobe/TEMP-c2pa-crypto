@@ -14,10 +14,10 @@
 //! Assertion helpers to build, validate, and parse assertions.
 
 mod box_hash;
-pub(crate) use box_hash::{BoxHash, BoxMap, C2PA_BOXHASH};
+pub(crate) use box_hash::{BoxMap, C2PA_BOXHASH};
 
-mod data_hash;
-pub use data_hash::DataHash;
+// mod data_hash;
+// pub use data_hash::DataHash;
 
 pub mod labels;
 

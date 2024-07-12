@@ -23,6 +23,6 @@ use crate::Result;
 // or remove assertions. Special assertions like hash assertions
 // (c2pa.hash.{data | boxes}), ingredients,
 // or action assertions cannot be changed.
-pub trait ManifestPatchCallback {
+pub(crate) trait ManifestPatchCallback {
     fn patch_manifest(&self, manifest_store: &[u8]) -> Result<Vec<u8>>;
 }

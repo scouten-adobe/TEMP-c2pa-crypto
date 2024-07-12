@@ -19,11 +19,6 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    status_tracker::{LogItem, StatusTracker},
-    store::Store,
-};
-
 /// A `ValidationStatus` struct describes the validation status of a
 /// specific part of a manifest.
 ///
@@ -40,6 +35,7 @@ pub struct ValidationStatus {
 }
 
 impl ValidationStatus {
+    /*
     pub(crate) fn new<S: Into<String>>(code: S) -> Self {
         Self {
             code: code.into(),
@@ -47,6 +43,7 @@ impl ValidationStatus {
             explanation: None,
         }
     }
+    */
 
     /// Returns the validation status code.
     ///
@@ -70,24 +67,29 @@ impl ValidationStatus {
         self.explanation.as_deref()
     }
 
+    /*
     /// Sets the internal JUMBF reference to the entity was validated.
     pub(crate) fn set_url(mut self, url: String) -> Self {
         self.url = Some(url);
         self
     }
+    */
 
+    /*
     /// Sets the human-readable description of the validation that was
     /// performed.
     pub(crate) fn set_explanation(mut self, explanation: String) -> Self {
         self.explanation = Some(explanation);
         self
     }
+    */
 
     /// Returns `true` if this has a successful validation code.
     pub fn passed(&self) -> bool {
         is_success(&self.code)
     }
 
+    /*
     // Maps errors into validation_status codes.
     fn code_from_error_str(error: &str) -> &str {
         match error {
@@ -100,7 +102,9 @@ impl ValidationStatus {
             _ => GENERAL_ERROR,
         }
     }
+    */
 
+    /*
     /// Creates a ValidationStatus from a validation_log item.
     pub(crate) fn from_validation_item(item: &LogItem) -> Option<Self> {
         match item.validation_status.as_ref() {
@@ -119,32 +123,13 @@ impl ValidationStatus {
             }),
         }
     }
+    */
 }
 
 impl PartialEq for ValidationStatus {
     fn eq(&self, other: &Self) -> bool {
         self.code == other.code && self.url == other.url
     }
-}
-
-// TODO: Does this still need to be public? (I do see one reference in the JS
-// SDK.)
-
-/// Given a `Store` and a `StatusTracker`, return `ValidationStatus` items for
-/// each item in the tracker which reflect errors in the active manifest or
-/// which would not be reported as a validation error for any ingredient.
-pub fn status_for_store(
-    _store: &Store,
-    validation_log: &impl StatusTracker,
-) -> Vec<ValidationStatus> {
-    let statuses: Vec<ValidationStatus> = validation_log
-        .get_log()
-        .iter()
-        .filter_map(ValidationStatus::from_validation_item)
-        .filter(|s| !is_success(&s.code))
-        .collect();
-
-    statuses
 }
 
 // -- success codes --
@@ -402,8 +387,6 @@ pub const ALGORITHM_UNSUPPORTED: &str = "algorithm.unsupported";
 pub const GENERAL_ERROR: &str = "general.error";
 
 // -- unofficial status codes --
-
-pub(crate) const STATUS_PRERELEASE: &str = "com.adobe.prerelease";
 
 /// Returns `true` if the status code is a known C2PA success status code.
 ///

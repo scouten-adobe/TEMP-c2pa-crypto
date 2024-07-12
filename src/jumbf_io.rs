@@ -11,16 +11,13 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use std::{
-    collections::HashMap,
-    io::{Cursor, Read, Seek},
-};
+use std::{collections::HashMap, io::Cursor};
 
 use lazy_static::lazy_static;
 
 use crate::{
     asset_handlers::{c2pa_io::C2paIO, jpeg_io::JpegIO},
-    asset_io::{AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashObjectPositions},
+    asset_io::{AssetIO, CAIRead, CAIReader, CAIWriter},
     error::{Error, Result},
 };
 
@@ -88,72 +85,9 @@ pub fn load_jumbf_from_stream(asset_type: &str, input_stream: &mut dyn CAIRead) 
     }
     Ok(cai_block)
 }
-/// writes the jumbf data in store_bytes
-/// reads an asset of asset_type from reader, adds jumbf data and then writes to
-/// writer
-pub fn save_jumbf_to_stream(
-    asset_type: &str,
-    input_stream: &mut dyn CAIRead,
-    output_stream: &mut dyn CAIReadWrite,
-    store_bytes: &[u8],
-) -> Result<()> {
-    match get_caiwriter_handler(asset_type) {
-        Some(asset_handler) => asset_handler.write_cai(input_stream, output_stream, store_bytes),
-        None => Err(Error::UnsupportedType),
-    }
-}
-
-pub(crate) fn get_assetio_handler(ext: &str) -> Option<&dyn AssetIO> {
-    let ext = ext.to_lowercase();
-
-    ASSET_HANDLERS.get(&ext).map(|h| h.as_ref())
-}
 
 pub(crate) fn get_cailoader_handler(asset_type: &str) -> Option<&dyn CAIReader> {
     let asset_type = asset_type.to_lowercase();
 
     ASSET_HANDLERS.get(&asset_type).map(|h| h.get_reader())
-}
-
-pub(crate) fn get_caiwriter_handler(asset_type: &str) -> Option<&dyn CAIWriter> {
-    let asset_type = asset_type.to_lowercase();
-
-    CAI_WRITERS.get(&asset_type).map(|h| h.as_ref())
-}
-
-struct CAIReadAdapter<R> {
-    pub reader: R,
-}
-
-impl<R> Read for CAIReadAdapter<R>
-where
-    R: Read + Seek,
-{
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.reader.read(buf)
-    }
-}
-
-impl<R> Seek for CAIReadAdapter<R>
-where
-    R: Read + Seek,
-{
-    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
-        self.reader.seek(pos)
-    }
-}
-
-pub(crate) fn object_locations_from_stream<R>(
-    format: &str,
-    stream: &mut R,
-) -> Result<Vec<HashObjectPositions>>
-where
-    R: Read + Seek + Send + ?Sized,
-{
-    let mut reader = CAIReadAdapter { reader: stream };
-
-    match get_caiwriter_handler(format) {
-        Some(handler) => handler.get_object_locations_from_stream(&mut reader),
-        _ => Err(Error::UnsupportedType),
-    }
 }

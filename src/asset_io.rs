@@ -32,6 +32,7 @@ impl fmt::Display for HashBlockObjectType {
     }
 }
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct HashObjectPositions {
     pub offset: usize, // offset from beginning of file to the beginning of object
     pub length: usize, // length of object
@@ -77,13 +78,6 @@ pub trait CAIWriter: Sync + Send {
         &self,
         input_stream: &mut dyn CAIRead,
     ) -> Result<Vec<HashObjectPositions>>;
-
-    // Remove entire C2PA manifest store from asset
-    fn remove_cai_store_from_stream(
-        &self,
-        input_stream: &mut dyn CAIRead,
-        output_stream: &mut dyn CAIReadWrite,
-    ) -> Result<()>;
 }
 
 pub trait AssetIO: Sync + Send {
@@ -128,23 +122,6 @@ pub trait AssetIO: Sync + Send {
     // Returns [`AssetPatch`] trait if this I/O handler supports patching.
     #[allow(dead_code)] // this here for wasm builds to pass clippy  (todo: remove)
     fn asset_patch_ref(&self) -> Option<&dyn AssetPatch> {
-        None
-    }
-
-    // Returns [`RemoteRefEmbed`] trait if this I/O handler supports remote
-    // reference embedding.
-    fn remote_ref_writer_ref(&self) -> Option<&dyn RemoteRefEmbed> {
-        None
-    }
-
-    // Returns [`AssetBoxHash`] trait if this I/O handler supports box hashing.
-    fn asset_box_hash_ref(&self) -> Option<&dyn AssetBoxHash> {
-        None
-    }
-
-    // Returns [`ComposedManifestRefEmbed`] trait if this I/O handler supports
-    // composed data.
-    fn composed_data_ref(&self) -> Option<&dyn ComposedManifestRef> {
         None
     }
 }
@@ -195,12 +172,4 @@ pub trait RemoteRefEmbed {
         output_stream: &mut dyn CAIReadWrite,
         embed_ref: RemoteRefEmbedType,
     ) -> Result<()>;
-}
-
-/// `ComposedManifestRefEmbed` is used to generate a C2PA manifest.  The
-/// returned `Vec<u8>` contains data preformatted to be directly compatible
-/// with the type specified in `format`.  
-pub trait ComposedManifestRef {
-    // Return entire CAI block as Vec<u8>
-    fn compose_manifest(&self, manifest_data: &[u8], format: &str) -> Result<Vec<u8>>;
 }

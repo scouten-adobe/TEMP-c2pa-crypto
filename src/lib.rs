@@ -48,7 +48,6 @@ pub use asset_io::{CAIRead, CAIReadWrite};
 pub use callback_signer::{CallbackFunc, CallbackSigner};
 pub use claim_generator_info::ClaimGeneratorInfo;
 pub use error::{Error, Result};
-pub use external_manifest::ManifestPatchCallback;
 pub use hash_utils::{hash_stream_by_alg, HashRange};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
@@ -65,7 +64,6 @@ pub(crate) mod claim;
 pub(crate) mod claim_generator_info;
 pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
-pub(crate) mod external_manifest;
 pub(crate) mod hashed_uri;
 pub(crate) mod jumbf;
 pub(crate) mod ocsp_utils;
@@ -76,9 +74,9 @@ pub(crate) mod salt;
 pub(crate) mod signer;
 pub(crate) mod signing_alg;
 pub mod status_tracker; // [scouten 2024-06-27]: Hacking to make this public.
-pub(crate) mod store;
+                        // pub(crate) mod store;
 pub(crate) mod time_stamp;
 pub mod trust_handler; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod utils;
-pub(crate) use utils::{cbor_types, hash_utils};
+pub(crate) use utils::hash_utils;
 pub mod validator; // [scouten 2024-06-27]: Hacking to make public.

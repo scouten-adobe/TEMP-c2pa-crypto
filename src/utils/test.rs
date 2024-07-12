@@ -17,7 +17,7 @@ use std::path::PathBuf;
 
 use tempfile::TempDir;
 
-use crate::{claim::Claim, store::Store, RemoteSigner, Result, Signer, SigningAlg};
+use crate::{claim::Claim, RemoteSigner, Result, Signer, SigningAlg};
 #[cfg(feature = "openssl_sign")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
@@ -66,16 +66,6 @@ pub fn create_test_claim() -> Result<Claim> {
     let _hu = claim.add_verifiable_credential(TEST_VC)?;
 
     Ok(claim)
-}
-
-/// Creates a store with an unsigned claim for testing
-pub fn create_test_store() -> Result<Store> {
-    // Create claims store.
-    let mut store = Store::new();
-
-    let claim = create_test_claim()?;
-    store.commit_claim(claim).unwrap();
-    Ok(store)
 }
 
 /// returns a path to a file in the fixtures folder
@@ -407,12 +397,4 @@ pub fn temp_async_remote_signer() -> Box<dyn crate::signer::AsyncSigner> {
     Box::new(TempAsyncRemoteSigner {
         signer: TempRemoteSigner {},
     })
-}
-
-#[test]
-fn test_create_test_store() {
-    #[allow(clippy::expect_used)]
-    let store = create_test_store().expect("create test store");
-
-    assert_eq!(store.claims().len(), 1);
 }

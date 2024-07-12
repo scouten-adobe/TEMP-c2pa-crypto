@@ -14,11 +14,11 @@
 use std::{
     collections::HashMap,
     fs::File,
-    io::{BufReader, Cursor, Write},
+    io::{BufReader, Cursor},
     path::*,
 };
 
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 use img_parts::{
     jpeg::{
         markers::{self, APP0, APP15, COM, DQT, DRI, P, RST0, RST7, SOF0, SOF15, SOS, Z},
@@ -31,8 +31,8 @@ use serde_bytes::ByteBuf;
 use crate::{
     assertions::{BoxMap, C2PA_BOXHASH},
     asset_io::{
-        AssetBoxHash, AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, ComposedManifestRef,
-        HashBlockObjectType, HashObjectPositions, RemoteRefEmbed, RemoteRefEmbedType,
+        AssetBoxHash, AssetIO, CAIRead, CAIReadWrite, CAIReader, CAIWriter, HashBlockObjectType,
+        HashObjectPositions, RemoteRefEmbed, RemoteRefEmbedType,
     },
     error::{Error, Result},
     utils::xmp_inmemory_utils::{add_provenance, MIN_XMP},
@@ -433,28 +433,6 @@ impl CAIWriter for JpegIO {
 
         Ok(positions)
     }
-
-    fn remove_cai_store_from_stream(
-        &self,
-        input_stream: &mut dyn CAIRead,
-        output_stream: &mut dyn CAIReadWrite,
-    ) -> Result<()> {
-        let mut buf = Vec::new();
-        // read the whole asset
-        input_stream.rewind()?;
-        input_stream.read_to_end(&mut buf).map_err(Error::IoError)?;
-        let mut jpeg = Jpeg::from_bytes(buf.into()).map_err(|_err| Error::EmbeddingError)?;
-
-        // remove existing CAI segments
-        delete_cai_segments(&mut jpeg)?;
-
-        output_stream.rewind()?;
-        jpeg.encoder()
-            .write_to(output_stream)
-            .map_err(|_err| Error::InvalidAsset("JPEG write error".to_owned()))?;
-
-        Ok(())
-    }
 }
 
 impl AssetIO for JpegIO {
@@ -514,18 +492,6 @@ impl AssetIO for JpegIO {
 
     fn get_writer(&self, asset_type: &str) -> Option<Box<dyn CAIWriter>> {
         Some(Box::new(JpegIO::new(asset_type)))
-    }
-
-    fn remote_ref_writer_ref(&self) -> Option<&dyn RemoteRefEmbed> {
-        Some(self)
-    }
-
-    fn asset_box_hash_ref(&self) -> Option<&dyn AssetBoxHash> {
-        Some(self)
-    }
-
-    fn composed_data_ref(&self) -> Option<&dyn ComposedManifestRef> {
-        Some(self)
     }
 
     fn supported_types(&self) -> &[&str] {
@@ -987,272 +953,5 @@ impl AssetBoxHash for JpegIO {
         }
 
         Ok(box_maps)
-    }
-}
-
-impl ComposedManifestRef for JpegIO {
-    fn compose_manifest(&self, manifest_data: &[u8], _format: &str) -> Result<Vec<u8>> {
-        let jumbf_len = manifest_data.len();
-        let num_segments = (jumbf_len / MAX_JPEG_MARKER_SIZE) + 1;
-        let mut seg_chucks = manifest_data.chunks(MAX_JPEG_MARKER_SIZE);
-
-        let mut segments = Vec::new();
-
-        for seg in 1..num_segments + 1 {
-            /*
-                If the size of the box payload is less than 2^32-8 bytes,
-                then all fields except the XLBox field, that is: Le, CI, En, Z, LBox and TBox,
-                shall be present in all JPEG XT marker segment representing this box,
-                regardless of whether the marker segments starts this box,
-                or continues a box started by a former JPEG XT Marker segment.
-            */
-            // we need to prefix the JUMBF with the JPEG XT markers (ISO 19566-5)
-            // CI: JPEG extensions marker - JP
-            // En: Box Instance Number  - 0x0001
-            //          (NOTE: can be any unique ID, so we pick one that shouldn't conflict)
-            // Z: Packet sequence number - 0x00000001...
-            let ci = vec![0x4a, 0x50];
-            let en = vec![0x02, 0x11];
-            let z: u32 = u32::try_from(seg)
-                .map_err(|_| Error::InvalidAsset("Too many JUMBF segments".to_string()))?; //seg.to_be_bytes();
-
-            let mut seg_data = Vec::new();
-            seg_data.extend(ci);
-            seg_data.extend(en);
-            seg_data.extend(z.to_be_bytes());
-            if seg > 1 {
-                // the LBox and TBox are already in the JUMBF
-                // but we need to duplicate them in all other segments
-                let lbox_tbox = &manifest_data[..8];
-                seg_data.extend(lbox_tbox);
-            }
-            if seg_chucks.len() > 0 {
-                // make sure we have some...
-                if let Some(next_seg) = seg_chucks.next() {
-                    seg_data.extend(next_seg);
-                }
-            } else {
-                seg_data.extend(manifest_data);
-            }
-
-            let seg_bytes = Bytes::from(seg_data);
-            let app11_segment = JpegSegment::new_with_contents(markers::APP11, seg_bytes);
-            segments.push(app11_segment);
-        }
-
-        let output = Vec::with_capacity(manifest_data.len() * 2);
-        let mut out_stream = Cursor::new(output);
-
-        // right out segments
-        for s in segments {
-            // maker
-            out_stream.write_u8(markers::P)?;
-            out_stream.write_u8(s.marker())?;
-
-            //len
-            out_stream.write_u16::<BigEndian>(s.contents().len() as u16 + 2)?;
-
-            // data
-            out_stream.write_all(s.contents())?;
-        }
-
-        Ok(out_stream.into_inner())
-    }
-}
-
-#[cfg(test)]
-pub mod tests {
-    #![allow(clippy::unwrap_used)]
-
-    use std::io::{Read, Seek};
-
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::*;
-
-    use super::*;
-    #[test]
-    fn test_extract_xmp() {
-        let contents = Bytes::from_static(b"http://ns.adobe.com/xap/1.0/\0stuff");
-        let seg = JpegSegment::new_with_contents(markers::APP1, contents);
-        let result = extract_xmp(&seg);
-        assert_eq!(result, Some("stuff".to_owned()));
-
-        let contents = Bytes::from_static(b"http://ns.adobe.com/xap/1.0/ stuff");
-        let seg = JpegSegment::new_with_contents(markers::APP1, contents);
-        let result = extract_xmp(&seg);
-        assert_eq!(result, Some("stuff".to_owned()));
-
-        let contents = Bytes::from_static(b"tiny");
-        let seg = JpegSegment::new_with_contents(markers::APP1, contents);
-        let result = extract_xmp(&seg);
-        assert_eq!(result, None);
-    }
-
-    #[test]
-    fn test_remove_c2pa() {
-        let source = crate::utils::test::fixture_path("CA.jpg");
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        let output = crate::utils::test::temp_dir_path(&temp_dir, "CA_test.jpg");
-
-        std::fs::copy(source, &output).unwrap();
-        let jpeg_io = JpegIO {};
-
-        jpeg_io.remove_cai_store(&output).unwrap();
-
-        // read back in asset, JumbfNotFound is expected since it was removed
-        match jpeg_io.read_cai_store(&output) {
-            Err(Error::JumbfNotFound) => (),
-            _ => unreachable!(),
-        }
-    }
-
-    #[test]
-    fn test_remove_c2pa_from_stream() {
-        let source = crate::utils::test::fixture_path("CA.jpg");
-
-        let source_bytes = std::fs::read(source).unwrap();
-        let mut source_stream = Cursor::new(source_bytes);
-
-        let jpeg_io = JpegIO {};
-        let jpg_writer = jpeg_io.get_writer("jpg").unwrap();
-
-        let output_bytes = Vec::new();
-        let mut output_stream = Cursor::new(output_bytes);
-
-        jpg_writer
-            .remove_cai_store_from_stream(&mut source_stream, &mut output_stream)
-            .unwrap();
-
-        // read back in asset, JumbfNotFound is expected since it was removed
-        let jpg_reader = jpeg_io.get_reader();
-        match jpg_reader.read_cai(&mut output_stream) {
-            Err(Error::JumbfNotFound) => (),
-            _ => unreachable!(),
-        }
-    }
-
-    #[test]
-    fn test_xmp_read_write() {
-        let source = crate::utils::test::fixture_path("CA.jpg");
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        let output = crate::utils::test::temp_dir_path(&temp_dir, "CA_test.jpg");
-
-        std::fs::copy(source, &output).unwrap();
-
-        let test_msg = "this some test xmp data";
-        let handler = JpegIO::new("");
-
-        // write xmp
-        let assetio_handler = handler.get_handler("jpg");
-
-        let remote_ref_handler = assetio_handler.remote_ref_writer_ref().unwrap();
-
-        remote_ref_handler
-            .embed_reference(&output, RemoteRefEmbedType::Xmp(test_msg.to_string()))
-            .unwrap();
-
-        // read back in XMP
-        let mut file_reader = std::fs::File::open(&output).unwrap();
-        let read_xmp = assetio_handler
-            .get_reader()
-            .read_xmp(&mut file_reader)
-            .unwrap();
-
-        assert!(read_xmp.contains(test_msg));
-    }
-
-    #[cfg_attr(not(target_arch = "wasm32"), actix::test)]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_xmp_read_write_stream() {
-        let source_bytes = include_bytes!("../../tests/fixtures/CA.jpg");
-
-        let test_msg = "this some test xmp data";
-        let handler = JpegIO::new("");
-
-        let assetio_handler = handler.get_handler("jpg");
-
-        let remote_ref_handler = assetio_handler.remote_ref_writer_ref().unwrap();
-
-        let mut source_stream = Cursor::new(source_bytes.to_vec());
-        let mut output_stream = Cursor::new(Vec::new());
-        remote_ref_handler
-            .embed_reference_to_stream(
-                &mut source_stream,
-                &mut output_stream,
-                RemoteRefEmbedType::Xmp(test_msg.to_string()),
-            )
-            .unwrap();
-
-        output_stream.set_position(0);
-
-        // read back in XMP
-        let read_xmp = assetio_handler
-            .get_reader()
-            .read_xmp(&mut output_stream)
-            .unwrap();
-
-        output_stream.set_position(0);
-
-        //std::fs::write("../target/xmp_write.jpg",
-        // output_stream.into_inner()).unwrap();
-
-        assert!(read_xmp.contains(test_msg));
-    }
-
-    #[test]
-    fn test_embeddable_manifest() {
-        let jpeg_io = JpegIO {};
-
-        let source = crate::utils::test::fixture_path("CA.jpg");
-
-        let ol = jpeg_io.get_object_locations(&source).unwrap();
-
-        let cai_loc = ol
-            .iter()
-            .find(|o| o.htype == HashBlockObjectType::Cai)
-            .unwrap();
-        let curr_manifest = jpeg_io.read_cai_store(&source).unwrap();
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        let output = crate::utils::test::temp_dir_path(&temp_dir, "CA_test.jpg");
-
-        std::fs::copy(source, &output).unwrap();
-
-        // remove existing
-        jpeg_io.remove_cai_store(&output).unwrap();
-
-        // generate new manifest data
-        let em = jpeg_io
-            .composed_data_ref()
-            .unwrap()
-            .compose_manifest(&curr_manifest, "jpeg")
-            .unwrap();
-
-        // insert new manifest
-        let outbuf = Vec::new();
-        let mut out_stream = Cursor::new(outbuf);
-
-        let mut before = vec![0u8; cai_loc.offset];
-        let mut in_file = std::fs::File::open(&output).unwrap();
-
-        // write before
-        in_file.read_exact(before.as_mut_slice()).unwrap();
-        out_stream.write_all(&before).unwrap();
-
-        // write composed bytes
-        out_stream.write_all(&em).unwrap();
-
-        // write bytes after
-        let mut after_buf = Vec::new();
-        in_file.read_to_end(&mut after_buf).unwrap();
-        out_stream.write_all(&after_buf).unwrap();
-
-        // read manifest back in from new in-memory JPEG
-        out_stream.rewind().unwrap();
-        let restored_manifest = jpeg_io.read_cai(&mut out_stream).unwrap();
-
-        assert_eq!(&curr_manifest, &restored_manifest);
     }
 }

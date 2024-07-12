@@ -195,6 +195,7 @@ pub trait BMFFBox: Any {
     fn box_type(&self) -> &'static [u8; 4];
 
     /// Box UUID (used by JUMBF)
+    #[allow(dead_code)]
     fn box_uuid(&self) -> &'static str;
 
     /// Box size.
@@ -251,6 +252,7 @@ pub struct JUMBFSuperBox {
     data_boxes: Vec<Box<dyn BMFFBox>>,
 }
 
+#[allow(dead_code)]
 impl JUMBFSuperBox {
     pub fn new(box_label: &str, a_type: Option<&str>) -> Self {
         JUMBFSuperBox {
@@ -403,11 +405,8 @@ impl JUMBFDescriptionBox {
         Ok(())
     }
 
-    pub fn get_salt(&self) -> Option<Vec<u8>> {
-        self.private.as_ref().map(|saltbox| saltbox.salt.clone())
-    }
-
     /// Makes a new `JUMBFDescriptionBox` instance from read in data
+    #[allow(dead_code)]
     pub fn from(
         uuid: &[u8; 16],
         togs: u8,
@@ -430,11 +429,7 @@ impl JUMBFDescriptionBox {
         }
     }
 
-    /// getters
-    pub fn uuid(&self) -> String {
-        hex::encode(self.box_uuid).to_uppercase()
-    }
-
+    #[allow(dead_code)]
     pub fn label(&self) -> String {
         self.label.clone().into_string().unwrap_or_default()
     }
@@ -552,11 +547,13 @@ impl BMFFBox for JUMBFPaddingContentBox {
 }
 
 impl JUMBFPaddingContentBox {
+    #[allow(dead_code)]
     pub fn new_with_vec(padding: Vec<u8>) -> Self {
         JUMBFPaddingContentBox { padding }
     }
 
     // we do not take a vec to ensure the box contains only zeros
+    #[allow(dead_code)]
     pub fn new(box_size: usize) -> Self {
         JUMBFPaddingContentBox {
             padding: vec![0; box_size],
@@ -605,6 +602,7 @@ impl JUMBFJSONContentBox {
     }
 
     // getter
+    #[allow(dead_code)]
     pub fn json(&self) -> &Vec<u8> {
         &self.json
     }
@@ -643,11 +641,13 @@ impl BMFFBox for JUMBFCBORContentBox {
 
 impl JUMBFCBORContentBox {
     // the content box takes ownership of the data!
+    #[allow(dead_code)]
     pub fn new(cbor_in: Vec<u8>) -> Self {
         JUMBFCBORContentBox { cbor: cbor_in }
     }
 
     // getter
+    #[allow(dead_code)]
     pub fn cbor(&self) -> &Vec<u8> {
         &self.cbor
     }
@@ -689,6 +689,7 @@ impl BMFFBox for JUMBFCodestreamContentBox {
 
 impl JUMBFCodestreamContentBox {
     // the content box takes ownership of the data!
+    #[allow(dead_code)]
     pub fn new(data_in: Vec<u8>) -> Self {
         JUMBFCodestreamContentBox { data: data_in }
     }
@@ -743,11 +744,13 @@ impl JUMBFUUIDContentBox {
     }
 
     // getters
+    #[allow(dead_code)]
     pub fn uuid(&self) -> &[u8; 16] {
         &self.uuid
     }
 
     // getter
+    #[allow(dead_code)]
     pub fn data(&self) -> &Vec<u8> {
         &self.data
     }
@@ -766,7 +769,7 @@ pub const CAI_JSON_ASSERTION_UUID: &str = "6A736F6E00110010800000AA00389B71"; //
 pub const CAI_CBOR_ASSERTION_UUID: &str = "63626F7200110010800000AA00389B71"; // cbor
 pub const CAI_CLAIM_UUID: &str = "6332636C00110010800000AA00389B71"; // c2cl
 pub const CAI_SIGNATURE_UUID: &str = "6332637300110010800000AA00389B71"; // c2cs
-pub const CAI_EMBEDDED_FILE_UUID: &str = "40CB0C32BB8A489DA70B2AD6F47F4369";
+                                                                         // pub const CAI_EMBEDDED_FILE_UUID: &str = "40CB0C32BB8A489DA70B2AD6F47F4369";
 pub const CAI_EMBEDDED_FILE_DESCRIPTION_UUID: &str = "6266646200110010800000AA00389B71"; // bfdb
 pub const CAI_EMBEDDED_FILE_DATA_UUID: &str = "6269646200110010800000AA00389B71"; // bidb
 pub const CAI_VERIFIABLE_CREDENTIALS_STORE_UUID: &str = "6332766300110010800000AA00389B71"; // c2vc
@@ -850,6 +853,7 @@ impl CAISignatureBox {
     }
 
     // add a signature content box *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_signature(&mut self, b: Box<dyn BMFFBox>) {
         self.sig_box.add_data_box(b)
     }
@@ -901,6 +905,7 @@ impl CAIClaimBox {
 
     // add a JUMBFCBORContentBox box, with the claim's CBOR
     // *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_claim(&mut self, b: Box<dyn BMFFBox>) {
         self.claim_box.add_data_box(b)
     }
@@ -1120,6 +1125,7 @@ impl CAIAssertionStore {
     }
 
     // add an assertion box (of various types) *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_assertion(&mut self, b: Box<dyn BMFFBox>) {
         self.store.add_data_box(b)
     }
@@ -1168,6 +1174,7 @@ impl CAIDataboxStore {
     }
 
     // add an assertion box (of various types) *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_databox(&mut self, b: Box<dyn BMFFBox>) {
         self.store.add_data_box(b)
     }
@@ -1221,6 +1228,7 @@ impl CAIVerifiableCredentialStore {
     }
 
     // add an credential box *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_credential(&mut self, b: Box<dyn BMFFBox>) {
         self.store.add_data_box(b)
     }
@@ -1269,6 +1277,7 @@ impl BMFFBox for CAIStore {
 }
 
 impl CAIStore {
+    #[allow(dead_code)]
     pub fn new(box_label: &str, update_manifest: bool) -> Self {
         let id = if update_manifest {
             Some(CAI_UPDATE_MANIFEST_UUID)
@@ -1283,15 +1292,18 @@ impl CAIStore {
     }
 
     /// add a box (of various types) *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_box(&mut self, b: Box<dyn BMFFBox>) {
         self.store.add_data_box(b)
     }
 
     // getters
+    #[allow(dead_code)]
     pub fn super_box(&self) -> &JUMBFSuperBox {
         &self.store
     }
 
+    #[allow(dead_code)]
     pub fn set_salt(&mut self, salt: Vec<u8>) -> JumbfParseResult<()> {
         self.store.desc_box.set_salt(salt)
     }
@@ -1335,23 +1347,28 @@ impl Cai {
         }
     }
 
+    #[allow(dead_code)]
     pub fn from(in_box: JUMBFSuperBox) -> Self {
         Cai { sbox: in_box }
     }
 
     /// add a box (of various types) *WITHOUT* taking ownership of the box
+    #[allow(dead_code)]
     pub fn add_box(&mut self, b: Box<dyn BMFFBox>) {
         self.sbox.add_data_box(b)
     }
 
+    #[allow(dead_code)]
     pub fn desc_box(&self) -> &JUMBFDescriptionBox {
         &self.sbox.desc_box
     }
 
+    #[allow(dead_code)]
     pub fn data_box_count(&self) -> usize {
         self.sbox.data_boxes.len()
     }
 
+    #[allow(dead_code)]
     pub fn data_box_as_superbox(&self, index: usize) -> Option<&JUMBFSuperBox> {
         let da_box = &self.sbox.data_boxes[index];
         da_box.as_ref().as_any().downcast_ref::<JUMBFSuperBox>()
@@ -1464,6 +1481,7 @@ impl JUMBFEmbeddedFileContentBox {
     }
 
     // getter
+    #[allow(dead_code)]
     pub fn data(&self) -> &Vec<u8> {
         &self.data
     }
@@ -1537,6 +1555,7 @@ impl JUMBFEmbeddedFileDescriptionBox {
         }
     }
 
+    #[allow(dead_code)]
     fn to_rust_str(&self, s: &CString) -> String {
         let bytes = s.clone().into_bytes();
 
@@ -1552,11 +1571,13 @@ impl JUMBFEmbeddedFileDescriptionBox {
         }
     }
 
+    #[allow(dead_code)]
     pub fn media_type(&self) -> String {
         self.to_rust_str(&self.media_type)
     }
 
     /// Makes a new `JUMBFDescriptionBox` instance from read in data
+    #[allow(dead_code)]
     pub fn from(togs: u8, mt_bytes: Vec<u8>, fn_bytes: Option<Vec<u8>>) -> Self {
         let mt_cstring: CString = unsafe { CString::from_vec_unchecked(mt_bytes) };
         let fn_cstring = fn_bytes.map(|b| unsafe { CString::from_vec_unchecked(b) });
@@ -1575,15 +1596,19 @@ impl JUMBFEmbeddedFileDescriptionBox {
 // SECTION Box Reader
 //---------------
 
+#[allow(dead_code)]
 const HEADER_SIZE: u64 = 8;
+#[allow(dead_code)]
 const TOGGLE_SIZE: u64 = 1;
 
 /// method for getting the current position
+#[allow(dead_code)]
 pub fn current_pos<R: Seek>(seeker: &mut R) -> JumbfParseResult<u64> {
     Ok(seeker.stream_position()?)
 }
 
 /// method for skipping backwards `size` bytes
+#[allow(dead_code)]
 pub fn unread_bytes<S: Seek>(seeker: &mut S, size: u64) -> JumbfParseResult<()> {
     let new_loc = -(size as i64);
     seeker.seek(SeekFrom::Current(new_loc))?;
@@ -1642,6 +1667,7 @@ impl BoxHeader {
 pub struct BoxReader {}
 
 impl BoxReader {
+    #[allow(dead_code)]
     pub fn read_header<R: Read>(reader: &mut R) -> JumbfParseResult<BoxHeader> {
         // Create and read to buf.
         let mut buf = [0u8; 8]; // 8 bytes for box header.
@@ -1682,6 +1708,7 @@ impl BoxReader {
         }
     }
 
+    #[allow(dead_code)]
     pub fn read_desc_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1773,6 +1800,7 @@ impl BoxReader {
         ))
     }
 
+    #[allow(dead_code)]
     pub fn read_json_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1794,6 +1822,7 @@ impl BoxReader {
         Ok(JUMBFJSONContentBox::new(buf))
     }
 
+    #[allow(dead_code)]
     pub fn read_cbor_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1815,6 +1844,7 @@ impl BoxReader {
         Ok(JUMBFCBORContentBox::new(buf))
     }
 
+    #[allow(dead_code)]
     pub fn read_padding_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1836,6 +1866,7 @@ impl BoxReader {
         Ok(JUMBFPaddingContentBox::new_with_vec(buf))
     }
 
+    #[allow(dead_code)]
     pub fn read_jp2c_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1858,6 +1889,7 @@ impl BoxReader {
         Ok(JUMBFCodestreamContentBox::new(buf))
     }
 
+    #[allow(dead_code)]
     pub fn read_uuid_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1884,6 +1916,7 @@ impl BoxReader {
         Ok(JUMBFUUIDContentBox::new(&uuid, buf))
     }
 
+    #[allow(dead_code)]
     pub fn read_embedded_media_desc_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1941,6 +1974,7 @@ impl BoxReader {
         ))
     }
 
+    #[allow(dead_code)]
     pub fn read_embedded_content_box<R: Read + Seek>(
         reader: &mut R,
         size: u64,
@@ -1963,6 +1997,7 @@ impl BoxReader {
         Ok(JUMBFEmbeddedFileContentBox::new(buf))
     }
 
+    #[allow(dead_code)]
     pub fn read_super_box<R: Read + Seek>(reader: &mut R) -> JumbfParseResult<JUMBFSuperBox> {
         // find out where we're starting...
         let start_pos = current_pos(reader).map_err(|_| JumbfParseError::InvalidBoxRange)?;

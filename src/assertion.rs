@@ -305,24 +305,6 @@ impl Assertion {
         }
     }
 
-    /// create an assertion from binary data
-    pub(crate) fn from_data_binary(label: &str, mime_type: &str, binary_data: &[u8]) -> Assertion {
-        Self::from_assertion_data(
-            label,
-            mime_type,
-            AssertionData::Binary(binary_data.to_vec()),
-        )
-    }
-
-    /// create an assertion from user binary data
-    pub(crate) fn from_data_uuid(label: &str, uuid_str: &str, binary_data: &[u8]) -> Assertion {
-        Self::from_assertion_data(
-            label,
-            "application/octet-stream",
-            AssertionData::Uuid(uuid_str.to_owned(), binary_data.to_vec()),
-        )
-    }
-
     pub(crate) fn from_data_cbor(label: &str, binary_data: &[u8]) -> Assertion {
         Self::from_assertion_data(
             label,
@@ -347,28 +329,6 @@ impl Assertion {
             "application/json",
             AssertionData::Json(json),
         ))
-    }
-
-    // Check assertion label against a target label.
-    pub(crate) fn check_version_from_label(
-        &self,
-        desired_version: usize,
-    ) -> AssertionDecodeResult<()> {
-        if let Some(base_version) = labels::version(&self.label) {
-            if desired_version > base_version {
-                return Err(AssertionDecodeError {
-                    label: self.label.clone(),
-                    version: self.version,
-                    content_type: self.content_type.clone(),
-                    source: AssertionDecodeErrorCause::AssertionTooNew {
-                        max: desired_version,
-                        found: base_version,
-                    },
-                });
-            }
-        }
-
-        Ok(())
     }
 
     fn check_max_version(&self, max_version: Option<usize>) -> AssertionDecodeResult<()> {

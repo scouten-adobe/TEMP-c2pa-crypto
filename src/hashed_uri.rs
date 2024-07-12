@@ -56,10 +56,6 @@ impl HashedUri {
         self.hash.clone()
     }
 
-    pub(crate) fn update_hash(&mut self, hash: Vec<u8>) {
-        self.hash = hash;
-    }
-
     pub fn add_salt(&mut self, salt: Option<Vec<u8>>) {
         self.salt = salt;
     }

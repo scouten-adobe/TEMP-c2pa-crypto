@@ -26,10 +26,9 @@ use crate::{
     assertions::{
         self,
         labels::{self, CLAIM},
-        AssetType, BoxHash, DataBox, DataHash, Metadata,
+        AssetType, DataBox, Metadata,
     },
-    asset_io::CAIRead,
-    cose_validator::{get_signing_info, verify_cose, verify_cose_async},
+    cose_validator::get_signing_info,
     error::{Error, Result},
     hashed_uri::HashedUri,
     jumbf::{
@@ -42,15 +41,12 @@ use crate::{
             DATABOX, DATABOXES, SIGNATURE,
         },
     },
-    jumbf_io::get_assetio_handler,
     salt::{DefaultSalt, SaltGenerator, NO_SALT},
-    status_tracker::{log_item, OneShotStatusTracker, StatusTracker},
-    trust_handler::TrustHandlerConfig,
+    status_tracker::OneShotStatusTracker,
     utils::{
         base64,
-        hash_utils::{hash_by_alg, vec_compare, verify_by_alg},
+        hash_utils::{hash_by_alg, verify_by_alg},
     },
-    validation_status,
     validator::ValidationInfo,
     ClaimGeneratorInfo,
 };
@@ -63,15 +59,6 @@ use HashedUri as C2PAAssertion;
 
 const GH_FULL_VERSION_LIST: &str = "Sec-CH-UA-Full-Version-List";
 const GH_UA: &str = "Sec-CH-UA";
-
-// Enum to encapsulate the data type of the source asset.  This simplifies
-// having different implementations for functions as a single entry point can be
-// used to handle different data types.
-pub enum ClaimAssetData<'a> {
-    Bytes(&'a [u8], &'a str),
-    Stream(&'a mut dyn CAIRead, &'a str),
-    StreamFragment(&'a mut dyn CAIRead, &'a mut dyn CAIRead, &'a str),
-}
 
 // helper struct to allow arbitrary order for assertions stored in jumbf.  The
 // instance is stored separate from the Assertion to allow for late binding to
@@ -428,11 +415,6 @@ impl Claim {
         self.signature = format!("{}={}", self.box_prefix, jumbf::labels::SIGNATURE);
     }
 
-    ///  set signature of the claim
-    pub(crate) fn set_signature_val(&mut self, signature: Vec<u8>) {
-        self.signature_val = signature;
-    }
-
     ///  get signature of the claim
     pub fn signature_val(&self) -> &Vec<u8> {
         &self.signature_val
@@ -522,14 +504,6 @@ impl Claim {
 
     pub fn set_external_manifest(&mut self) {
         self.remote_manifest = RemoteManifest::SideCar;
-    }
-
-    pub(crate) fn remote_manifest(&self) -> RemoteManifest {
-        self.remote_manifest.clone()
-    }
-
-    pub(crate) fn set_update_manifest(&mut self, is_update_manifest: bool) {
-        self.update_manifest = is_update_manifest;
     }
 
     pub fn add_claim_generator_info(&mut self, info: ClaimGeneratorInfo) -> &mut Self {
@@ -736,40 +710,11 @@ impl Claim {
         Ok(databox_uri)
     }
 
-    pub(crate) fn databoxes(&self) -> &Vec<(HashedUri, DataBox)> {
-        &self.data_boxes
-    }
-
     pub fn find_databox(&self, uri: &str) -> Option<&DataBox> {
         self.data_boxes
             .iter()
             .find(|(h, _d)| h.url() == uri)
             .map(|(_sh, data_box)| data_box)
-    }
-
-    /// Load known VC with optional salt
-    pub(crate) fn put_data_box(
-        &mut self,
-        label: &str,
-        databox_cbor: &[u8],
-        salt: Option<Vec<u8>>,
-    ) -> Result<()> {
-        let link = jumbf::labels::to_databox_uri(self.label(), label);
-
-        // assertion JUMBF box hash for 1.2 validation
-        let assertion = Assertion::from_data_cbor(label, databox_cbor);
-        let hash = Claim::calc_assertion_box_hash(label, &assertion, salt.clone(), self.alg())?;
-
-        let mut uri = C2PAAssertion::new(link, Some(self.alg().to_string()), &hash);
-        uri.add_salt(salt);
-
-        let db: DataBox =
-            serde_cbor::from_slice(databox_cbor).map_err(|_err| Error::AssertionEncoding)?;
-
-        // add data box  to data box store
-        self.data_boxes.push((uri, db));
-
-        Ok(())
     }
 
     pub fn get_data_box(&self, uri: &str) -> Option<&DataBox> {
@@ -846,145 +791,12 @@ impl Claim {
         Ok(c2pa_assertion)
     }
 
-    /// Load known VC with optional salt
-    pub(crate) fn put_verifiable_credential(
-        &mut self,
-        vc_json: &str,
-        salt: Option<Vec<u8>>,
-    ) -> Result<()> {
-        let id = Claim::vc_id(vc_json)?;
-        let credential = AssertionData::Json(vc_json.to_string());
-
-        let link = jumbf::labels::to_verifiable_credential_uri(self.label(), &id);
-
-        // assertion JUMBF box hash for 1.2 validation
-        let assertion = Assertion::from_data_json(&id, vc_json.as_bytes())?;
-        let hash = Claim::calc_assertion_box_hash(&id, &assertion, salt.clone(), self.alg())?;
-
-        let mut c2pa_assertion = C2PAAssertion::new(link, Some(self.alg().to_string()), &hash);
-        c2pa_assertion.add_salt(salt);
-
-        // add credential to vcstore
-        self.vc_store.push((c2pa_assertion, credential));
-
-        Ok(())
-    }
-
     pub fn get_verifiable_credentials(&self) -> Vec<&AssertionData> {
         self.vc_store.iter().map(|t| &t.1).collect::<Vec<_>>()
     }
 
     pub fn get_verifiable_credentials_store(&self) -> &Vec<(HashedUri, AssertionData)> {
         &self.vc_store
-    }
-
-    /// Add directly to store during a reload of a claim
-    pub(crate) fn put_assertion_store(&mut self, assertion: ClaimAssertion) {
-        self.assertion_store.push(assertion);
-    }
-
-    // Patch an existing assertion with new contents.
-    //
-    // `replace_with` should match in name and size of an existing assertion.
-    pub(crate) fn update_assertion<MatchFn, PatchFn>(
-        &mut self,
-        replace_with: Assertion,
-        match_fn: MatchFn,
-        patch_fn: PatchFn,
-    ) -> Result<()>
-    where
-        MatchFn: Fn(&ClaimAssertion) -> bool,
-        PatchFn: FnOnce(&ClaimAssertion, Assertion) -> Result<Assertion>,
-    {
-        // Find the assertion that should be replaced.
-        let Some(ref mut target_assertion) = self
-            .assertion_store
-            .iter_mut()
-            .find(|ca| Assertion::assertions_eq(&replace_with, ca.assertion()) && match_fn(ca))
-        else {
-            return Err(Error::NotFound);
-        };
-
-        // Save off copy of original hash to cross-check before
-        // replacing it.
-        let original_hash = target_assertion.hash().to_vec();
-
-        // Give caller a chance to patch/replace the assertion.
-        let replace_with = patch_fn(target_assertion, replace_with)?;
-
-        // Calculate new hash, given new content.
-        let replacement_hash = Claim::calc_assertion_box_hash(
-            &target_assertion.label(),
-            &replace_with,
-            target_assertion.salt().clone(),
-            target_assertion.hash_alg(),
-        )?;
-
-        target_assertion.update_assertion(replace_with, replacement_hash)?;
-
-        let target_label = target_assertion.label();
-        let target_hash = target_assertion.hash();
-
-        // Replace the existing hash in the hashed URI reference
-        // with the newly-calculated hash.
-        let Some(f) = self
-            .assertions
-            .iter_mut()
-            .find(|f| f.url().contains(&target_label) && vec_compare(&f.hash(), &original_hash))
-        else {
-            return Err(Error::NotFound);
-        };
-
-        // Replace existing hash with newly-calculated hash.
-        f.update_hash(target_hash.to_vec());
-
-        // clear original since content has changed
-        self.clear_data();
-
-        Ok(())
-    }
-
-    // Crate private function to allow for patching a data hash with final contents.
-    pub(crate) fn update_data_hash(&mut self, mut data_hash: DataHash) -> Result<()> {
-        let dh_name = data_hash.name.clone();
-
-        self.update_assertion(
-            data_hash.to_assertion()?,
-            |ca: &ClaimAssertion| {
-                if let Ok(dh) = DataHash::from_assertion(ca.assertion()) {
-                    dh.name == dh_name
-                } else {
-                    false
-                }
-            },
-            |target_assertion: &ClaimAssertion, _: Assertion| {
-                let original_len = target_assertion.assertion().data().len();
-                data_hash.pad_to_size(original_len)?;
-                data_hash.to_assertion()
-            },
-        )
-    }
-
-    /// Redact an assertion from a prior claim.
-    /// This will remove the assertion from the JUMBF
-    fn redact_assertion(&mut self, assertion_uri: &str) -> Result<()> {
-        // cannot redact action assertions per the spec
-        let (label, _instance) = Claim::assertion_label_from_link(assertion_uri);
-        if label == labels::ACTIONS {
-            return Err(Error::AssertionInvalidRedaction);
-        }
-
-        // delete assertion
-        if let Some(index) = self
-            .assertion_store
-            .iter()
-            .position(|x| assertion_uri.contains(&x.label()))
-        {
-            self.assertion_store.remove(index);
-            Ok(())
-        } else {
-            Err(Error::AssertionInvalidRedaction)
-        }
     }
 
     /// Return a hash of this claim.
@@ -1029,102 +841,6 @@ impl Claim {
         Some(get_signing_info(sig, &data, &mut validation_log))
     }
 
-    /// Verify claim signature, assertion store and asset hashes
-    /// claim - claim to be verified
-    /// asset_bytes - reference to bytes of the asset
-    pub(crate) async fn verify_claim_async<'a>(
-        claim: &Claim,
-        asset_data: &mut ClaimAssetData<'_>,
-        is_provenance: bool,
-        th: &dyn TrustHandlerConfig,
-        validation_log: &mut impl StatusTracker,
-    ) -> Result<()> {
-        // Parse COSE signed data (signature) and validate it.
-        let sig = claim.signature_val().clone();
-        let additional_bytes: Vec<u8> = Vec::new();
-        let claim_data = claim.data()?;
-
-        // make sure signature manifest if present points to this manifest
-        let sig_box_err = match jumbf::labels::manifest_label_from_uri(&claim.signature) {
-            Some(signature_url) if signature_url != claim.label() => true,
-            _ => {
-                jumbf::labels::box_name_from_uri(&claim.signature).unwrap_or_default()
-                    != jumbf::labels::SIGNATURE
-            } // relative signature box
-        };
-
-        if sig_box_err {
-            let log_item = log_item!(
-                claim.signature_uri(),
-                "signature missing",
-                "verify_claim_async"
-            )
-            .error(Error::ClaimMissingSignatureBox)
-            .validation_status(validation_status::CLAIM_SIGNATURE_MISSING);
-
-            validation_log.log(log_item, Some(Error::ClaimMissingSignatureBox))?;
-        }
-
-        let verified = verify_cose_async(
-            sig,
-            claim_data,
-            additional_bytes,
-            !is_provenance,
-            th,
-            validation_log,
-        )
-        .await;
-        Claim::verify_internal(claim, asset_data, is_provenance, verified, validation_log)
-    }
-
-    /// Verify claim signature, assertion store and asset hashes
-    /// claim - claim to be verified
-    /// asset_bytes - reference to bytes of the asset
-    pub(crate) fn verify_claim(
-        claim: &Claim,
-        asset_data: &mut ClaimAssetData<'_>,
-        is_provenance: bool,
-        th: &dyn TrustHandlerConfig,
-        validation_log: &mut impl StatusTracker,
-    ) -> Result<()> {
-        // Parse COSE signed data (signature) and validate it.
-        let sig = claim.signature_val();
-        let additional_bytes: Vec<u8> = Vec::new();
-
-        // make sure signature manifest if present points to this manifest
-        let sig_box_err = match jumbf::labels::manifest_label_from_uri(&claim.signature) {
-            Some(signature_url) if signature_url != claim.label() => true,
-            _ => {
-                jumbf::labels::box_name_from_uri(&claim.signature).unwrap_or_default()
-                    != jumbf::labels::SIGNATURE
-            } // relative signature box
-        };
-
-        if sig_box_err {
-            let log_item = log_item!(claim.signature_uri(), "signature missing", "verify_claim")
-                .error(Error::ClaimMissingSignatureBox)
-                .validation_status(validation_status::CLAIM_SIGNATURE_MISSING);
-            validation_log.log(log_item, Some(Error::ClaimMissingSignatureBox))?;
-        }
-
-        let data = if let Some(ref original_bytes) = claim.original_bytes {
-            original_bytes
-        } else {
-            return Err(Error::ClaimDecoding);
-        };
-
-        let verified = verify_cose(
-            sig,
-            data,
-            &additional_bytes,
-            !is_provenance,
-            th,
-            validation_log,
-        );
-
-        Claim::verify_internal(claim, asset_data, is_provenance, verified, validation_log)
-    }
-
     /// Get the signing certificate chain as PEM bytes
     pub fn get_cert_chain(&self) -> Result<Vec<u8>> {
         let sig = self.signature_val();
@@ -1134,285 +850,6 @@ impl Claim {
         let vi = get_signing_info(sig, &data, &mut validation_log);
 
         Ok(vi.cert_chain)
-    }
-
-    fn verify_internal(
-        claim: &Claim,
-        asset_data: &mut ClaimAssetData<'_>,
-        is_provenance: bool,
-        verified: Result<ValidationInfo>,
-        validation_log: &mut impl StatusTracker,
-    ) -> Result<()> {
-        const UNNAMED: &str = "unnamed";
-        let default_str = |s: &String| s.clone();
-
-        match verified {
-            Ok(vi) => {
-                if !vi.validated {
-                    let log_item = log_item!(
-                        claim.signature_uri(),
-                        "claim signature is not valid",
-                        "verify_internal"
-                    )
-                    .error(Error::CoseSignature)
-                    .validation_status(validation_status::CLAIM_SIGNATURE_MISMATCH);
-                    validation_log.log(log_item, Some(Error::CoseSignature))?;
-                } else {
-                    let log_item = log_item!(
-                        claim.signature_uri(),
-                        "claim signature valid",
-                        "verify_internal"
-                    )
-                    .validation_status(validation_status::CLAIM_SIGNATURE_VALIDATED);
-                    validation_log.log_silent(log_item);
-                }
-            }
-            Err(parse_err) => {
-                let log_item = log_item!(
-                    claim.signature_uri(),
-                    "claim signature is not valid",
-                    "verify_internal"
-                )
-                .error(parse_err)
-                .validation_status(validation_status::CLAIM_SIGNATURE_MISMATCH);
-                validation_log.log(log_item, Some(Error::CoseSignature))?;
-            }
-        };
-
-        // check for self redacted assertions and illegal redactions
-        if let Some(redactions) = claim.redactions() {
-            for r in redactions {
-                let r_manifest = jumbf::labels::manifest_label_from_uri(r)
-                    .ok_or(Error::AssertionInvalidRedaction)?;
-                if claim.label().contains(&r_manifest) {
-                    let log_item = log_item!(
-                        claim.uri(),
-                        "claim contains self redaction",
-                        "verify_internal"
-                    )
-                    .error(Error::ClaimSelfRedact)
-                    .validation_status(validation_status::ASSERTION_SELF_REDACTED);
-                    validation_log.log(log_item, Some(Error::ClaimSelfRedact))?;
-                }
-
-                if r.contains(assertions::labels::ACTIONS) {
-                    let log_item = log_item!(
-                        claim.uri(),
-                        "redaction of action assertions disallowed",
-                        "verify_internal"
-                    )
-                    .error(Error::ClaimDisallowedRedaction)
-                    .validation_status(validation_status::ACTION_ASSERTION_REDACTED);
-                    validation_log.log(log_item, Some(Error::ClaimDisallowedRedaction))?;
-                }
-            }
-        }
-
-        // make sure UpdateManifests do not contain actions
-        if claim.update_manifest() && claim.label().contains(assertions::labels::ACTIONS) {
-            let log_item = log_item!(
-                claim.uri(),
-                "update manifests cannot contain actions",
-                "verify_internal"
-            )
-            .error(Error::UpdateManifestInvalid)
-            .validation_status(validation_status::MANIFEST_UPDATE_INVALID);
-            validation_log.log(log_item, Some(Error::UpdateManifestInvalid))?;
-        }
-
-        // verify assertion structure comparing hashes from assertion list to contents
-        // of assertion store
-        for assertion in claim.assertions() {
-            let (label, instance) = Claim::assertion_label_from_link(&assertion.url());
-            match claim.get_claim_assertion(&label, instance) {
-                // get the assertion if label and hash match
-                Some(ca) => {
-                    if !vec_compare(ca.hash(), &assertion.hash()) {
-                        let log_item = log_item!(
-                            assertion.url(),
-                            format!("hash does not match assertion data: {}", assertion.url()),
-                            "verify_internal"
-                        )
-                        .error(Error::HashMismatch(format!(
-                            "Assertion hash failure: {}",
-                            assertion.url()
-                        )))
-                        .validation_status(validation_status::ASSERTION_HASHEDURI_MISMATCH);
-                        validation_log.log(
-                            log_item,
-                            Some(Error::HashMismatch(format!(
-                                "Assertion hash failure: {}",
-                                assertion.url()
-                            ))),
-                        )?;
-                    } else {
-                        let log_item = log_item!(
-                            assertion.url(),
-                            format!("hashed uri matched: {}", assertion.url()),
-                            "verify_internal"
-                        )
-                        .validation_status(validation_status::ASSERTION_HASHEDURI_MATCH);
-                        validation_log.log_silent(log_item);
-                    }
-                }
-                None => {
-                    let log_item = log_item!(
-                        assertion.url(),
-                        format!("cannot find matching assertion: {}", assertion.url()),
-                        "verify_internal"
-                    )
-                    .error(Error::AssertionMissing {
-                        url: assertion.url(),
-                    })
-                    .validation_status(validation_status::ASSERTION_MISSING);
-                    validation_log.log(
-                        log_item,
-                        Some(Error::AssertionMissing {
-                            url: assertion.url(),
-                        }),
-                    )?;
-                }
-            }
-        }
-
-        // verify data hashes for provenance claims
-        if is_provenance {
-            // must have at least one hard binding for normal manifests
-            if claim.hash_assertions().is_empty() && !claim.update_manifest() {
-                let log_item = log_item!(
-                    &claim.uri(),
-                    "claim missing data binding",
-                    "verify_internal"
-                )
-                .error(Error::ClaimMissingHardBinding)
-                .validation_status(validation_status::HARD_BINDINGS_MISSING);
-                validation_log.log(log_item, Some(Error::ClaimMissingHardBinding))?;
-            }
-
-            // update manifests cannot have data hashes
-            if !claim.hash_assertions().is_empty() && claim.update_manifest() {
-                let log_item = log_item!(
-                    &claim.uri(),
-                    "update manifests cannot contain data hash assertions",
-                    "verify_internal"
-                )
-                .error(Error::UpdateManifestInvalid)
-                .validation_status(validation_status::MANIFEST_UPDATE_INVALID);
-                validation_log.log(log_item, Some(Error::UpdateManifestInvalid))?;
-            }
-
-            for hash_binding_assertion in claim.hash_assertions() {
-                if hash_binding_assertion.label_root() == DataHash::LABEL {
-                    let dh = DataHash::from_assertion(hash_binding_assertion)?;
-                    let name = dh.name.as_ref().map_or(UNNAMED.to_string(), default_str);
-                    if !dh.is_remote_hash() {
-                        // only verify local hashes here
-                        let hash_result = match asset_data {
-                            ClaimAssetData::Bytes(asset_bytes, _) => {
-                                dh.verify_in_memory_hash(asset_bytes, Some(claim.alg()))
-                            }
-                            ClaimAssetData::Stream(stream_data, _) => {
-                                dh.verify_stream_hash(*stream_data, Some(claim.alg()))
-                            }
-                            _ => return Err(Error::UnsupportedType), /* this should never happen
-                                                                      * (coding error) */
-                        };
-
-                        match hash_result {
-                            Ok(_a) => {
-                                let log_item = log_item!(
-                                    claim.assertion_uri(&hash_binding_assertion.label()),
-                                    "data hash valid",
-                                    "verify_internal"
-                                )
-                                .validation_status(validation_status::ASSERTION_DATAHASH_MATCH);
-                                validation_log.log_silent(log_item);
-
-                                continue;
-                            }
-                            Err(e) => {
-                                let log_item = log_item!(
-                                    claim.assertion_uri(&hash_binding_assertion.label()),
-                                    format!("asset hash error, name: {name}, error: {e}"),
-                                    "verify_internal"
-                                )
-                                .error(Error::HashMismatch(format!("Asset hash failure: {e}")))
-                                .validation_status(validation_status::ASSERTION_DATAHASH_MISMATCH);
-
-                                validation_log.log(
-                                    log_item,
-                                    Some(Error::HashMismatch(format!("Asset hash failure: {e}"))),
-                                )?;
-                            }
-                        }
-                    }
-                } else if hash_binding_assertion.label_root() == BoxHash::LABEL {
-                    // box hash case
-                    let bh = BoxHash::from_assertion(hash_binding_assertion)?;
-
-                    let hash_result = match asset_data {
-                        ClaimAssetData::Bytes(asset_bytes, asset_type) => {
-                            let box_hash_processor = get_assetio_handler(asset_type)
-                                .ok_or(Error::UnsupportedType)?
-                                .asset_box_hash_ref()
-                                .ok_or(Error::HashMismatch(format!(
-                                    "Box hash not supported for: {asset_type}"
-                                )))?;
-
-                            bh.verify_in_memory_hash(
-                                asset_bytes,
-                                Some(claim.alg()),
-                                box_hash_processor,
-                            )
-                        }
-                        ClaimAssetData::Stream(stream_data, asset_type) => {
-                            let box_hash_processor = get_assetio_handler(asset_type)
-                                .ok_or(Error::UnsupportedType)?
-                                .asset_box_hash_ref()
-                                .ok_or(Error::HashMismatch(format!(
-                                    "Box hash not supported for: {asset_type}"
-                                )))?;
-
-                            bh.verify_stream_hash(
-                                *stream_data,
-                                Some(claim.alg()),
-                                box_hash_processor,
-                            )
-                        }
-                        _ => return Err(Error::UnsupportedType),
-                    };
-
-                    match hash_result {
-                        Ok(_a) => {
-                            let log_item = log_item!(
-                                claim.assertion_uri(&hash_binding_assertion.label()),
-                                "data hash valid",
-                                "verify_internal"
-                            )
-                            .validation_status(validation_status::ASSERTION_BOXHASH_MATCH);
-                            validation_log.log_silent(log_item);
-
-                            continue;
-                        }
-                        Err(e) => {
-                            let log_item = log_item!(
-                                claim.assertion_uri(&hash_binding_assertion.label()),
-                                format!("asset hash error: {e}"),
-                                "verify_internal"
-                            )
-                            .error(Error::HashMismatch(format!("Asset hash failure: {e}")))
-                            .validation_status(validation_status::ASSERTION_BOXHASH_MISMATCH);
-
-                            validation_log.log(
-                                log_item,
-                                Some(Error::HashMismatch(format!("Asset hash failure: {e}"))),
-                            )?;
-                        }
-                    }
-                }
-            }
-        }
-        Ok(())
     }
 
     /// Verify hash against self.  True if match,
@@ -1430,15 +867,7 @@ impl Claim {
 
     /// Return list of data hash assertions
     pub fn hash_assertions(&self) -> Vec<&Assertion> {
-        let dummy_data = AssertionData::Cbor(Vec::new());
-        let dummy_hash = Assertion::new(DataHash::LABEL, None, dummy_data);
-        let mut data_hashes = self.assertions_by_type(&dummy_hash);
-
-        // add in an box hashes
-        let dummy_box_data = AssertionData::Cbor(Vec::new());
-        let dummy_box_hash = Assertion::new(assertions::labels::BOX_HASH, None, dummy_box_data);
-        data_hashes.append(&mut self.assertions_by_type(&dummy_box_hash));
-
+        let data_hashes: Vec<&Assertion> = vec![];
         data_hashes
     }
 
@@ -1473,38 +902,6 @@ impl Claim {
     /// guid. Used during generation
     pub fn claim_ingredient(&self, claim_guid: &str) -> Option<&Vec<Claim>> {
         self.ingredients_store.get(claim_guid)
-    }
-
-    /// Adds ingredients, this data will be written out during commit of the
-    /// Claim
-    pub(crate) fn add_ingredient_data(
-        &mut self,
-        provenance_label: &str,
-        mut ingredient: Vec<Claim>,
-        redactions_opt: Option<Vec<String>>,
-    ) -> Result<()> {
-        // redact assertion from incoming ingredients
-        if let Some(redactions) = &redactions_opt {
-            for redaction in redactions {
-                if let Some(claim) = ingredient
-                    .iter_mut()
-                    .find(|x| redaction.contains(x.label()))
-                {
-                    claim.redact_assertion(redaction)?;
-                } else {
-                    return Err(Error::AssertionRedactionNotFound);
-                }
-            }
-        }
-
-        // all have been removed (if necessary) so replace redaction list
-        self.redacted_assertions = redactions_opt;
-
-        // add ingredients
-        self.ingredients_store
-            .insert(provenance_label.to_string(), ingredient);
-
-        Ok(())
     }
 
     /// List of redactions
@@ -1551,10 +948,6 @@ impl Claim {
             Some(ref ob) => Ok(ob.clone()),
             None => Ok(serde_cbor::ser::to_vec(&self).map_err(|_err| Error::ClaimEncoding)?),
         }
-    }
-
-    fn clear_data(&mut self) {
-        self.original_bytes = None;
     }
 
     /// Create claim from binary data (not including assertions).
@@ -1904,106 +1297,5 @@ impl Claim {
         self.assertion_store
             .iter()
             .any(|x| x.assertion.label().starts_with(&label))
-    }
-
-    // Create a JUMBF URI from a claim label.
-    pub(crate) fn to_claim_uri(manifest_label: &str) -> String {
-        format!(
-            "{}/{}",
-            jumbf::labels::to_manifest_uri(manifest_label),
-            Self::LABEL
-        )
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(test)]
-pub mod tests {
-    #![allow(clippy::expect_used)]
-    #![allow(clippy::unwrap_used)]
-
-    use super::*;
-    use crate::{resource_store::UriOrResource, utils::test::create_test_claim};
-
-    #[test]
-    fn test_build_claim() {
-        // Create a new claim.
-        let mut claim = create_test_claim().expect("create test claim");
-
-        // Add a redaction.
-        // claim.redact_assertion("as_tp_1/c2pa.location.precise");
-
-        // Build claim checking rules.
-        claim.build().expect("bad claim");
-
-        // Test round-tripping of binary.
-        let orig_binary = claim.data().expect("failure returning data");
-        let restored_claim =
-            Claim::from_data("as_adbe_1", &orig_binary).expect("could not restore from binary");
-        let restored_binary = restored_claim.data().expect("failure returning data");
-
-        assert_eq!(orig_binary, restored_binary);
-        println!("Restored Claim: {restored_claim:?}");
-
-        // NOTE: I added a separate mirror of original data because a third-party's
-        // JSON serialization could differ from our re-serialization of that same data.
-        // When reading claims from assets and verifying signatures of those claims,
-        // we need the exact original bytes of the signed JSON or the signature
-        // verification will fail.
-        assert_eq!(orig_binary, restored_claim.original_bytes.unwrap());
-
-        // JSON examples
-        let json_str = claim
-            .to_json(AssertionStoreJsonFormat::OrderedList, true)
-            .expect("could not generate json");
-
-        println!("Claim: {json_str}");
-    }
-
-    #[test]
-    fn test_build_claim_generator_hints() {
-        // Create a new claim.
-        let mut claim = create_test_claim().expect("create test claim");
-
-        claim.add_claim_generator_hint(
-            GH_FULL_VERSION_LIST,
-            Value::String(r#""user app";v="2.3.4""#.to_string()),
-        );
-        claim.add_claim_generator_hint(
-            GH_FULL_VERSION_LIST,
-            Value::String(r#""some toolkit";v="1.0.0""#.to_string()),
-        );
-
-        let expected_value = r#""user app";v="2.3.4", "some toolkit";v="1.0.0""#;
-
-        let cg_map = claim.get_claim_generator_hint_map().unwrap();
-        let value = &cg_map[GH_FULL_VERSION_LIST];
-
-        assert_eq!(expected_value, value.as_str().unwrap());
-    }
-
-    #[test]
-    fn test_build_claim_generator_info() {
-        // Create a new claim.
-        let mut claim = create_test_claim().expect("create test claim");
-
-        let mut info = ClaimGeneratorInfo::new("test app");
-        info.version = Some("2.3.4".to_string());
-        info.icon = Some(UriOrResource::HashedUri(HashedUri::new(
-            "self#jumbf=c2pa.databoxes.data_box".to_string(),
-            None,
-            b"hashed",
-        )));
-        info.insert("something", "else");
-
-        claim.add_claim_generator_info(info);
-
-        let cgi = claim.claim_generator_info().unwrap();
-
-        assert_eq!(&cgi[0].name, "test app");
-        assert_eq!(cgi[0].version.as_deref(), Some("2.3.4"));
-        if let UriOrResource::HashedUri(r) = cgi[0].icon.as_ref().unwrap() {
-            assert_eq!(r.hash(), b"hashed");
-        }
     }
 }

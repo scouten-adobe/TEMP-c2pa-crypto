@@ -238,9 +238,6 @@ pub enum Error {
     #[error("PDF read error")]
     PdfReadError,
 
-    #[error(transparent)]
-    InvalidClaim(#[from] crate::store::InvalidClaimError),
-
     #[error("asset could not be parsed: {0}")]
     InvalidAsset(String),
 

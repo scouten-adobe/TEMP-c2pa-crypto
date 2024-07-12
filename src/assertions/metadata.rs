@@ -13,7 +13,6 @@
 
 use std::collections::HashMap;
 
-use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -22,7 +21,6 @@ use crate::{
     assertions::labels,
     error::Result,
     hashed_uri::HashedUri,
-    utils::cbor_types::DateT,
 };
 
 const ASSERTION_CREATION_VERSION: usize = 1;
@@ -33,8 +31,6 @@ const ASSERTION_CREATION_VERSION: usize = 1;
 pub struct Metadata {
     #[serde(rename = "reviewRatings", skip_serializing_if = "Option::is_none")]
     reviews: Option<Vec<ReviewRating>>,
-    #[serde(rename = "dateTime", skip_serializing_if = "Option::is_none")]
-    date_time: Option<DateT>,
     #[serde(skip_serializing_if = "Option::is_none")]
     reference: Option<HashedUri>,
     #[serde(rename = "dataSource", skip_serializing_if = "Option::is_none")]
@@ -52,9 +48,6 @@ impl Metadata {
     pub fn new() -> Self {
         Self {
             reviews: None,
-            date_time: Some(DateT(
-                Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true),
-            )),
             reference: None,
             data_source: None,
             other: HashMap::new(),
@@ -64,12 +57,6 @@ impl Metadata {
     /// Returns the list of [`ReviewRating`] for this assertion if it exists.
     pub fn reviews(&self) -> Option<&[ReviewRating]> {
         self.reviews.as_deref()
-    }
-
-    /// Returns the ISO 8601 date-time string when the assertion was
-    /// created/generated.
-    pub fn date_time(&self) -> Option<&str> {
-        self.date_time.as_deref()
     }
 
     /// Returns the [`DataSource`] for this assertion if it exists.
@@ -96,13 +83,6 @@ impl Metadata {
     /// This replaces any previous list.
     pub fn set_reviews(mut self, reviews: Vec<ReviewRating>) -> Self {
         self.reviews = Some(reviews);
-        self
-    }
-
-    /// Sets the ISO 8601 date-time string when the assertion was
-    /// created/generated.
-    pub fn set_date_time(&mut self, date_time: String) -> &mut Self {
-        self.date_time = Some(DateT(date_time));
         self
     }
 
@@ -285,30 +265,4 @@ pub struct DataBox {
     #[serde(with = "serde_bytes")]
     pub data: Vec<u8>,
     pub data_types: Option<Vec<AssetType>>,
-}
-
-#[cfg(test)]
-pub mod tests {
-    #![allow(clippy::expect_used)]
-    #![allow(clippy::unwrap_used)]
-
-    use super::*;
-
-    #[test]
-    fn assertion_metadata() {
-        let review = ReviewRating::new("foo", Some("bar".to_owned()), 3);
-        let test_value = Value::from("test");
-        let mut original = Metadata::new().add_review(review);
-        original.insert("foo", test_value);
-        println!("{:?}", &original);
-        let assertion = original.to_assertion().expect("build_assertion");
-        assert_eq!(assertion.mime_type(), "application/cbor");
-        assert_eq!(assertion.label(), Metadata::LABEL);
-        let result = Metadata::from_assertion(&assertion).expect("extract_assertion");
-        println!("{:?}", serde_json::to_string(&result));
-        assert_eq!(original.date_time, result.date_time);
-        assert_eq!(original.reviews, result.reviews);
-        assert_eq!(original.get("foo").unwrap(), "test");
-        //assert_eq!(original.reviews.unwrap().len(), 1);
-    }
 }
