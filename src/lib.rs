@@ -36,7 +36,7 @@ pub(crate) mod assertions;
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
 pub mod create_signer;
-pub mod jumbf_io;
+pub(crate) mod jumbf_io;
 pub mod settings;
 pub mod validation_status;
 #[cfg(target_arch = "wasm32")]
