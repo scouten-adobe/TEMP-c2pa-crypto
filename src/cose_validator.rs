@@ -698,6 +698,7 @@ pub enum VerifyOcspFetch {
     DontVerifyOcspFetch,
 }
 
+#[allow(unused_variables)] // verify_ocsp_fetch not used in WASM builds
 pub(crate) fn check_ocsp_status(
     cose_bytes: &[u8],
     data: &[u8],
