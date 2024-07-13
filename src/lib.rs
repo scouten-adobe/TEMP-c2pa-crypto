@@ -26,7 +26,7 @@
 //! It will be supported in all language bindings and build environments.
 
 /// The internal name of the C2PA SDK
-pub const NAME: &str = "c2pa-rs";
+pub const NAME: &str = "c2pa-crypto";
 
 /// The version of this C2PA SDK
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -60,7 +60,6 @@ pub(crate) mod hashed_uri;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
-pub(crate) mod resource_store;
 pub(crate) mod salt;
 pub(crate) mod signer;
 pub(crate) mod signing_alg;
