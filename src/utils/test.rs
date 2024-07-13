@@ -17,12 +17,12 @@ use std::path::PathBuf;
 
 use tempfile::TempDir;
 
-use crate::{claim::Claim, RemoteSigner, Result, Signer, SigningAlg};
 #[cfg(feature = "openssl_sign")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
     signer::ConfigurableSigner,
 };
+use crate::{RemoteSigner, Result, Signer, SigningAlg};
 
 pub const TEST_SMALL_JPEG: &str = "earth_apollo17.jpg";
 
@@ -52,21 +52,6 @@ pub const TEST_VC: &str = r#"{
         "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19DJBMvvFAIC00nSGB6Tn0XKbbF9XrsaJZREWvR2aONYTQQxnyXirtXnlewJMBBn2h9hfcGZrvnC1b6PgWmukzFJ1IiH1dWgnDIS81BH-IxXnPkbuYDeySorc4QU9MJxdVkY5EL4HYbcIfwKj6X4LBQ2_ZHZIu1jdqLcRZqHcsDF5KKylKc1THn5VRWy5WhYg_gBnyWny8E6Qkrze53MR7OuAmmNJ1m1nN8SxDrG6a08L78J0-Fbas5OjAQz3c17GY8mVuDPOBIOVjMEghBlgl3nOi1ysxbRGhHLEK4s0KKbeRogZdgt1DkQxDFxxn41QWDw_mmMCjs9qxg0zcZzqEJw"
     }
 }"#;
-
-/// creates a claim for testing
-pub fn create_test_claim() -> Result<Claim> {
-    let mut claim = Claim::new("adobe unit test", Some("adobe"));
-
-    // add some data boxes
-    let _db_uri = claim.add_databox("text/plain", "this is a test".as_bytes().to_vec(), None)?;
-    let _db_uri_1 =
-        claim.add_databox("text/plain", "this is more text".as_bytes().to_vec(), None)?;
-
-    // add VC entry
-    let _hu = claim.add_verifiable_credential(TEST_VC)?;
-
-    Ok(claim)
-}
 
 /// returns a path to a file in the fixtures folder
 pub fn fixture_path(file_name: &str) -> PathBuf {

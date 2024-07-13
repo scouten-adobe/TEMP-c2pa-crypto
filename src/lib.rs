@@ -60,7 +60,6 @@ pub(crate) mod assertion;
 pub(crate) mod asset_handlers;
 pub(crate) mod asset_io;
 pub(crate) mod callback_signer;
-pub(crate) mod claim;
 pub(crate) mod claim_generator_info;
 pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;

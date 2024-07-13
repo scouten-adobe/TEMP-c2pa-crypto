@@ -551,6 +551,7 @@ pub(crate) fn get_signing_alg(cs1: &coset::CoseSign1) -> Result<SigningAlg> {
     }
 }
 
+#[allow(dead_code)] // might need this
 fn get_sign_cert(sign1: &coset::CoseSign1) -> Result<Vec<u8>> {
     // element 0 is the signing cert
     let certs = get_sign_certs(sign1)?;
@@ -1052,6 +1053,7 @@ pub async fn verify_cose_async(
     Ok(result)
 }
 
+#[allow(dead_code)] // might need this
 #[allow(unused_variables)]
 pub(crate) fn get_signing_info(
     cose_bytes: &[u8],
@@ -1435,6 +1437,7 @@ pub mod tests {
         }
     }
 
+    /* TODO [scouten 2024-07-13]: Restore this w/o Claim.
     #[test]
     fn test_no_timestamp() {
         let mut validation_log = DetailedStatusTracker::new();
@@ -1457,8 +1460,9 @@ pub mod tests {
 
         assert_eq!(signing_time, None);
     }
+    */
 
-    /* [scouten 2024-07-11]: Not sure why. This test started failing when I removed RIFF file format support.
+    /* TODO [scouten 2024-07-13]: Restore this w/o Claim.
     #[test]
     #[cfg(feature = "openssl_sign")]
     fn test_stapled_ocsp() {

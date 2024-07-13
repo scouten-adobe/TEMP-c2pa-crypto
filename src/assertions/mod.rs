@@ -20,7 +20,3 @@ pub(crate) use box_hash::{BoxMap, C2PA_BOXHASH};
 // pub use data_hash::DataHash;
 
 pub mod labels;
-
-mod metadata;
-#[allow(unused_imports)] // TEMPORARY while working on actions
-pub use metadata::{Actor, AssetType, DataBox, Metadata, ReviewRating};

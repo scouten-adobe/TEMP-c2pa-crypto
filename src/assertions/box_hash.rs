@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
 use crate::{
-    assertion::{Assertion, AssertionBase, AssertionCbor},
+    assertion::AssertionBase,
     assertions::labels,
     asset_io::{AssetBoxHash, CAIRead},
     error::{Error, Result},
@@ -285,17 +285,7 @@ impl BoxHash {
     }
 }
 
-impl AssertionCbor for BoxHash {}
-
 impl AssertionBase for BoxHash {
     const LABEL: &'static str = Self::LABEL;
     const VERSION: Option<usize> = Some(ASSERTION_CREATION_VERSION);
-
-    fn to_assertion(&self) -> crate::error::Result<Assertion> {
-        Self::to_cbor_assertion(self)
-    }
-
-    fn from_assertion(assertion: &Assertion) -> crate::error::Result<Self> {
-        Self::from_cbor_assertion(assertion)
-    }
 }

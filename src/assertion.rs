@@ -13,91 +13,9 @@
 
 use std::fmt;
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
-
-use crate::{
-    assertions::labels,
-    error::{Error, Result},
-};
-
-/// Check to see if this a label whose string can vary, if so return the root of
-/// the label and version if available
-fn get_mutable_label(var_label: &str) -> (String, Option<usize>) {
-    if var_label.starts_with(labels::SCHEMA_ORG) {
-        (var_label.to_string(), None)
-    } else {
-        // is it a type of thumbnail
-        let tn = get_thumbnail_type(var_label);
-
-        if tn == "none" {
-            let components: Vec<&str> = var_label.split('.').collect();
-            match components.last() {
-                Some(last) => {
-                    // check for a valid version number
-                    if last.len() > 1 {
-                        let (ver, ver_inst_str) = last.split_at(1);
-                        if ver == "v" {
-                            if let Ok(ver_inst) = ver_inst_str.parse::<usize>() {
-                                let ver_trim = format!(".{last}");
-                                let root_label = var_label.trim_end_matches(&ver_trim);
-                                return (root_label.to_string(), Some(ver_inst));
-                            }
-                        }
-                    }
-                    (var_label.to_string(), None)
-                }
-                None => (var_label.to_string(), None),
-            }
-        } else {
-            (tn, None)
-        }
-    }
-}
-
-pub fn get_thumbnail_type(thumbnail_label: &str) -> String {
-    if thumbnail_label.starts_with(labels::CLAIM_THUMBNAIL) {
-        return labels::CLAIM_THUMBNAIL.to_string();
-    }
-    if thumbnail_label.starts_with(labels::INGREDIENT_THUMBNAIL) {
-        return labels::INGREDIENT_THUMBNAIL.to_string();
-    }
-    "none".to_string()
-}
-
-pub fn get_thumbnail_image_type(thumbnail_label: &str) -> String {
-    let components: Vec<&str> = thumbnail_label.split('.').collect();
-
-    if thumbnail_label.contains("thumbnail") && components.len() >= 4 {
-        let image_type: Vec<&str> = components[3].split('_').collect(); // strip and other label adornments
-        image_type[0].to_ascii_lowercase()
-    } else {
-        "none".to_string()
-    }
-}
-
-pub fn get_thumbnail_instance(label: &str) -> Option<usize> {
-    let label_type = get_thumbnail_type(label);
-    // only ingredients thumbs store ids in the label, so use placeholder ids for
-    // the others
-    match label_type.as_ref() {
-        labels::INGREDIENT_THUMBNAIL => {
-            // extract id from underscore separated part of the full label
-            let components: Vec<&str> = label.split("__").collect();
-            if components.len() == 2 {
-                let subparts: Vec<&str> = components[1].split('.').collect();
-                match subparts[0].parse::<usize>() {
-                    Ok(i) => Some(i),
-                    Err(_e) => None,
-                }
-            } else {
-                Some(0)
-            }
-        }
-        _ => None,
-    }
-}
 
 /// The core required trait for all assertions.
 ///
@@ -110,48 +28,6 @@ where
     const LABEL: &'static str = "unknown";
 
     const VERSION: Option<usize> = None;
-
-    /// Returns a label for this assertion.
-    fn label(&self) -> &str {
-        Self::LABEL
-    }
-
-    /// Returns a version for this assertion.
-    fn version(&self) -> Option<usize> {
-        Self::VERSION
-    }
-
-    /// Returns an Assertion upon success or Error otherwise.
-    fn to_assertion(&self) -> Result<Assertion>;
-
-    /// Returns Self or AssertionDecode Result from an assertion
-    fn from_assertion(assertion: &Assertion) -> Result<Self>;
-}
-
-/// Trait to handle default Cbor encoding/decoding of Assertions
-pub trait AssertionCbor: Serialize + DeserializeOwned + AssertionBase {
-    fn to_cbor_assertion(&self) -> Result<Assertion> {
-        let data =
-            AssertionData::Cbor(serde_cbor::to_vec(self).map_err(|_err| Error::AssertionEncoding)?);
-        Ok(Assertion::new(self.label(), self.version(), data))
-    }
-
-    fn from_cbor_assertion(assertion: &Assertion) -> Result<Self> {
-        assertion.check_max_version(Self::VERSION)?;
-
-        match assertion.decode_data() {
-            AssertionData::Cbor(data) => Ok(serde_cbor::from_slice(data).map_err(|e| {
-                Error::AssertionDecoding(AssertionDecodeError::from_assertion_and_cbor_err(
-                    assertion, e,
-                ))
-            })?),
-
-            data => Err(AssertionDecodeError::from_assertion_unexpected_data_type(
-                assertion, data, "cbor",
-            )
-            .into()),
-        }
-    }
 }
 
 /// Assertion data as binary CBOR or JSON depending upon
@@ -205,151 +81,7 @@ pub struct Assertion {
     content_type: String,
 }
 
-impl Assertion {
-    pub(crate) fn new(label: &str, version: Option<usize>, data: AssertionData) -> Self {
-        Self {
-            label: label.to_owned(),
-            version,
-            content_type: "application/cbor".to_owned(),
-            data,
-        }
-    }
-
-    // pub(crate) fn set_data(mut self, data: &AssertionData) -> Self {
-    //     self.data = data.to_owned();
-    //     self
-    // }
-
-    // Return version string of known assertion if available
-    pub(crate) fn get_ver(&self) -> Option<usize> {
-        self.version
-    }
-
-    // pub fn check_version(&self, max_version: usize) -> AssertionDecodeResult<()>
-    // {     match self.version {
-    //         Some(version) if version > max_version => Err(AssertionDecodeError {
-    //             label: self.label.clone(),
-    //             version: self.version,
-    //             content_type: self.content_type.clone(),
-    //             source: AssertionDecodeErrorCause::AssertionTooNew {
-    //                 max: max_version,
-    //                 found: version,
-    //             },
-    //         }),
-    //         _ => Ok(()),
-    //     }
-    // }
-
-    /// Return a reference to the AssertionData bound to this Assertion
-    pub(crate) fn decode_data(&self) -> &AssertionData {
-        &self.data
-    }
-
-    /// return mimetype for the the data enclosed in the Assertion
-    pub(crate) fn mime_type(&self) -> String {
-        self.content_type.clone()
-    }
-
-    /// Test to see if the Assertions are of the same variant
-    pub(crate) fn assertions_eq(a: &Assertion, b: &Assertion) -> bool {
-        a.label_root() == b.label_root()
-    }
-
-    /// Return the CAI label for this Assertion (no version)
-    pub(crate) fn label_root(&self) -> String {
-        let label = get_mutable_label(&self.label).0;
-        // thumbnails need the image_type added
-        match get_thumbnail_image_type(&self.label).as_str() {
-            "none" => label,
-            image_type => format!("{label}.{image_type}"),
-        }
-    }
-
-    /// Return the CAI label for this Assertion with version string if available
-    pub(crate) fn label(&self) -> String {
-        let base_label = self.label_root();
-        match self.get_ver() {
-            Some(v) => {
-                if v > 1 {
-                    // c2pa does not include v1 labels
-                    format!("{base_label}.v{v}")
-                } else {
-                    base_label
-                }
-            }
-            None => base_label,
-        }
-    }
-
-    /// Return a reference to the data as a byte array
-    pub(crate) fn data(&self) -> &[u8] {
-        // return bytes of the assertion data
-        match self.decode_data() {
-            AssertionData::Json(x) => x.as_bytes(), // json encoded data
-            AssertionData::Binary(x) | AssertionData::Uuid(_, x) => x, // binary data
-            AssertionData::Cbor(x) => x,
-        }
-    }
-
-    fn from_assertion_data(label: &str, content_type: &str, data: AssertionData) -> Assertion {
-        use crate::claim::Claim;
-        let version = labels::version(label);
-        let (label, instance) = Claim::assertion_label_from_link(label);
-        let label = Claim::label_with_instance(&label, instance);
-
-        Self {
-            label,
-            version,
-            data,
-            content_type: content_type.to_owned(),
-        }
-    }
-
-    pub(crate) fn from_data_cbor(label: &str, binary_data: &[u8]) -> Assertion {
-        Self::from_assertion_data(
-            label,
-            "application/cbor",
-            AssertionData::Cbor(binary_data.to_vec()),
-        )
-    }
-
-    pub(crate) fn from_data_json(
-        label: &str,
-        binary_data: &[u8],
-    ) -> AssertionDecodeResult<Assertion> {
-        let json = String::from_utf8(binary_data.to_vec()).map_err(|_| AssertionDecodeError {
-            label: label.to_string(),
-            version: None, // TODO: Can we get this info?
-            content_type: "json".to_string(),
-            source: AssertionDecodeErrorCause::BinaryDataNotUtf8,
-        })?;
-
-        Ok(Self::from_assertion_data(
-            label,
-            "application/json",
-            AssertionData::Json(json),
-        ))
-    }
-
-    fn check_max_version(&self, max_version: Option<usize>) -> AssertionDecodeResult<()> {
-        if let Some(data_version) = self.version {
-            if let Some(max_version) = max_version {
-                if data_version > max_version {
-                    return Err(AssertionDecodeError {
-                        label: self.label.clone(),
-                        version: self.version,
-                        content_type: self.content_type.clone(),
-                        source: AssertionDecodeErrorCause::AssertionTooNew {
-                            max: max_version,
-                            found: data_version,
-                        },
-                    });
-                }
-            }
-        }
-        Ok(())
-    }
-}
+impl Assertion {}
 
 #[allow(dead_code)] // TODO: temp, see #498
 #[derive(Serialize, Deserialize, Debug)]
@@ -379,43 +111,6 @@ impl AssertionDecodeError {
             self.content_type,
             self.source
         )
-    }
-
-    pub(crate) fn from_assertion_and_cbor_err(
-        assertion: &Assertion,
-        source: serde_cbor::error::Error,
-    ) -> Self {
-        Self {
-            label: assertion.label.clone(),
-            version: assertion.version,
-            content_type: assertion.content_type.clone(),
-            source: source.into(),
-        }
-    }
-
-    pub(crate) fn from_assertion_unexpected_data_type(
-        assertion: &Assertion,
-        assertion_data: &AssertionData,
-        expected: &str,
-    ) -> Self {
-        Self {
-            label: assertion.label.clone(),
-            version: assertion.version,
-            content_type: assertion.content_type.clone(),
-            source: AssertionDecodeErrorCause::UnexpectedDataType {
-                expected: expected.to_string(),
-                found: Self::data_type_from_assertion_data(assertion_data),
-            },
-        }
-    }
-
-    fn data_type_from_assertion_data(assertion_data: &AssertionData) -> String {
-        match assertion_data {
-            AssertionData::Json(_) => "json".to_string(),
-            AssertionData::Binary(_) => "binary".to_string(),
-            AssertionData::Cbor(_) => "cbor".to_string(),
-            AssertionData::Uuid(_, _) => "uuid".to_string(),
-        }
     }
 }
 
@@ -465,5 +160,3 @@ pub enum AssertionDecodeErrorCause {
     #[error(transparent)]
     CborError(#[from] serde_cbor::Error),
 }
-
-pub(crate) type AssertionDecodeResult<T> = std::result::Result<T, AssertionDecodeError>;

@@ -30,41 +30,6 @@ pub struct HashedUri {
     salt: Option<Vec<u8>>,
 }
 
-impl HashedUri {
-    pub fn new(url: String, alg: Option<String>, hash_bytes: &[u8]) -> Self {
-        Self {
-            url,
-            alg,
-            hash: hash_bytes.to_vec(),
-            salt: None,
-        }
-    }
-
-    pub fn url(&self) -> String {
-        self.url.clone()
-    }
-
-    pub fn is_relative_url(&self) -> bool {
-        crate::jumbf::labels::manifest_label_from_uri(&self.url).is_none()
-    }
-
-    pub fn alg(&self) -> Option<String> {
-        self.alg.clone()
-    }
-
-    pub fn hash(&self) -> Vec<u8> {
-        self.hash.clone()
-    }
-
-    pub fn add_salt(&mut self, salt: Option<Vec<u8>>) {
-        self.salt = salt;
-    }
-
-    pub fn salt(&self) -> &Option<Vec<u8>> {
-        &self.salt
-    }
-}
-
 impl fmt::Display for HashedUri {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "url: {}, alg: {:?}, hash", self.url, self.alg)

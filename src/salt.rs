@@ -17,6 +17,7 @@
 /// a given data set.
 
 pub trait SaltGenerator {
+    #[allow(dead_code)] // TEMPORARY: might need this
     /// generate a salt vector
     fn generate_salt(&self) -> Option<Vec<u8>>;
 }
@@ -31,6 +32,7 @@ impl SaltGenerator for NoSalt {
 }
 
 /// const NoSalt instance that can be used when no salting is required
+#[allow(dead_code)] // TEMPORARY: might need this
 pub const NO_SALT: &NoSalt = &NoSalt {};
 
 /// Default salt generator
