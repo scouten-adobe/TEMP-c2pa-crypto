@@ -43,7 +43,6 @@ pub mod wasm;
 pub use error::{Error, Result};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
-pub use utils::mime::format_from_path;
 
 // Internal modules
 #[allow(dead_code, clippy::enum_variant_names)]

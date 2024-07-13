@@ -15,7 +15,6 @@ pub(crate) mod base64;
 // pub(crate) mod cbor_types;
 #[allow(dead_code)]
 pub(crate) mod hash_utils;
-pub(crate) mod mime;
 // shared unit testing utilities
 #[cfg(test)]
 #[allow(dead_code)] // for wasm build
