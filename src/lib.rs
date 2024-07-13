@@ -35,7 +35,6 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
 pub mod create_signer;
-pub(crate) mod settings;
 pub mod validation_status;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
