@@ -691,11 +691,18 @@ fn get_ocsp_der(sign1: &coset::CoseSign1) -> Option<Vec<u8>> {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum VerifyOcspFetch {
+    VerifyOcspFetch,
+    DontVerifyOcspFetch,
+}
+
 pub(crate) fn check_ocsp_status(
     cose_bytes: &[u8],
     data: &[u8],
     th: &dyn TrustHandlerConfig,
     validation_log: &mut impl StatusTracker,
+    verify_ocsp_fetch: VerifyOcspFetch,
 ) -> Result<OcspData> {
     let sign1 = get_cose_sign1(cose_bytes, data, validation_log)?;
 
@@ -725,37 +732,34 @@ pub(crate) fn check_ocsp_status(
     } else {
         #[cfg(not(target_arch = "wasm32"))]
         {
-            // only support fetching with the enabled
-            if let Ok(ocsp_fetch) = get_settings_value::<bool>("verify.ocsp_fetch") {
-                if ocsp_fetch {
-                    // get the cert chain
-                    let certs = get_sign_certs(&sign1)?;
+            if verify_ocsp_fetch == VerifyOcspFetch::VerifyOcspFetch {
+                // get the cert chain
+                let certs = get_sign_certs(&sign1)?;
 
-                    if let Some(ocsp_der) = crate::ocsp_utils::fetch_ocsp_response(&certs) {
-                        // fetch_ocsp_response(&certs) {
-                        let ocsp_response_der = ocsp_der;
+                if let Some(ocsp_der) = crate::ocsp_utils::fetch_ocsp_response(&certs) {
+                    // fetch_ocsp_response(&certs) {
+                    let ocsp_response_der = ocsp_der;
 
-                        let signing_time = match &time_stamp_info {
-                            Ok(tst_info) => {
-                                let signing_time = gt_to_datetime(tst_info.gen_time.clone());
-                                Some(signing_time)
-                            }
-                            Err(_) => None,
-                        };
-
-                        // Check the OCSP response, only use if not malformed.  Revocation errors
-                        // are reported in the validation log
-                        if let Ok(ocsp_data) =
-                            check_ocsp_response(&ocsp_response_der, signing_time, validation_log)
-                        {
-                            // if we get a valid response validate the certs
-                            if ocsp_data.revoked_at.is_none() {
-                                if let Some(ocsp_certs) = &ocsp_data.ocsp_certs {
-                                    check_cert(&ocsp_certs[0], th, validation_log, None)?;
-                                }
-                            }
-                            result = Ok(ocsp_data);
+                    let signing_time = match &time_stamp_info {
+                        Ok(tst_info) => {
+                            let signing_time = gt_to_datetime(tst_info.gen_time.clone());
+                            Some(signing_time)
                         }
+                        Err(_) => None,
+                    };
+
+                    // Check the OCSP response, only use if not malformed.  Revocation errors
+                    // are reported in the validation log
+                    if let Ok(ocsp_data) =
+                        check_ocsp_response(&ocsp_response_der, signing_time, validation_log)
+                    {
+                        // if we get a valid response validate the certs
+                        if ocsp_data.revoked_at.is_none() {
+                            if let Some(ocsp_certs) = &ocsp_data.ocsp_certs {
+                                check_cert(&ocsp_certs[0], th, validation_log, None)?;
+                            }
+                        }
+                        result = Ok(ocsp_data);
                     }
                 }
             }
@@ -939,6 +943,7 @@ pub async fn verify_cose_async(
     signature_only: bool,
     th: &dyn TrustHandlerConfig,
     validation_log: &mut impl StatusTracker,
+    verify_ocsp_fetch: VerifyOcspFetch,
 ) -> Result<ValidationInfo> {
     let mut sign1 = get_cose_sign1(&cose_bytes, &data, validation_log)?;
 
@@ -1014,7 +1019,7 @@ pub async fn verify_cose_async(
         check_trust(th, &certs[1..], der_bytes, validation_log)?;
 
         // check certificate revocation
-        check_ocsp_status(&cose_bytes, &data, th, validation_log)?;
+        check_ocsp_status(&cose_bytes, &data, th, validation_log, verify_ocsp_fetch)?;
 
         // todo: check TSA certs against trust list
     }
@@ -1116,6 +1121,7 @@ pub fn verify_cose(
     signature_only: bool,
     th: &dyn TrustHandlerConfig,
     validation_log: &mut impl StatusTracker,
+    verify_ocsp_fetch: VerifyOcspFetch,
 ) -> Result<ValidationInfo> {
     let sign1 = get_cose_sign1(cose_bytes, data, validation_log)?;
 
@@ -1188,7 +1194,7 @@ pub fn verify_cose(
         check_trust(th, &certs[1..], der_bytes, validation_log)?;
 
         // check certificate revocation
-        check_ocsp_status(cose_bytes, data, th, validation_log)?;
+        check_ocsp_status(cose_bytes, data, th, validation_log, verify_ocsp_fetch)?;
 
         // todo: check TSA certs against trust list
     }

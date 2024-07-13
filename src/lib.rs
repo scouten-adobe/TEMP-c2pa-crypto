@@ -66,3 +66,5 @@ pub mod trust_handler; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod utils;
 pub(crate) use utils::hash_utils;
 pub mod validator; // [scouten 2024-06-27]: Hacking to make public.
+
+pub use cose_validator::VerifyOcspFetch;
