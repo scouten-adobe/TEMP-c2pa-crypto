@@ -33,39 +33,39 @@ use crate::{Error, Result};
 const MAX_HASH_BUF: usize = 256 * 1024 * 1024; // cap memory usage to 256MB
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct HashRange {
+pub(crate) struct HashRange {
     start: usize,
     length: usize,
 }
 
 impl HashRange {
-    pub fn new(start: usize, length: usize) -> Self {
+    pub(crate) fn new(start: usize, length: usize) -> Self {
         HashRange { start, length }
     }
 
     /// update the start value
     #[allow(dead_code)]
-    pub fn set_start(&mut self, start: usize) {
+    pub(crate) fn set_start(&mut self, start: usize) {
         self.start = start;
     }
 
     /// return start as usize
-    pub fn start(&self) -> usize {
+    pub(crate) fn start(&self) -> usize {
         self.start
     }
 
     /// return length as usize
-    pub fn length(&self) -> usize {
+    pub(crate) fn length(&self) -> usize {
         self.length
     }
 
-    pub fn set_length(&mut self, length: usize) {
+    pub(crate) fn set_length(&mut self, length: usize) {
         self.length = length;
     }
 }
 
 /// Compare two byte vectors return true if match, false otherwise
-pub fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
+pub(crate) fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
     (va.len() == vb.len()) &&  // zip stops at the shortest
      va.iter()
        .zip(vb)
@@ -76,7 +76,7 @@ pub fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
 /// hash_type are those specified in the multihash specification.  Currently
 /// we only support Sha2-256/512 or Sha2-256/512.
 /// Returns hash or None if incompatible type
-pub fn hash_by_type(hash_type: u8, data: &[u8]) -> Option<Multihash> {
+pub(crate) fn hash_by_type(hash_type: u8, data: &[u8]) -> Option<Multihash> {
     match hash_type {
         0x12 => Some(Sha2_256::digest(data)),
         0x13 => Some(Sha2_512::digest(data)),
@@ -88,7 +88,7 @@ pub fn hash_by_type(hash_type: u8, data: &[u8]) -> Option<Multihash> {
 }
 
 #[derive(Clone)]
-pub enum Hasher {
+pub(crate) enum Hasher {
     SHA256(Sha256),
     SHA384(Sha384),
     SHA512(Sha512),
@@ -96,7 +96,7 @@ pub enum Hasher {
 
 impl Hasher {
     // update hash value with new data
-    pub fn update(&mut self, data: &[u8]) {
+    pub(crate) fn update(&mut self, data: &[u8]) {
         use Hasher::*;
         // update the hash
         match self {
@@ -107,7 +107,7 @@ impl Hasher {
     }
 
     // consume hasher and return the final digest
-    pub fn finalize(hasher_enum: Hasher) -> Vec<u8> {
+    pub(crate) fn finalize(hasher_enum: Hasher) -> Vec<u8> {
         use Hasher::*;
         // return the hash
         match hasher_enum {
@@ -119,21 +119,25 @@ impl Hasher {
 }
 
 // Return hash bytes for desired hashing algorithm.
-pub fn hash_by_alg(alg: &str, data: &[u8], exclusions: Option<Vec<HashRange>>) -> Vec<u8> {
+pub(crate) fn hash_by_alg(alg: &str, data: &[u8], exclusions: Option<Vec<HashRange>>) -> Vec<u8> {
     let mut reader = Cursor::new(data);
 
     hash_stream_by_alg(alg, &mut reader, exclusions, true).unwrap_or_default()
 }
 
 // Return hash inclusive bytes for desired hashing algorithm.
-pub fn hash_by_alg_with_inclusions(alg: &str, data: &[u8], inclusions: Vec<HashRange>) -> Vec<u8> {
+pub(crate) fn hash_by_alg_with_inclusions(
+    alg: &str,
+    data: &[u8],
+    inclusions: Vec<HashRange>,
+) -> Vec<u8> {
     let mut reader = Cursor::new(data);
 
     hash_stream_by_alg(alg, &mut reader, Some(inclusions), false).unwrap_or_default()
 }
 
 // Return hash bytes for asset using desired hashing algorithm.
-pub fn hash_asset_by_alg(
+pub(crate) fn hash_asset_by_alg(
     alg: &str,
     asset_path: &Path,
     exclusions: Option<Vec<HashRange>>,
@@ -143,7 +147,7 @@ pub fn hash_asset_by_alg(
 }
 
 // Return hash inclusive bytes for asset using desired hashing algorithm.
-pub fn hash_asset_by_alg_with_inclusions(
+pub(crate) fn hash_asset_by_alg_with_inclusions(
     alg: &str,
     asset_path: &Path,
     inclusions: Vec<HashRange>,
@@ -182,7 +186,7 @@ pub fn hash_asset_by_alg_with_inclusions(
 
     The data is again split into range sets breaking at the exclusion points and now also the markers.
 */
-pub fn hash_stream_by_alg<R>(
+pub(crate) fn hash_stream_by_alg<R>(
     alg: &str,
     data: &mut R,
     hash_range: Option<Vec<HashRange>>,
@@ -290,7 +294,7 @@ where
 }
 
 // verify the hash using the specified algorithm
-pub fn verify_by_alg(
+pub(crate) fn verify_by_alg(
     alg: &str,
     hash: &[u8],
     data: &[u8],
@@ -302,7 +306,7 @@ pub fn verify_by_alg(
 }
 
 // verify the hash using the specified algorithm
-pub fn verify_asset_by_alg(
+pub(crate) fn verify_asset_by_alg(
     alg: &str,
     hash: &[u8],
     asset_path: &Path,
@@ -316,7 +320,7 @@ pub fn verify_asset_by_alg(
     }
 }
 
-pub fn verify_stream_by_alg<R>(
+pub(crate) fn verify_stream_by_alg<R>(
     alg: &str,
     hash: &[u8],
     reader: &mut R,
@@ -335,14 +339,14 @@ where
 
 /// Return a Sha256 hash of array of bytes
 #[allow(dead_code)]
-pub fn hash_sha256(data: &[u8]) -> Vec<u8> {
+pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
     let mh = Sha2_256::digest(data);
     let digest = mh.digest();
 
     digest.to_vec()
 }
 
-pub fn hash_sha1(data: &[u8]) -> Vec<u8> {
+pub(crate) fn hash_sha1(data: &[u8]) -> Vec<u8> {
     let mh = Sha1::digest(data);
     let digest = mh.digest();
     digest.to_vec()
@@ -351,7 +355,7 @@ pub fn hash_sha1(data: &[u8]) -> Vec<u8> {
 /// Verify muiltihash against input data.  True if match,
 /// false if no match or unsupported.  The hash value should be
 /// be multibase encoded string.
-pub fn verify_hash(hash: &str, data: &[u8]) -> bool {
+pub(crate) fn verify_hash(hash: &str, data: &[u8]) -> bool {
     match decode(hash) {
         Ok((_code, mh)) => {
             if mh.len() < 2 {
@@ -374,7 +378,7 @@ pub fn verify_hash(hash: &str, data: &[u8]) -> bool {
 }
 
 /// Return the hash of data in the same hash format in_hash
-pub fn hash_as_source(in_hash: &str, data: &[u8]) -> Option<String> {
+pub(crate) fn hash_as_source(in_hash: &str, data: &[u8]) -> Option<String> {
     match decode(in_hash) {
         Ok((code, mh)) => {
             if mh.len() < 2 {
@@ -409,7 +413,7 @@ pub fn hash_as_source(in_hash: &str, data: &[u8]) -> Option<String> {
 }
 
 // Used by Merkle tree calculations to generate the pair wise hash
-pub fn concat_and_hash(alg: &str, left: &[u8], right: Option<&[u8]>) -> Vec<u8> {
+pub(crate) fn concat_and_hash(alg: &str, left: &[u8], right: Option<&[u8]>) -> Vec<u8> {
     let mut temp = left.to_vec();
 
     if let Some(r) = right {

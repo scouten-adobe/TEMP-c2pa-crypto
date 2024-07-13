@@ -41,7 +41,6 @@ pub mod wasm;
 
 // Public exports
 pub use error::{Error, Result};
-pub use hash_utils::{hash_stream_by_alg, HashRange};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
 pub use utils::mime::format_from_path;
