@@ -94,6 +94,7 @@ pub trait AssetIO: Sync + Send {
     fn get_reader(&self) -> &dyn CAIReader;
 
     // Return streaming writer if available
+    #[allow(dead_code)] // ignore for now
     fn get_writer(&self, _asset_type: &str) -> Option<Box<dyn CAIWriter>> {
         None
     }
