@@ -17,19 +17,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-/// The core required trait for all assertions.
-///
-/// This defines the label and version for the assertion
-/// and supplies the to/from converters for C2PA assertion format.
-pub trait AssertionBase
-where
-    Self: Sized,
-{
-    const LABEL: &'static str = "unknown";
-
-    const VERSION: Option<usize> = None;
-}
-
 /// Assertion data as binary CBOR or JSON depending upon
 /// the Assertion type (see spec).
 /// For JSON assertions the data is a JSON string and a Vec of u8 values for
