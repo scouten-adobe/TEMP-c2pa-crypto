@@ -51,7 +51,6 @@ pub use utils::mime::format_from_path;
 pub(crate) mod asn1;
 pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
-pub(crate) mod hashed_uri;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
