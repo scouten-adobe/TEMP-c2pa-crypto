@@ -52,7 +52,6 @@ pub(crate) mod error;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
-pub(crate) mod salt;
 pub(crate) mod signer;
 pub(crate) mod signing_alg;
 pub mod status_tracker; // [scouten 2024-06-27]: Hacking to make this public.
