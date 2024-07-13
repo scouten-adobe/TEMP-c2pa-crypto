@@ -22,7 +22,7 @@
 //!  - [ISO BMFF Byte Stream Format](https://w3c.github.io/media-source/isobmff-byte-stream-format.html)
 //!  - [JPEG universal metadata box format](https://www.iso.org/standard/73604.html)
 
-#![allow(dead_code)]  // TEMPORARY: will likely fall away soon
+#![allow(dead_code)] // TEMPORARY: will likely fall away soon
 
 use std::{
     any::Any,
