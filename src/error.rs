@@ -238,9 +238,6 @@ pub enum Error {
     #[error("asset could not be parsed: {0}")]
     InvalidAsset(String),
 
-    #[error(transparent)]
-    JumbfParseError(#[from] crate::jumbf::boxes::JumbfParseError),
-
     #[error("The Verifiable Content structure is not valid")]
     VerifiableCredentialInvalid,
 

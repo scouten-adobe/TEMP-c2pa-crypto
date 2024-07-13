@@ -20,8 +20,6 @@ pub(crate) mod mime;
 #[allow(dead_code)] // for wasm build
 pub(crate) mod patch;
 pub(crate) mod time_it;
-#[allow(dead_code)] // for wasm builds
-pub(crate) mod xmp_inmemory_utils;
 // shared unit testing utilities
 #[cfg(test)]
 #[allow(dead_code)] // for wasm build

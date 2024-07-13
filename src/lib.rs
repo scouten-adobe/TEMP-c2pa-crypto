@@ -35,15 +35,12 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
 pub mod create_signer;
-pub(crate) mod jumbf_io;
 pub(crate) mod settings;
 pub mod validation_status;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 
 // Public exports
-#[cfg(feature = "v1_api")]
-pub use asset_io::{CAIRead, CAIReadWrite};
 pub use callback_signer::{CallbackFunc, CallbackSigner};
 pub use claim_generator_info::ClaimGeneratorInfo;
 pub use error::{Error, Result};
@@ -55,14 +52,11 @@ pub use utils::mime::format_from_path;
 // Internal modules
 #[allow(dead_code, clippy::enum_variant_names)]
 pub(crate) mod asn1;
-pub(crate) mod asset_handlers;
-pub(crate) mod asset_io;
 pub(crate) mod callback_signer;
 pub(crate) mod claim_generator_info;
 pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
 pub(crate) mod hashed_uri;
-pub(crate) mod jumbf;
 pub(crate) mod ocsp_utils;
 #[cfg(feature = "openssl")]
 pub mod openssl; // [scouten 2024-06-27]: Hacking to make public.
