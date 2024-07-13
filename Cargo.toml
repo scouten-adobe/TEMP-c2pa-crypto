@@ -1,7 +1,7 @@
 [package]
 name = "c2pa-crypto"
 version = "0.0.1"
-description = "(INTERNAL) Cryptography implementatino for c2pa-rs crate"
+description = "(INTERNAL) Cryptography implementation for c2pa-rs crate"
 authors = [
 	"Maurice Fisher <mfisher@adobe.com>",
 	"Gavin Peacock <gpeacock@adobe.com>",
@@ -23,10 +23,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["v1_api"]
+default = []
 psxxx_ocsp_stapling_experimental = []
 openssl_sign = ["openssl"]
-v1_api = []
 
 # The diagnostics feature is unsupported and might be removed.
 # It enables some low-overhead timing features used in our development cycle.
