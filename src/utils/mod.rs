@@ -18,7 +18,6 @@ pub(crate) mod hash_utils;
 pub(crate) mod mime;
 #[allow(dead_code)] // for wasm build
 pub(crate) mod patch;
-pub(crate) mod time_it;
 // shared unit testing utilities
 #[cfg(test)]
 #[allow(dead_code)] // for wasm build
