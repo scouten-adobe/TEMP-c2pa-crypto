@@ -271,6 +271,9 @@ pub enum Error {
     #[error(transparent)]
     CborError(#[from] serde_cbor::Error),
 
+    #[error("could not acquire OpenSSL FFI mutex")]
+    OpenSslMutexError,
+
     #[error(transparent)]
     #[cfg(feature = "openssl")]
     OpenSslError(#[from] openssl::error::ErrorStack),
