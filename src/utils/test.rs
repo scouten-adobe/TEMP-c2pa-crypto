@@ -23,7 +23,7 @@ use crate::{
     signer::ConfigurableSigner,
 };
 use crate::{
-    trust_handler::{TrustHandlerConfig},
+    trust_handler::{TrustHandlerConfig, TrustPassThrough},
     RemoteSigner, Result, Signer, SigningAlg,
 };
 

@@ -11,6 +11,8 @@
 // specific language governing permissions and limitations under
 // each license.
 
+#![allow(clippy::too_many_arguments)] // TEMPORARY: figure this out laterlaters
+
 use std::io::Cursor;
 
 use asn1_rs::{Any, Class, Header, Tag};
