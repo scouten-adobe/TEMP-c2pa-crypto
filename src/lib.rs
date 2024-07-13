@@ -41,7 +41,6 @@ pub mod validation_status;
 pub mod wasm;
 
 // Public exports
-pub use callback_signer::{CallbackFunc, CallbackSigner};
 pub use error::{Error, Result};
 pub use hash_utils::{hash_stream_by_alg, HashRange};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
@@ -51,7 +50,6 @@ pub use utils::mime::format_from_path;
 // Internal modules
 #[allow(dead_code, clippy::enum_variant_names)]
 pub(crate) mod asn1;
-pub(crate) mod callback_signer;
 pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
 pub(crate) mod hashed_uri;
