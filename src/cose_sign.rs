@@ -24,7 +24,7 @@ use coset::{
 };
 
 use crate::{
-    cose_validator::{check_cert, verify_cose, VerifyOcspFetch},
+    cose_validator::{check_cert, verify_cose, VerifyOcspFetch, VerifyTrustChain},
     status_tracker::OneShotStatusTracker,
     time_stamp::{
         cose_timestamp_countersign, cose_timestamp_countersign_async, make_cose_timestamp,
@@ -57,6 +57,7 @@ use crate::{
     box_size: usize,
     trust_pass_through: &TrustPassThrough,
     verify_ocsp_fetch: VerifyOcspFetch,
+    verify_trust_chain: VerifyTrustChain,
 ))]
 pub fn sign_claim(
     claim_bytes: &[u8],
@@ -64,6 +65,7 @@ pub fn sign_claim(
     box_size: usize,
     trust_pass_through: &TrustPassThrough,
     verify_ocsp_fetch: VerifyOcspFetch,
+    verify_trust_chain: VerifyTrustChain,
 ) -> Result<Vec<u8>> {
     // Must be a valid claim.
     // let label = "dummy_label";
@@ -90,6 +92,7 @@ pub fn sign_claim(
                 &passthrough_tb,
                 &mut cose_log,
                 verify_ocsp_fetch,
+                verify_trust_chain,
             ) {
                 Ok(r) => {
                     if !r.validated {

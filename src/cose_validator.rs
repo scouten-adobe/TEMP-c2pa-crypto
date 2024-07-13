@@ -36,7 +36,6 @@ use crate::{
     asn1::rfc3161::TstInfo,
     error::{Error, Result},
     ocsp_utils::{check_ocsp_response, OcspData},
-    settings::get_settings_value,
     status_tracker::{log_item, StatusTracker},
     time_stamp::gt_to_datetime,
     trust_handler::{has_allowed_oid, TrustHandlerConfig},
@@ -826,22 +825,29 @@ fn get_timestamp_info(sign1: &coset::CoseSign1, data: &[u8]) -> Result<TstInfo> 
     Err(Error::NotFound)
 }
 
-#[async_generic(async_signature( th: &dyn TrustHandlerConfig, chain_der: &[Vec<u8>], cert_der: &[u8], validation_log: &mut impl StatusTracker))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum VerifyTrustChain {
+    Verify,
+    DontVerify,
+}
+
+#[async_generic(async_signature(
+    th: &dyn TrustHandlerConfig,
+    chain_der: &[Vec<u8>],
+    cert_der: &[u8],
+    validation_log: &mut impl StatusTracker,
+    verify_trust_chain: VerifyTrustChain,
+))]
 #[allow(unused)]
 fn check_trust(
     th: &dyn TrustHandlerConfig,
     chain_der: &[Vec<u8>],
     cert_der: &[u8],
     validation_log: &mut impl StatusTracker,
+    verify_trust_chain: VerifyTrustChain,
 ) -> Result<()> {
-    // just return is trust checks are disabled or misconfigured
-    match get_settings_value::<bool>("verify.verify_trust") {
-        Ok(verify_trust) => {
-            if !verify_trust {
-                return Ok(());
-            }
-        }
-        Err(e) => return Err(e),
+    if verify_trust_chain == VerifyTrustChain::DontVerify {
+        return Ok(());
     }
 
     // is the certificate trusted
@@ -944,6 +950,7 @@ pub async fn verify_cose_async(
     th: &dyn TrustHandlerConfig,
     validation_log: &mut impl StatusTracker,
     verify_ocsp_fetch: VerifyOcspFetch,
+    verify_trust_chain: VerifyTrustChain,
 ) -> Result<ValidationInfo> {
     let mut sign1 = get_cose_sign1(&cose_bytes, &data, validation_log)?;
 
@@ -1013,10 +1020,23 @@ pub async fn verify_cose_async(
 
         // is the certificate trusted
         #[cfg(target_arch = "wasm32")]
-        check_trust_async(th, &certs[1..], der_bytes, validation_log).await?;
+        check_trust_async(
+            th,
+            &certs[1..],
+            der_bytes,
+            validation_log,
+            verify_trust_chain,
+        )
+        .await?;
 
         #[cfg(not(target_arch = "wasm32"))]
-        check_trust(th, &certs[1..], der_bytes, validation_log)?;
+        check_trust(
+            th,
+            &certs[1..],
+            der_bytes,
+            validation_log,
+            verify_trust_chain,
+        )?;
 
         // check certificate revocation
         check_ocsp_status(&cose_bytes, &data, th, validation_log, verify_ocsp_fetch)?;
@@ -1122,6 +1142,7 @@ pub fn verify_cose(
     th: &dyn TrustHandlerConfig,
     validation_log: &mut impl StatusTracker,
     verify_ocsp_fetch: VerifyOcspFetch,
+    verify_trust_chain: VerifyTrustChain,
 ) -> Result<ValidationInfo> {
     let sign1 = get_cose_sign1(cose_bytes, data, validation_log)?;
 
@@ -1191,7 +1212,13 @@ pub fn verify_cose(
         }
 
         // is the certificate trusted
-        check_trust(th, &certs[1..], der_bytes, validation_log)?;
+        check_trust(
+            th,
+            &certs[1..],
+            der_bytes,
+            validation_log,
+            verify_trust_chain,
+        )?;
 
         // check certificate revocation
         check_ocsp_status(cose_bytes, data, th, validation_log, verify_ocsp_fetch)?;
