@@ -22,7 +22,10 @@ use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
     signer::ConfigurableSigner,
 };
-use crate::{RemoteSigner, Result, Signer, SigningAlg};
+use crate::{
+    trust_handler::{TrustHandlerConfig, TrustPassThrough},
+    RemoteSigner, Result, Signer, SigningAlg,
+};
 
 pub const TEST_SMALL_JPEG: &str = "earth_apollo17.jpg";
 
@@ -184,8 +187,11 @@ impl crate::signer::RemoteSigner for TempRemoteSigner {
             let signer =
                 crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
 
+            let tp = TrustPassThrough::new();
+
             // this would happen on some remote server
-            crate::cose_sign::cose_sign_async(&signer, claim_bytes, Some(self.reserve_size())).await
+            crate::cose_sign::cose_sign_async(&signer, claim_bytes, Some(self.reserve_size()), &tp)
+                .await
         }
         #[cfg(not(feature = "openssl_sign"))]
         {
@@ -330,8 +336,10 @@ impl crate::signer::AsyncSigner for TempAsyncRemoteSigner {
             let signer =
                 crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
 
+            let tp = TrustPassThrough::new();
+
             // this would happen on some remote server
-            crate::cose_sign::cose_sign_async(&signer, &claim_bytes, Some(self.reserve_size()))
+            crate::cose_sign::cose_sign_async(&signer, &claim_bytes, Some(self.reserve_size()), &tp)
                 .await
         }
         #[cfg(not(feature = "openssl_sign"))]

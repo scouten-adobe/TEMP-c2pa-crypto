@@ -131,7 +131,7 @@ pub(crate) fn load_trust_from_data(trust_data: &[u8]) -> Result<Vec<Vec<u8>>> {
 // trust with context configured to all email protection, timestamping, ocsp
 // signing and document signing
 #[derive(Debug)]
-pub(crate) struct TrustPassThrough {
+pub struct TrustPassThrough {
     allowed_cert_set: HashSet<String>,
     config_store: Vec<u8>,
 }

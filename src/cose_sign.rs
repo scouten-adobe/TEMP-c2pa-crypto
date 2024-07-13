@@ -15,8 +15,6 @@
 
 #![deny(missing_docs)]
 
-use std::io::Cursor;
-
 use async_generic::async_generic;
 use ciborium::value::Value;
 use coset::{
@@ -27,12 +25,11 @@ use coset::{
 
 use crate::{
     cose_validator::{check_cert, verify_cose},
-    settings::get_settings_value,
     status_tracker::OneShotStatusTracker,
     time_stamp::{
         cose_timestamp_countersign, cose_timestamp_countersign_async, make_cose_timestamp,
     },
-    trust_handler::TrustHandlerConfig,
+    trust_handler::{TrustHandlerConfig, TrustPassThrough},
     AsyncSigner, Error, Result, Signer, SigningAlg,
 };
 
@@ -57,18 +54,24 @@ use crate::{
 #[async_generic(async_signature(
     claim_bytes: &[u8],
     signer: &dyn AsyncSigner,
-    box_size: usize
+    box_size: usize,
+    trust_pass_through: &TrustPassThrough,
 ))]
-pub fn sign_claim(claim_bytes: &[u8], signer: &dyn Signer, box_size: usize) -> Result<Vec<u8>> {
+pub fn sign_claim(
+    claim_bytes: &[u8],
+    signer: &dyn Signer,
+    box_size: usize,
+    trust_pass_through: &TrustPassThrough,
+) -> Result<Vec<u8>> {
     // Must be a valid claim.
     // let label = "dummy_label";
     // let _claim = Claim::from_data(label, claim_bytes)?;
     // Need a way to avoid this.
 
     let signed_bytes = if _sync {
-        cose_sign(signer, claim_bytes, Some(box_size))
+        cose_sign(signer, claim_bytes, Some(box_size), trust_pass_through)
     } else {
-        cose_sign_async(signer, claim_bytes, Some(box_size)).await
+        cose_sign_async(signer, claim_bytes, Some(box_size), trust_pass_through).await
     };
 
     match signed_bytes {
@@ -99,18 +102,10 @@ pub fn sign_claim(claim_bytes: &[u8], signer: &dyn Signer, box_size: usize) -> R
     }
 }
 
-fn signing_cert_valid(signing_cert: &[u8]) -> Result<()> {
+fn signing_cert_valid(signing_cert: &[u8], trust_pass_through: &TrustPassThrough) -> Result<()> {
     // make sure signer certs are valid
     let mut cose_log = OneShotStatusTracker::default();
-    let mut passthrough_tb = crate::trust_handler::TrustPassThrough::new();
-
-    // allow user EKUs through this check if configured
-    if let Ok(Some(trust_config)) = get_settings_value::<Option<String>>("trust.trust_config") {
-        let mut reader = Cursor::new(trust_config.as_bytes());
-        passthrough_tb.load_configuration(&mut reader)?;
-    }
-
-    check_cert(signing_cert, &passthrough_tb, &mut cose_log, None)
+    check_cert(signing_cert, trust_pass_through, &mut cose_log, None)
 }
 
 /// Returns signed Cose_Sign1 bytes for `data`.
@@ -118,9 +113,15 @@ fn signing_cert_valid(signing_cert: &[u8]) -> Result<()> {
 #[async_generic(async_signature(
     signer: &dyn AsyncSigner,
     data: &[u8],
-    box_size: Option<usize>
+    box_size: Option<usize>,
+    trust_pass_through: &TrustPassThrough,
 ))]
-pub fn cose_sign(signer: &dyn Signer, data: &[u8], box_size: Option<usize>) -> Result<Vec<u8>> {
+pub fn cose_sign(
+    signer: &dyn Signer,
+    data: &[u8],
+    box_size: Option<usize>,
+    trust_pass_through: &TrustPassThrough,
+) -> Result<Vec<u8>> {
     // [scouten 2024-06-27]: Hacked this to be public and make box_size an Option.
     // If box_size == None, there is no padding.
 
@@ -150,7 +151,7 @@ pub fn cose_sign(signer: &dyn Signer, data: &[u8], box_size: Option<usize>) -> R
     // make sure the signing cert is valid
     let certs = signer.certs()?;
     if let Some(signing_cert) = certs.first() {
-        signing_cert_valid(signing_cert)?;
+        signing_cert_valid(signing_cert, trust_pass_through)?;
     } else {
         return Err(Error::CoseNoCerts);
     }
