@@ -1133,6 +1133,7 @@ pub(crate) fn get_signing_info(
 /// addition_data: additional optional data that may have been used during
 /// signing returns - Ok on success
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::too_many_arguments)] // TEMPORARY figure this out later
 pub fn verify_cose(
     // [scouten 2024-06-27]: Hack to make public
     cose_bytes: &[u8],
