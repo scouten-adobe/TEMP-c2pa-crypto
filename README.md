@@ -61,7 +61,6 @@ c2pa = "0.32.5"
 
 The Rust library crate provides:
 
-* `serialize_thumbnails` includes binary thumbnail data in the [Serde](https://serde.rs/) serialization output.
 * `psxxx_ocsp_stapling_experimental` this is an demonstration feature that will attempt to fetch the OCSP data from the OCSP responders listed in the manifest signing certificate.  The response becomes part of the manifest and is used to prove the certificate was not revoked at the time of signing.  This is only implemented for PS256, PS384 and PS512 signatures and is intended as a demonstration.
 
 
