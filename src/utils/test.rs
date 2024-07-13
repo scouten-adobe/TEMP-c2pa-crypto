@@ -21,11 +21,9 @@ use tempfile::TempDir;
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
     signer::ConfigurableSigner,
+    trust_handler::TrustPassThrough,
 };
-use crate::{
-    trust_handler::{TrustHandlerConfig, TrustPassThrough},
-    RemoteSigner, Result, Signer, SigningAlg,
-};
+use crate::{trust_handler::TrustHandlerConfig, RemoteSigner, Result, Signer, SigningAlg};
 
 pub const TEST_SMALL_JPEG: &str = "earth_apollo17.jpg";
 
