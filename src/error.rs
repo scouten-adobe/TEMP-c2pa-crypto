@@ -37,9 +37,6 @@ pub enum Error {
     #[error("unable to encode assertion data")]
     AssertionEncoding,
 
-    #[error(transparent)]
-    AssertionDecoding(#[from] crate::assertion::AssertionDecodeError),
-
     #[error("assertion could not be redacted")]
     AssertionInvalidRedaction,
 

@@ -17,7 +17,7 @@ use std::{
     path::Path,
 };
 
-use crate::{assertions::BoxMap, error::Result};
+use crate::error::Result;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HashBlockObjectType {
@@ -137,16 +137,6 @@ pub trait AssetPatch {
     // since any other changes will invalidate asset hashes.
     #[allow(dead_code)] // this here for wasm builds to pass clippy  (todo: remove)
     fn patch_cai_store(&self, asset_path: &Path, store_bytes: &[u8]) -> Result<()>;
-}
-
-// `AssetBoxHash` provides interfaces needed to support C2PA BoxHash
-// functionality.  This trait is only implemented for supported types
-pub trait AssetBoxHash {
-    // Returns Vec containing all BoxMap level objects in the asset in the order
-    // they occur in the asset.  The hashes do not need to be calculated, only the
-    // name and the positional information.  The list should be flat with each
-    // BoxMap representing a single entry.
-    fn get_box_map(&self, input_stream: &mut dyn CAIRead) -> Result<Vec<BoxMap>>;
 }
 
 // Type of remote reference to embed.  Some of the listed

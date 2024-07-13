@@ -32,7 +32,6 @@ pub const NAME: &str = "c2pa-rs";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Public modules
-pub(crate) mod assertions;
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
 pub mod create_signer;
@@ -56,7 +55,6 @@ pub use utils::mime::format_from_path;
 // Internal modules
 #[allow(dead_code, clippy::enum_variant_names)]
 pub(crate) mod asn1;
-pub(crate) mod assertion;
 pub(crate) mod asset_handlers;
 pub(crate) mod asset_io;
 pub(crate) mod callback_signer;
