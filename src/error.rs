@@ -19,79 +19,11 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    // --- c2pa errors ---
-    /// Could not find a claim with this label.
-    #[error("claim missing: label = {label}")]
-    ClaimMissing { label: String },
-
-    /// An assertion has an unsupported version
-    #[error("Unsupported Assertion version")]
-    AssertionUnsupportedVersion,
-
-    /// An assertion could not be found at the expected URL.
-    #[error("assertion missing: url = {url}")]
-    AssertionMissing { url: String },
-
-    /// The attempt to serialize the assertion (typically to JSON or CBOR)
-    /// failed.
-    #[error("unable to encode assertion data")]
-    AssertionEncoding,
-
-    #[error("assertion could not be redacted")]
-    AssertionInvalidRedaction,
-
-    #[error("could not find the assertion to redact")]
-    AssertionRedactionNotFound,
-
     #[error("bad parameter: {0}")]
     BadParam(String),
 
-    #[error("required feature missing")]
-    MissingFeature(String),
-
     #[error("feature implementation incomplete")]
     NotImplemented(String),
-
-    /// The attempt to serialize the claim to CBOR failed.
-    #[error("claim could not be converted to CBOR")]
-    ClaimEncoding,
-
-    /// The attempt to deserialize the claim from CBOR failed.
-    #[error("claim could not be converted from CBOR")]
-    ClaimDecoding,
-
-    #[error("claim already signed, no further changes allowed")]
-    ClaimAlreadySigned,
-
-    #[error("attempt to add new claim without signing last claim")]
-    ClaimUnsigned,
-
-    #[error("missing signature box link")]
-    ClaimMissingSignatureBox,
-
-    #[error("identity required required with copyright assertion")]
-    ClaimMissingIdentity,
-
-    #[error("incompatible claim version")]
-    ClaimVersion,
-
-    #[error("invalid claim content")]
-    ClaimInvalidContent,
-
-    #[error("claim missing hard binding")]
-    ClaimMissingHardBinding,
-
-    #[error("claim contains self redactions")]
-    ClaimSelfRedact,
-
-    #[error("claim contains disallowed redactions")]
-    ClaimDisallowedRedaction,
-
-    #[error("update manifest is invalid")]
-    UpdateManifestInvalid,
-
-    #[error("more than one manifest store detected")]
-    TooManyManifestStores,
 
     /// The COSE Sign1 structure can not be parsed.
     #[error("COSE Sign1 structure can not be parsed: {coset_error}")]
@@ -146,9 +78,6 @@ pub enum Error {
     #[error("could not generate a trusted time stamp")]
     CoseTimeStampGeneration,
 
-    #[error("COSE TimeStamp Authority failure")]
-    CoseTimeStampAuthority,
-
     #[error("COSE Signature too big for JUMBF box")]
     CoseSigboxTooSmall,
 
@@ -161,9 +90,6 @@ pub enum Error {
     #[error("WASM RSA-PSS key import error: {0}")]
     WasmRsaKeyImport(String),
 
-    #[error("WASM RSA-PSS verification error")]
-    WasmRsaVerification,
-
     #[error("WASM crypto key error")]
     WasmKey,
 
@@ -172,25 +98,6 @@ pub enum Error {
 
     #[error("WASM could not load crypto library")]
     WasmNoCrypto,
-
-    /// Unable to generate valid JUMBF for a claim.
-    #[error("could not create valid JUMBF for claim")]
-    JumbfCreationError,
-
-    #[error("thread receive error")]
-    ThreadReceiveError,
-
-    #[error("no JUMBF data found")]
-    JumbfNotFound,
-
-    #[error("required JUMBF box not found")]
-    JumbfBoxNotFound,
-
-    #[error("could not fetch the remote manifest")]
-    RemoteManifestFetch(String),
-
-    #[error("must fetch remote manifests from url")]
-    RemoteManifestUrl(String),
 
     #[error("stopped because of logged error")]
     LogStop,
@@ -201,56 +108,10 @@ pub enum Error {
     #[error("type is unsupported")]
     UnsupportedType,
 
-    #[error("embedding error")]
-    EmbeddingError,
-
-    // Working claim errors
-    #[error("ingredient file not found")]
-    IngredientNotFound,
-
-    #[error("file not found: {0}")]
-    FileNotFound(String),
-
-    #[error("resource not found: {0}")]
-    ResourceNotFound(String),
-
-    #[error("XMP read error")]
-    XmpReadError(String),
-
-    #[error("XMP write error")]
-    XmpWriteError(String),
-
-    #[error("XMP is not supported")]
-    XmpNotSupported,
-
-    #[error("C2PA provenance not found in XMP")]
-    ProvenanceMissing,
-
-    #[error("hash verification( {0} )")]
-    HashMismatch(String),
-
-    #[error("claim verification failure: {0}")]
-    ClaimVerification(String),
-
-    #[error("PDF read error")]
-    PdfReadError,
-
-    #[error("asset could not be parsed: {0}")]
-    InvalidAsset(String),
-
-    #[error("The Verifiable Content structure is not valid")]
-    VerifiableCredentialInvalid,
-
     /// Could not parse ECDSA signature. (Only appears when using WASM web
     /// crypto.)
     #[error("could not parse ECDSA signature")]
     InvalidEcdsaSignature,
-
-    #[error("missing data box")]
-    MissingDataBox,
-
-    #[error("could not generate XML")]
-    XmlWriteError,
 
     #[error("unknown algorithm")]
     UnknownAlgorithm,
@@ -258,9 +119,6 @@ pub enum Error {
     // --- third-party errors ---
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-
-    #[error(transparent)]
-    JsonError(#[from] serde_json::Error),
 
     #[error(transparent)]
     CborError(#[from] serde_cbor::Error),
@@ -274,9 +132,6 @@ pub enum Error {
 
     #[error(transparent)]
     OtherError(#[from] Box<dyn std::error::Error + Send + Sync + 'static>),
-
-    #[error("prerelease content detected")]
-    PrereleaseError,
 }
 
 /// A specialized `Result` type for C2PA toolkit operations.

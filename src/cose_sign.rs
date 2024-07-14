@@ -42,14 +42,12 @@ use crate::{
 ///
 /// ## Actions taken
 ///
-/// 1. Verifies that the data supplied is a valid C2PA claim. The function will
-///    respond with [`Error::ClaimDecoding`] if not.
-/// 2. Signs the data using the provided [`Signer`] instance. Will ensure that
+/// 1. Signs the data using the provided [`Signer`] instance. Will ensure that
 ///    the signature is padded to match `box_size`, which should be the number
 ///    of bytes reserved for the `c2pa.signature` JUMBF box in this claim's
 ///    manifest. (If `box_size` is too small for the generated signature, this
 ///    function will respond with an error.)
-/// 3. Verifies that the signature is valid COSE. Will respond with an error
+/// 2. Verifies that the signature is valid COSE. Will respond with an error
 ///    [`Error::CoseSignature`] if unable to validate.
 #[async_generic(async_signature(
     claim_bytes: &[u8],
