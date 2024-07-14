@@ -123,8 +123,8 @@ pub(crate) fn temp_signer() -> Box<dyn Signer> {
     #[cfg(feature = "openssl_sign")]
     {
         #![allow(clippy::expect_used)]
-        let sign_cert = include_bytes!("../../tests/fixtures/certs/ps256.pub").to_vec();
-        let pem_key = include_bytes!("../../tests/fixtures/certs/ps256.pem").to_vec();
+        let sign_cert = include_bytes!("../tests/fixtures/test_certs/ps256.pub").to_vec();
+        let pem_key = include_bytes!("../tests/fixtures/test_certs/ps256.pem").to_vec();
 
         let signer =
             RsaSigner::from_signcert_and_pkey(&sign_cert, &pem_key, SigningAlg::Ps256, None)
@@ -149,8 +149,8 @@ pub fn temp_async_signer() -> Box<dyn crate::signer::AsyncSigner> {
 
     #[cfg(target_arch = "wasm32")]
     {
-        let sign_cert = include_str!("../../tests/fixtures/certs/es256.pub");
-        let pem_key = include_str!("../../tests/fixtures/certs/es256.pem");
+        let sign_cert = include_str!("../tests/fixtures/test_certs/es256.pub");
+        let pem_key = include_str!("../tests/fixtures/test_certs/es256.pem");
         let signer = WebCryptoSigner::new("es256", sign_cert, pem_key);
         Box::new(signer)
     }
