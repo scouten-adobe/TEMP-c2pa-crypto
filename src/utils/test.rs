@@ -15,8 +15,6 @@
 
 use std::path::PathBuf;
 
-use tempfile::TempDir;
-
 #[cfg(feature = "openssl_sign")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
@@ -60,22 +58,6 @@ pub fn fixture_path(file_name: &str) -> PathBuf {
     path.push("tests/fixtures");
     path.push(file_name);
     path
-}
-
-/// returns a path to a file in the temp_dir folder
-// note, you must pass TempDir from the caller's context
-pub fn temp_dir_path(temp_dir: &TempDir, file_name: &str) -> PathBuf {
-    let mut path = PathBuf::from(temp_dir.path());
-    path.push(file_name);
-    path
-}
-
-// copies a fixture to a temp file and returns path to copy
-pub fn temp_fixture_path(temp_dir: &TempDir, file_name: &str) -> PathBuf {
-    let fixture_src = fixture_path(file_name);
-    let fixture_copy = temp_dir_path(temp_dir, file_name);
-    std::fs::copy(fixture_src, &fixture_copy).unwrap();
-    fixture_copy
 }
 
 pub(crate) struct TestGoodSigner {}
