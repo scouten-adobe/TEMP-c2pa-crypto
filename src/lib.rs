@@ -25,12 +25,6 @@
 //! The new API focuses on stream support and can do more with fewer methods.
 //! It will be supported in all language bindings and build environments.
 
-/// The internal name of the C2PA SDK
-pub const NAME: &str = "c2pa-crypto";
-
-/// The version of this C2PA SDK
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-
 // Public modules
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
