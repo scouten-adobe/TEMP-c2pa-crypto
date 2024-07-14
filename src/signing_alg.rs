@@ -92,7 +92,7 @@ impl fmt::Display for SigningAlg {
 ///
 /// The string must be one of "es256", "es384", "es512", "ps256", "ps384",
 /// "ps512", or "ed25519".
-pub struct UnknownAlgorithmError(String);
+pub struct UnknownAlgorithmError(pub(crate) String);
 
 impl fmt::Display for UnknownAlgorithmError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
@@ -101,44 +101,3 @@ impl fmt::Display for UnknownAlgorithmError {
 }
 
 impl std::error::Error for UnknownAlgorithmError {}
-
-#[cfg(test)]
-mod tests {
-    #![allow(clippy::expect_used)]
-    #![allow(clippy::unwrap_used)]
-
-    use super::*;
-
-    #[test]
-    fn alg_from_str() {
-        assert_eq!("es256".parse(), Ok(SigningAlg::Es256));
-        assert_eq!("es384".parse(), Ok(SigningAlg::Es384));
-        assert_eq!("es512".parse(), Ok(SigningAlg::Es512));
-        assert_eq!("ps256".parse(), Ok(SigningAlg::Ps256));
-        assert_eq!("ps384".parse(), Ok(SigningAlg::Ps384));
-        assert_eq!("ps512".parse(), Ok(SigningAlg::Ps512));
-        assert_eq!("ed25519".parse(), Ok(SigningAlg::Ed25519));
-
-        let r: Result<SigningAlg, UnknownAlgorithmError> = "bogus".parse();
-        assert_eq!(r, Err(UnknownAlgorithmError("bogus".to_string())));
-    }
-
-    #[test]
-    fn signing_alg_impl_display() {
-        assert_eq!(format!("{}", SigningAlg::Es256), "es256");
-        assert_eq!(format!("{}", SigningAlg::Es384), "es384");
-        assert_eq!(format!("{}", SigningAlg::Es512), "es512");
-        assert_eq!(format!("{}", SigningAlg::Ps256), "ps256");
-        assert_eq!(format!("{}", SigningAlg::Ps384), "ps384");
-        assert_eq!(format!("{}", SigningAlg::Ps512), "ps512");
-        assert_eq!(format!("{}", SigningAlg::Ed25519), "ed25519");
-    }
-
-    #[test]
-    fn err_impl_display() {
-        assert_eq!(
-            format!("{}", UnknownAlgorithmError("bogus".to_owned())),
-            "UnknownAlgorithmError(bogus)"
-        );
-    }
-}

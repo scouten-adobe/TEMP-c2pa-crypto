@@ -109,25 +109,3 @@ impl Signer for EdSigner {
                                                      // for size
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #![allow(clippy::unwrap_used)]
-    use super::*;
-    use crate::{openssl::temp_signer, utils::test::fixture_path};
-
-    #[test]
-    fn ed25519_signer() {
-        let cert_dir = fixture_path("certs");
-
-        let (signer, _) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
-
-        let data = b"some sample content to sign";
-        println!("data len = {}", data.len());
-
-        let signature = signer.sign(data).unwrap();
-        println!("signature.len = {}", signature.len());
-        assert!(signature.len() >= 64);
-        assert!(signature.len() <= signer.reserve_size());
-    }
-}

@@ -1,4 +1,4 @@
-// Copyright 2024 Adobe. All rights reserved.
+// Copyright 2022 Adobe. All rights reserved.
 // This file is licensed to you under the Apache License,
 // Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 // or the MIT license (http://opensource.org/licenses/MIT),
@@ -11,20 +11,10 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#![allow(dead_code)]
-// This code should only used from unit tests.
-// Silence warnings about unused code when not building tests.
-
-use std::{env, path::PathBuf};
-
-pub(crate) fn fixture_path(name: &str) -> PathBuf {
-    let root_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
-
-    let mut path = PathBuf::from(root_dir);
-    path.push("src/tests/fixtures");
-    path.push(name);
-
-    assert!(path.exists());
-
-    path
-}
+mod ec_signer;
+mod ec_validator;
+mod ed_signer;
+mod ed_validator;
+mod openssl_trust_handler;
+mod rsa_signer;
+mod rsa_validator;

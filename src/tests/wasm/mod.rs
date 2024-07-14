@@ -11,13 +11,5 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use base64::{engine::general_purpose, Engine as _};
-
-pub(crate) fn encode(data: &[u8]) -> String {
-    general_purpose::STANDARD.encode(data)
-}
-
-#[allow(dead_code)] // TEMPORARY figure this out later
-pub(crate) fn decode(data: &str) -> Result<Vec<u8>, base64::DecodeError> {
-    general_purpose::STANDARD.decode(data)
-}
+mod webcrypto_validator;
+mod webpki_trust_handler;

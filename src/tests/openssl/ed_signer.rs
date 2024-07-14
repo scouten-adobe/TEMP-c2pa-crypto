@@ -11,13 +11,19 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use base64::{engine::general_purpose, Engine as _};
+use crate::{openssl::temp_signer, utils::test::fixture_path, Signer, SigningAlg};
 
-pub(crate) fn encode(data: &[u8]) -> String {
-    general_purpose::STANDARD.encode(data)
-}
+#[test]
+fn ed25519_signer() {
+    let cert_dir = fixture_path("certs");
 
-#[allow(dead_code)] // TEMPORARY figure this out later
-pub(crate) fn decode(data: &str) -> Result<Vec<u8>, base64::DecodeError> {
-    general_purpose::STANDARD.decode(data)
+    let (signer, _) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
+
+    let data = b"some sample content to sign";
+    println!("data len = {}", data.len());
+
+    let signature = signer.sign(data).unwrap();
+    println!("signature.len = {}", signature.len());
+    assert!(signature.len() >= 64);
+    assert!(signature.len() <= signer.reserve_size());
 }

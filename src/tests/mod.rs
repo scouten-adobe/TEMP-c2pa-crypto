@@ -18,4 +18,15 @@
 #![allow(clippy::panic)]
 #![allow(clippy::unwrap_used)]
 
-pub(crate) mod fixtures;
+mod cose_sign;
+mod cose_validator;
+mod ocsp_utils;
+
+#[cfg(feature = "openssl_sign")]
+mod openssl;
+
+mod signing_alg;
+mod status_tracker;
+
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
