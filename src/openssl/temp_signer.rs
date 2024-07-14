@@ -31,8 +31,6 @@
 #![allow(clippy::panic)]
 #![allow(clippy::unwrap_used)]
 
-use std::path::{Path, PathBuf};
-
 use crate::{
     openssl::{EcSigner, EdSigner, RsaSigner},
     signer::ConfigurableSigner,
@@ -43,8 +41,6 @@ use crate::{
 ///
 /// # Arguments
 ///
-/// * `path` - A directory (which must already exist) to receive the temporary
-///   private key / certificate pair.
 /// * `alg` - A format for signing. Must be one of the `SigningAlg::Es*`
 ///   variants.
 /// * `tsa_url` - Optional URL for a timestamp authority.
@@ -58,38 +54,32 @@ use crate::{
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-pub fn get_ec_signer<P: AsRef<Path>>(
-    path: P,
-    alg: SigningAlg,
-    tsa_url: Option<String>,
-) -> (EcSigner, PathBuf) {
-    match alg {
-        SigningAlg::Es256 | SigningAlg::Es384 | SigningAlg::Es512 => (),
+pub fn get_ec_signer(alg: SigningAlg, tsa_url: Option<String>) -> EcSigner {
+    let (sign_cert, pem_key) = match alg {
+        SigningAlg::Es256 => (
+            include_bytes!("../tests/fixtures/test_certs/es256.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/es256.pem").to_vec(),
+        ),
+        SigningAlg::Es384 => (
+            include_bytes!("../tests/fixtures/test_certs/es384.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/es384.pem").to_vec(),
+        ),
+        SigningAlg::Es512 => (
+            include_bytes!("../tests/fixtures/test_certs/es512.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/es512.pem").to_vec(),
+        ),
         _ => {
             panic!("Unknown EC signer alg {alg:#?}");
         }
-    }
+    };
 
-    let mut sign_cert_path = path.as_ref().to_path_buf();
-    sign_cert_path.push(alg.to_string());
-    sign_cert_path.set_extension("pub");
-
-    let mut pem_key_path = path.as_ref().to_path_buf();
-    pem_key_path.push(alg.to_string());
-    pem_key_path.set_extension("pem");
-
-    (
-        EcSigner::from_files(&sign_cert_path, &pem_key_path, alg, tsa_url).unwrap(),
-        sign_cert_path,
-    )
+    EcSigner::from_signcert_and_pkey(&sign_cert, &pem_key, alg, tsa_url).unwrap()
 }
 
 /// Create an OpenSSL ES256 signer that can be used for testing purposes.
 ///
 /// # Arguments
 ///
-/// * `path` - A directory (which must already exist) to look for private key /
-///   certificate pair.
 /// * `alg` - A format for signing. Must be `ed25519`.
 /// * `tsa_url` - Optional URL for a timestamp authority.
 ///
@@ -102,35 +92,24 @@ pub fn get_ec_signer<P: AsRef<Path>>(
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-pub fn get_ed_signer<P: AsRef<Path>>(
-    path: P,
-    alg: SigningAlg,
-    tsa_url: Option<String>,
-) -> (EdSigner, PathBuf) {
-    if alg != SigningAlg::Ed25519 {
-        panic!("Unknown ED signer alg {alg:#?}");
-    }
+pub fn get_ed_signer(alg: SigningAlg, tsa_url: Option<String>) -> EdSigner {
+    let (sign_cert, pem_key) = match alg {
+        SigningAlg::Ed25519 => (
+            include_bytes!("../tests/fixtures/test_certs/ed25519.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/ed25519.pem").to_vec(),
+        ),
+        _ => {
+            panic!("Unknown ED signer alg {alg:#?}");
+        }
+    };
 
-    let mut sign_cert_path = path.as_ref().to_path_buf();
-    sign_cert_path.push(alg.to_string());
-    sign_cert_path.set_extension("pub");
-
-    let mut pem_key_path = path.as_ref().to_path_buf();
-    pem_key_path.push(alg.to_string());
-    pem_key_path.set_extension("pem");
-
-    (
-        EdSigner::from_files(&sign_cert_path, &pem_key_path, alg, tsa_url).unwrap(),
-        sign_cert_path,
-    )
+    EdSigner::from_signcert_and_pkey(&sign_cert, &pem_key, alg, tsa_url).unwrap()
 }
 
 /// Create an OpenSSL SHA+RSA signer that can be used for testing purposes.
 ///
 /// # Arguments
 ///
-/// * `path` - A directory (which must already exist) to receive the temporary
-///   private key / certificate pair.
 /// * `alg` - A format for signing. Must be one of the `SignerAlg::Ps*` options.
 /// * `tsa_url` - Optional URL for a timestamp authority.
 ///
@@ -143,36 +122,24 @@ pub fn get_ed_signer<P: AsRef<Path>>(
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-pub fn get_rsa_signer<P: AsRef<Path>>(
-    path: P,
-    alg: SigningAlg,
-    tsa_url: Option<String>,
-) -> (RsaSigner, PathBuf) {
-    match alg {
-        SigningAlg::Ps256 | SigningAlg::Ps384 | SigningAlg::Ps512 => (),
+pub fn get_rsa_signer(alg: SigningAlg, tsa_url: Option<String>) -> RsaSigner {
+    let (sign_cert, pem_key) = match alg {
+        SigningAlg::Ps256 => (
+            include_bytes!("../tests/fixtures/test_certs/ps256.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/ps256.pem").to_vec(),
+        ),
+        SigningAlg::Ps384 => (
+            include_bytes!("../tests/fixtures/test_certs/ps384.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/ps384.pem").to_vec(),
+        ),
+        SigningAlg::Ps512 => (
+            include_bytes!("../tests/fixtures/test_certs/ps512.pub").to_vec(),
+            include_bytes!("../tests/fixtures/test_certs/ps512.pem").to_vec(),
+        ),
         _ => {
             panic!("Unknown RSA signer alg {alg:#?}");
         }
-    }
+    };
 
-    let mut sign_cert_path = path.as_ref().to_path_buf();
-    sign_cert_path.push(alg.to_string());
-    sign_cert_path.set_extension("pub");
-
-    let mut pem_key_path = path.as_ref().to_path_buf();
-    pem_key_path.push(alg.to_string());
-    pem_key_path.set_extension("pem");
-
-    if !sign_cert_path.exists() || !pem_key_path.exists() {
-        panic!(
-            "path found: {}, {}",
-            sign_cert_path.display(),
-            pem_key_path.display()
-        );
-    }
-
-    (
-        RsaSigner::from_files(&sign_cert_path, &pem_key_path, alg, tsa_url).unwrap(),
-        sign_cert_path,
-    )
+    RsaSigner::from_signcert_and_pkey(&sign_cert, &pem_key, alg, tsa_url).unwrap()
 }

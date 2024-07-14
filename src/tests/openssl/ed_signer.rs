@@ -11,13 +11,11 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use crate::{openssl::temp_signer, utils::test::fixture_path, Signer, SigningAlg};
+use crate::{openssl::temp_signer, Signer, SigningAlg};
 
 #[test]
 fn ed25519_signer() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, _) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
+    let signer = temp_signer::get_ed_signer(SigningAlg::Ed25519, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());

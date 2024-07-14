@@ -13,16 +13,13 @@
 
 use crate::{
     openssl::{temp_signer, EcValidator},
-    utils::test::fixture_path,
     validator::CoseValidator,
     Signer, SigningAlg,
 };
 
 #[test]
 fn sign_and_validate_es256() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es256, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -32,9 +29,9 @@ fn sign_and_validate_es256() {
     assert!(signature.len() >= 64);
     assert!(signature.len() <= signer.reserve_size());
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/es256.pub");
 
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
 
     let validator = EcValidator::new(SigningAlg::Es256);
@@ -43,9 +40,7 @@ fn sign_and_validate_es256() {
 
 #[test]
 fn sign_and_validate_es384() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es384, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es384, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -55,9 +50,9 @@ fn sign_and_validate_es384() {
     assert!(signature.len() >= 64);
     assert!(signature.len() <= signer.reserve_size());
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/es384.pub");
 
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
 
     let validator = EcValidator::new(SigningAlg::Es384);
@@ -66,9 +61,7 @@ fn sign_and_validate_es384() {
 
 #[test]
 fn sign_and_validate_es512() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es512, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es512, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -78,9 +71,9 @@ fn sign_and_validate_es512() {
     assert!(signature.len() >= 64);
     assert!(signature.len() <= signer.reserve_size());
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/es512.pub");
 
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
 
     let validator = EcValidator::new(SigningAlg::Es512);
@@ -89,9 +82,7 @@ fn sign_and_validate_es512() {
 
 #[test]
 fn bad_sig_es256() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es256, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -99,8 +90,8 @@ fn bad_sig_es256() {
 
     signature.push(10);
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/es256.pub");
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
 
     let validator = EcValidator::new(SigningAlg::Es256);
@@ -110,9 +101,7 @@ fn bad_sig_es256() {
 
 #[test]
 fn bad_data_es256() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es256, None);
 
     let mut data = b"some sample content to sign".to_vec();
     println!("data len = {}", data.len());
@@ -121,8 +110,8 @@ fn bad_data_es256() {
     data[5] = 10;
     data[6] = 11;
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/es256.pub");
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
 
     let validator = EcValidator::new(SigningAlg::Es256);

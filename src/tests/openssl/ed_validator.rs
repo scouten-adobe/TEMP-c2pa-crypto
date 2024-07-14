@@ -13,16 +13,13 @@
 
 use crate::{
     openssl::{temp_signer, EdValidator},
-    utils::test::fixture_path,
     validator::CoseValidator,
     Signer, SigningAlg,
 };
 
 #[test]
 fn sign_and_validate() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
+    let signer = temp_signer::get_ed_signer(SigningAlg::Ed25519, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -32,9 +29,9 @@ fn sign_and_validate() {
     assert!(signature.len() >= 64);
     assert!(signature.len() <= signer.reserve_size());
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/ed25519.pub");
 
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
     let validator = EdValidator::new(SigningAlg::Ed25519);
     assert!(validator.validate(&signature, data, &pub_key).unwrap());
@@ -42,9 +39,7 @@ fn sign_and_validate() {
 
 #[test]
 fn bad_data() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, cert_path) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
+    let signer = temp_signer::get_ed_signer(SigningAlg::Ed25519, None);
 
     let mut data = b"some sample content to sign".to_vec();
     println!("data len = {}", data.len());
@@ -53,8 +48,8 @@ fn bad_data() {
     data[5] = 10;
     data[6] = 11;
 
-    let cert_bytes = std::fs::read(cert_path).unwrap();
-    let signcert = openssl::x509::X509::from_pem(&cert_bytes).unwrap();
+    let cert_bytes = include_bytes!("../fixtures/test_certs/ed25519.pub");
+    let signcert = openssl::x509::X509::from_pem(cert_bytes).unwrap();
     let pub_key = signcert.public_key().unwrap().public_key_to_der().unwrap();
 
     let validator = EdValidator::new(SigningAlg::Es256);

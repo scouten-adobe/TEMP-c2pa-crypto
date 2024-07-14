@@ -20,7 +20,7 @@ use crate::{
     trust_handler::TrustHandlerConfig,
     validation_status,
     validator::get_validator,
-    SigningAlg,
+    Signer, SigningAlg,
 };
 
 #[test]
@@ -28,12 +28,9 @@ fn test_expired_cert() {
     let mut validation_log = DetailedStatusTracker::new();
     let th = crate::openssl::OpenSSLTrustHandlerConfig::new();
 
-    let mut cert_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    cert_path.push("src/tests/fixtures/test_certs/rsa-pss256_key-expired.pub");
+    let expired_cert = include_bytes!("fixtures/test_certs/rsa-pss256_key-expired.pub");
 
-    let expired_cert = std::fs::read(&cert_path).unwrap();
-
-    if let Ok(signcert) = openssl::x509::X509::from_pem(&expired_cert) {
+    if let Ok(signcert) = openssl::x509::X509::from_pem(expired_cert) {
         let der_bytes = signcert.to_der().unwrap();
         assert!(check_cert(&der_bytes, &th, &mut validation_log, None).is_err());
 
@@ -105,41 +102,41 @@ fn test_verify_cose_bad() {
 #[test]
 #[cfg(feature = "openssl_sign")]
 fn test_cert_algorithms() {
-    let cert_dir = crate::utils::test::fixture_path("test_certs");
     let th = crate::openssl::OpenSSLTrustHandlerConfig::new();
 
     let mut validation_log = DetailedStatusTracker::new();
 
-    let (_, cert_path) = temp_signer::get_ec_signer(&cert_dir, SigningAlg::Es256, None);
-    let es256_cert = std::fs::read(cert_path).unwrap();
+    let es256_cert = include_bytes!("../tests/fixtures/test_certs/es256.pub");
+    let es384_cert = include_bytes!("../tests/fixtures/test_certs/es384.pub");
+    let es512_cert = include_bytes!("../tests/fixtures/test_certs/es512.pub");
 
-    let (_, cert_path) = temp_signer::get_ec_signer(&cert_dir, SigningAlg::Es384, None);
-    let es384_cert = std::fs::read(cert_path).unwrap();
-
-    let (_, cert_path) = temp_signer::get_ec_signer(&cert_dir, SigningAlg::Es512, None);
-    let es512_cert = std::fs::read(cert_path).unwrap();
-
-    let (_, cert_path) = temp_signer::get_rsa_signer(&cert_dir, SigningAlg::Ps256, None);
-    let rsa_pss256_cert = std::fs::read(cert_path).unwrap();
-
-    if let Ok(signcert) = openssl::x509::X509::from_pem(&es256_cert) {
+    if let Ok(signcert) = openssl::x509::X509::from_pem(es256_cert) {
         let der_bytes = signcert.to_der().unwrap();
         assert!(check_cert(&der_bytes, &th, &mut validation_log, None).is_ok());
     }
 
-    if let Ok(signcert) = openssl::x509::X509::from_pem(&es384_cert) {
+    if let Ok(signcert) = openssl::x509::X509::from_pem(es384_cert) {
         let der_bytes = signcert.to_der().unwrap();
         assert!(check_cert(&der_bytes, &th, &mut validation_log, None).is_ok());
     }
 
-    if let Ok(signcert) = openssl::x509::X509::from_pem(&es512_cert) {
+    if let Ok(signcert) = openssl::x509::X509::from_pem(es512_cert) {
         let der_bytes = signcert.to_der().unwrap();
         assert!(check_cert(&der_bytes, &th, &mut validation_log, None).is_ok());
     }
 
-    if let Ok(signcert) = openssl::x509::X509::from_pem(&rsa_pss256_cert) {
-        let der_bytes = signcert.to_der().unwrap();
-        assert!(check_cert(&der_bytes, &th, &mut validation_log, None).is_ok());
+    let ps256_signer = temp_signer::get_rsa_signer(SigningAlg::Ps256, None);
+
+    let ps256_cert = ps256_signer
+        .certs()
+        .ok()
+        .and_then(|certs| certs.iter().next().map(|s| s.to_owned()));
+
+    if let Some(ps256_cert) = ps256_cert {
+        if let Ok(signcert) = openssl::x509::X509::from_pem(&ps256_cert) {
+            let der_bytes = signcert.to_der().unwrap();
+            assert!(check_cert(&der_bytes, &th, &mut validation_log, None).is_ok());
+        }
     }
 }
 

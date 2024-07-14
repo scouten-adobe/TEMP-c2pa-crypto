@@ -11,13 +11,11 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use crate::{openssl::temp_signer, utils::test::fixture_path, Signer, SigningAlg};
+use crate::{openssl::temp_signer, Signer, SigningAlg};
 
 #[test]
 fn es256_signer() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, _) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es256, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -30,9 +28,7 @@ fn es256_signer() {
 
 #[test]
 fn es384_signer() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, _) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es384, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es384, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
@@ -45,9 +41,7 @@ fn es384_signer() {
 
 #[test]
 fn es512_signer() {
-    let cert_dir = fixture_path("test_certs");
-
-    let (signer, _) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es512, None);
+    let signer = temp_signer::get_ec_signer(SigningAlg::Es512, None);
 
     let data = b"some sample content to sign";
     println!("data len = {}", data.len());
