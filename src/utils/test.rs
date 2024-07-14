@@ -23,8 +23,6 @@ use crate::{
 };
 use crate::{RemoteSigner, Result, Signer, SigningAlg};
 
-pub const TEST_SMALL_JPEG: &str = "earth_apollo17.jpg";
-
 pub const TEST_WEBP: &str = "mars.webp";
 
 pub const TEST_VC: &str = r#"{

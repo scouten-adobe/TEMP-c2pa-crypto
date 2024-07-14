@@ -29,7 +29,7 @@ fn test_expired_cert() {
     let th = crate::openssl::OpenSSLTrustHandlerConfig::new();
 
     let mut cert_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    cert_path.push("tests/fixtures/rsa-pss256_key-expired.pub");
+    cert_path.push("src/tests/fixtures/test_certs/rsa-pss256_key-expired.pub");
 
     let expired_cert = std::fs::read(&cert_path).unwrap();
 
