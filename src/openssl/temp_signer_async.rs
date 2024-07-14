@@ -24,7 +24,7 @@ use crate::SigningAlg;
 
 #[cfg(feature = "openssl_sign")]
 fn get_local_signer(alg: SigningAlg) -> Box<dyn crate::Signer> {
-    let cert_dir = crate::utils::test::fixture_path("certs");
+    let cert_dir = crate::utils::test::fixture_path("test_certs");
 
     match alg {
         SigningAlg::Ps256 | SigningAlg::Ps384 | SigningAlg::Ps512 => {

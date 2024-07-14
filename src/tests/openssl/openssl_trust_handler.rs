@@ -24,7 +24,7 @@ use crate::{
 
 #[test]
 fn test_trust_store() {
-    let cert_dir = crate::utils::test::fixture_path("certs");
+    let cert_dir = crate::utils::test::fixture_path("test_certs");
 
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
@@ -59,7 +59,7 @@ fn test_trust_store() {
 
 #[test]
 fn test_broken_trust_chain() {
-    let cert_dir = crate::utils::test::fixture_path("certs");
+    let cert_dir = crate::utils::test::fixture_path("test_certs");
     let ta = include_bytes!("../fixtures/test_certs/test_cert_root_bundle.pem");
 
     let mut th = OpenSSLTrustHandlerConfig::new();
@@ -97,12 +97,12 @@ fn test_broken_trust_chain() {
 
 #[test]
 fn test_allowed_list() {
-    let cert_dir = crate::utils::test::fixture_path("certs");
+    let cert_dir = crate::utils::test::fixture_path("test_certs");
 
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
 
-    let mut allowed_list_path = crate::utils::test::fixture_path("certs");
+    let mut allowed_list_path = crate::utils::test::fixture_path("test_certs");
     allowed_list_path = allowed_list_path.join("trust");
     allowed_list_path = allowed_list_path.join("allowed_list.pem");
 
@@ -138,12 +138,12 @@ fn test_allowed_list() {
 
 #[test]
 fn test_allowed_list_hashes() {
-    let cert_dir = crate::utils::test::fixture_path("certs");
+    let cert_dir = crate::utils::test::fixture_path("test_certs");
 
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
 
-    let mut allowed_list_path = crate::utils::test::fixture_path("certs");
+    let mut allowed_list_path = crate::utils::test::fixture_path("test_certs");
     allowed_list_path = allowed_list_path.join("trust");
     allowed_list_path = allowed_list_path.join("allowed_list.hash");
 

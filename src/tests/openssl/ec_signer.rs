@@ -15,7 +15,7 @@ use crate::{openssl::temp_signer, utils::test::fixture_path, Signer, SigningAlg}
 
 #[test]
 fn es256_signer() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, _) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
 
@@ -30,7 +30,7 @@ fn es256_signer() {
 
 #[test]
 fn es384_signer() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, _) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es384, None);
 
@@ -45,7 +45,7 @@ fn es384_signer() {
 
 #[test]
 fn es512_signer() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, _) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es512, None);
 

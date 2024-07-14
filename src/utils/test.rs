@@ -55,7 +55,7 @@ pub const TEST_VC: &str = r#"{
 /// returns a path to a file in the fixtures folder
 pub fn fixture_path(file_name: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("tests/fixtures");
+    path.push("src/tests/fixtures");
     path.push(file_name);
     path
 }

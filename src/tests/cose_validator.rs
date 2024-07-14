@@ -105,7 +105,7 @@ fn test_verify_cose_bad() {
 #[test]
 #[cfg(feature = "openssl_sign")]
 fn test_cert_algorithms() {
-    let cert_dir = crate::utils::test::fixture_path("certs");
+    let cert_dir = crate::utils::test::fixture_path("test_certs");
     let th = crate::openssl::OpenSSLTrustHandlerConfig::new();
 
     let mut validation_log = DetailedStatusTracker::new();

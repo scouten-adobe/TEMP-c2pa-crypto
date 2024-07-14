@@ -20,7 +20,7 @@ use crate::{
 
 #[test]
 fn sign_and_validate() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
 
@@ -42,7 +42,7 @@ fn sign_and_validate() {
 
 #[test]
 fn bad_data() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ed_signer(cert_dir, SigningAlg::Ed25519, None);
 

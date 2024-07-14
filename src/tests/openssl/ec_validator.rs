@@ -20,7 +20,7 @@ use crate::{
 
 #[test]
 fn sign_and_validate_es256() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
 
@@ -43,7 +43,7 @@ fn sign_and_validate_es256() {
 
 #[test]
 fn sign_and_validate_es384() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es384, None);
 
@@ -66,7 +66,7 @@ fn sign_and_validate_es384() {
 
 #[test]
 fn sign_and_validate_es512() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es512, None);
 
@@ -89,7 +89,7 @@ fn sign_and_validate_es512() {
 
 #[test]
 fn bad_sig_es256() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
 
@@ -110,7 +110,7 @@ fn bad_sig_es256() {
 
 #[test]
 fn bad_data_es256() {
-    let cert_dir = fixture_path("certs");
+    let cert_dir = fixture_path("test_certs");
 
     let (signer, cert_path) = temp_signer::get_ec_signer(cert_dir, SigningAlg::Es256, None);
 
