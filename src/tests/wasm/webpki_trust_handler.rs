@@ -14,7 +14,11 @@
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 
-use super::*;
+use crate::{
+    trust_handler::{load_trust_from_data, TrustHandlerConfig},
+    wasm::{webpki_trust_handler::verify_trust_async, WebTrustHandlerConfig},
+};
+
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[wasm_bindgen_test]
