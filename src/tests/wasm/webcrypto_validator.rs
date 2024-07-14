@@ -25,9 +25,9 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[wasm_bindgen_test]
 async fn test_async_verify_rsa_pss() {
     // PS signatures
-    let sig_bytes = include_bytes!("../../tests/fixtures/sig_ps256.data");
-    let data_bytes = include_bytes!("../../tests/fixtures/data_ps256.data");
-    let key_bytes = include_bytes!("../../tests/fixtures/key_ps256.data");
+    let sig_bytes = include_bytes!("../fixtures/test_certs/sig_ps256.data");
+    let data_bytes = include_bytes!("../fixtures/test_certs/data_ps256.data");
+    let key_bytes = include_bytes!("../fixtures/test_certs/key_ps256.data");
 
     let validated = validate_async(SigningAlg::Ps256, sig_bytes, data_bytes, key_bytes)
         .await
@@ -41,9 +41,9 @@ async fn test_async_verify_rsa_pss() {
 #[wasm_bindgen_test]
 async fn test_async_verify_ecdsa() {
     // EC signatures
-    let sig_es384_bytes = include_bytes!("../../tests/fixtures/sig_es384.data");
-    let data_es384_bytes = include_bytes!("../../tests/fixtures/data_es384.data");
-    let key_es384_bytes = include_bytes!("../../tests/fixtures/key_es384.data");
+    let sig_es384_bytes = include_bytes!("../fixtures/test_certs/sig_es384.data");
+    let data_es384_bytes = include_bytes!("../fixtures/test_certs/data_es384.data");
+    let key_es384_bytes = include_bytes!("../fixtures/test_certs/key_es384.data");
 
     let mut validated = validate_async(
         SigningAlg::Es384,
@@ -56,9 +56,9 @@ async fn test_async_verify_ecdsa() {
 
     assert_eq!(validated, true);
 
-    let sig_es512_bytes = include_bytes!("../../tests/fixtures/sig_es512.data");
-    let data_es512_bytes = include_bytes!("../../tests/fixtures/data_es512.data");
-    let key_es512_bytes = include_bytes!("../../tests/fixtures/key_es512.data");
+    let sig_es512_bytes = include_bytes!("../fixtures/test_certs/sig_es512.data");
+    let data_es512_bytes = include_bytes!("../fixtures/test_certs/data_es512.data");
+    let key_es512_bytes = include_bytes!("../fixtures/test_certs/key_es512.data");
 
     validated = validate_async(
         SigningAlg::Es512,
@@ -71,9 +71,9 @@ async fn test_async_verify_ecdsa() {
 
     assert_eq!(validated, true);
 
-    let sig_es256_bytes = include_bytes!("../../tests/fixtures/sig_es256.data");
-    let data_es256_bytes = include_bytes!("../../tests/fixtures/data_es256.data");
-    let key_es256_bytes = include_bytes!("../../tests/fixtures/key_es256.data");
+    let sig_es256_bytes = include_bytes!("../fixtures/test_certs/sig_es256.data");
+    let data_es256_bytes = include_bytes!("../fixtures/test_certs/data_es256.data");
+    let key_es256_bytes = include_bytes!("../fixtures/test_certs/key_es256.data");
 
     let validated = validate_async(
         SigningAlg::Es256,
@@ -92,9 +92,9 @@ async fn test_async_verify_ecdsa() {
 #[wasm_bindgen_test]
 #[ignore]
 async fn test_async_verify_bad() {
-    let sig_bytes = include_bytes!("../../tests/fixtures/sig_ps256.data");
-    let data_bytes = include_bytes!("../../tests/fixtures/data_ps256.data");
-    let key_bytes = include_bytes!("../../tests/fixtures/key_ps256.data");
+    let sig_bytes = include_bytes!("../fixtures/test_certs/sig_ps256.data");
+    let data_bytes = include_bytes!("../fixtures/test_certs/data_ps256.data");
+    let key_bytes = include_bytes!("../fixtures/test_certs/key_ps256.data");
 
     let mut bad_bytes = data_bytes.to_vec();
     bad_bytes[0] = b'c';

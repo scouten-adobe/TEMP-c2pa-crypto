@@ -25,13 +25,13 @@ async fn test_trust_store() {
     th.load_default_trust().unwrap();
 
     // test all the certs
-    let ps256 = include_bytes!("../../tests/fixtures/certs/ps256.pub");
-    let ps384 = include_bytes!("../../tests/fixtures/certs/ps384.pub");
-    let ps512 = include_bytes!("../../tests/fixtures/certs/ps512.pub");
-    let es256 = include_bytes!("../../tests/fixtures/certs/es256.pub");
-    let es384 = include_bytes!("../../tests/fixtures/certs/es384.pub");
-    let es512 = include_bytes!("../../tests/fixtures/certs/es512.pub");
-    let ed25519 = include_bytes!("../../tests/fixtures/certs/ed25519.pub");
+    let ps256 = include_bytes!("../fixtures/test_certs/certs/ps256.pub");
+    let ps384 = include_bytes!("../fixtures/test_certs/certs/ps384.pub");
+    let ps512 = include_bytes!("../fixtures/test_certs/certs/ps512.pub");
+    let es256 = include_bytes!("../fixtures/test_certs/certs/es256.pub");
+    let es384 = include_bytes!("../fixtures/test_certs/certs/es384.pub");
+    let es512 = include_bytes!("../fixtures/test_certs/certs/es512.pub");
+    let ed25519 = include_bytes!("../fixtures/test_certs/certs/ed25519.pub");
 
     let ps256_certs = load_trust_from_data(ps256).unwrap();
     let ps384_certs = load_trust_from_data(ps384).unwrap();
@@ -78,13 +78,13 @@ async fn test_broken_trust_chain() {
     th.load_default_trust().unwrap();
 
     // test all the certs
-    let ps256 = include_bytes!("../../tests/fixtures/certs/ps256.pub");
-    let ps384 = include_bytes!("../../tests/fixtures/certs/ps384.pub");
-    let ps512 = include_bytes!("../../tests/fixtures/certs/ps512.pub");
-    let es256 = include_bytes!("../../tests/fixtures/certs/es256.pub");
-    let es384 = include_bytes!("../../tests/fixtures/certs/es384.pub");
-    let es512 = include_bytes!("../../tests/fixtures/certs/es512.pub");
-    let ed25519 = include_bytes!("../../tests/fixtures/certs/ed25519.pub");
+    let ps256 = include_bytes!("../fixtures/test_certs/certs/ps256.pub");
+    let ps384 = include_bytes!("../fixtures/test_certs/certs/ps384.pub");
+    let ps512 = include_bytes!("../fixtures/test_certs/certs/ps512.pub");
+    let es256 = include_bytes!("../fixtures/test_certs/certs/es256.pub");
+    let es384 = include_bytes!("../fixtures/test_certs/certs/es384.pub");
+    let es512 = include_bytes!("../fixtures/test_certs/certs/es512.pub");
+    let ed25519 = include_bytes!("../fixtures/test_certs/certs/ed25519.pub");
 
     let ps256_certs = load_trust_from_data(ps256).unwrap();
     let ps384_certs = load_trust_from_data(ps384).unwrap();
