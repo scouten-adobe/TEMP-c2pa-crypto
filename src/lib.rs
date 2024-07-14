@@ -11,10 +11,12 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#![deny(warnings)]
 #![deny(clippy::expect_used)]
 #![deny(clippy::panic)]
 #![deny(clippy::unwrap_used)]
+// #![deny(missing_docs)] // SOON!
+#![deny(warnings)]
+#![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg, doc_cfg_hide))]
 
 //! This library supports reading, creating and embedding C2PA data
@@ -57,3 +59,6 @@ pub(crate) use utils::hash_utils;
 pub mod validator; // [scouten 2024-06-27]: Hacking to make public.
 
 pub use cose_validator::{VerifyOcspFetch, VerifyTrustChain};
+
+#[cfg(test)]
+pub(crate) mod tests;
