@@ -102,8 +102,7 @@ fn test_allowed_list() {
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
 
-    let mut allowed_list_path = crate::utils::test::fixture_path("test_certs");
-    allowed_list_path = allowed_list_path.join("trust");
+    let mut allowed_list_path = crate::utils::test::fixture_path("allow_list");
     allowed_list_path = allowed_list_path.join("allowed_list.pem");
 
     let mut allowed_list = std::fs::File::open(&allowed_list_path).unwrap();
@@ -143,8 +142,7 @@ fn test_allowed_list_hashes() {
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
 
-    let mut allowed_list_path = crate::utils::test::fixture_path("test_certs");
-    allowed_list_path = allowed_list_path.join("trust");
+    let mut allowed_list_path = crate::utils::test::fixture_path("allow_list");
     allowed_list_path = allowed_list_path.join("allowed_list.hash");
 
     let mut allowed_list = std::fs::File::open(&allowed_list_path).unwrap();
