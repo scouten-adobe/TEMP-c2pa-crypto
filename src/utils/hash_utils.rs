@@ -11,24 +11,18 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use std::{
-    fs::File,
-    io::{Cursor, Read, Seek, SeekFrom},
-    ops::RangeInclusive,
-    path::Path,
-};
+use std::io::{Cursor, Read, Seek, SeekFrom};
 
 //use conv::ValueFrom;
 use log::warn;
 // multihash versions
 use multibase::{decode, encode};
 use multihash::{wrap, Code, Multihash, Sha1, Sha2_256, Sha2_512, Sha3_256, Sha3_384, Sha3_512};
-use range_set::RangeSet;
 use serde::{Deserialize, Serialize};
 // direct sha functions
 use sha2::{Digest, Sha256, Sha384, Sha512};
 
-use crate::{Error, Result};
+use crate::Result;
 
 const MAX_HASH_BUF: usize = 256 * 1024 * 1024; // cap memory usage to 256MB
 
@@ -119,41 +113,10 @@ impl Hasher {
 }
 
 // Return hash bytes for desired hashing algorithm.
-pub(crate) fn hash_by_alg(alg: &str, data: &[u8], exclusions: Option<Vec<HashRange>>) -> Vec<u8> {
+pub(crate) fn hash_by_alg(alg: &str, data: &[u8]) -> Vec<u8> {
     let mut reader = Cursor::new(data);
 
-    hash_stream_by_alg(alg, &mut reader, exclusions, true).unwrap_or_default()
-}
-
-// Return hash inclusive bytes for desired hashing algorithm.
-pub(crate) fn hash_by_alg_with_inclusions(
-    alg: &str,
-    data: &[u8],
-    inclusions: Vec<HashRange>,
-) -> Vec<u8> {
-    let mut reader = Cursor::new(data);
-
-    hash_stream_by_alg(alg, &mut reader, Some(inclusions), false).unwrap_or_default()
-}
-
-// Return hash bytes for asset using desired hashing algorithm.
-pub(crate) fn hash_asset_by_alg(
-    alg: &str,
-    asset_path: &Path,
-    exclusions: Option<Vec<HashRange>>,
-) -> Result<Vec<u8>> {
-    let mut file = File::open(asset_path)?;
-    hash_stream_by_alg(alg, &mut file, exclusions, true)
-}
-
-// Return hash inclusive bytes for asset using desired hashing algorithm.
-pub(crate) fn hash_asset_by_alg_with_inclusions(
-    alg: &str,
-    asset_path: &Path,
-    inclusions: Vec<HashRange>,
-) -> Result<Vec<u8>> {
-    let mut file = File::open(asset_path)?;
-    hash_stream_by_alg(alg, &mut file, Some(inclusions), false)
+    hash_stream_by_alg(alg, &mut reader).unwrap_or_default()
 }
 
 /*  Returns hash bytes for a stream using desired hashing algorithm.  The function handles the many
@@ -186,12 +149,7 @@ pub(crate) fn hash_asset_by_alg_with_inclusions(
 
     The data is again split into range sets breaking at the exclusion points and now also the markers.
 */
-pub(crate) fn hash_stream_by_alg<R>(
-    alg: &str,
-    data: &mut R,
-    hash_range: Option<Vec<HashRange>>,
-    is_exclusion: bool,
-) -> Result<Vec<u8>>
+pub(crate) fn hash_stream_by_alg<R>(alg: &str, data: &mut R) -> Result<Vec<u8>>
 where
     R: Read + Seek + ?Sized,
 {
@@ -209,84 +167,17 @@ where
         }
     };
 
-    let data_len = data.seek(SeekFrom::End(0))?;
+    let mut data_len = data.seek(SeekFrom::End(0))?;
     data.rewind()?;
 
-    let ranges = match hash_range {
-        Some(mut hr) if !hr.is_empty() => {
-            // hash data skipping excluded regions
-            // sort the exclusions
-            hr.sort_by_key(|a| a.start());
+    while data_len > 0 {
+        let mut chunk = vec![0u8; std::cmp::min(data_len as usize, MAX_HASH_BUF)];
 
-            // verify structure of blocks
-            let num_blocks = hr.len();
-            let range_end = hr[num_blocks - 1].start() + hr[num_blocks - 1].length();
-            let data_end = data_len - 1;
+        data.read_exact(&mut chunk)?;
 
-            // range extends past end of file so fail
-            if data_len < range_end as u64 {
-                return Err(Error::BadParam(
-                    "The exclusion range exceed the data length".to_string(),
-                ));
-            }
+        hasher_enum.update(&chunk);
 
-            if is_exclusion {
-                //build final ranges
-                let mut ranges_vec: Vec<RangeInclusive<u64>> = Vec::new();
-                let mut ranges = RangeSet::<[RangeInclusive<u64>; 1]>::from(0..=data_end);
-                for exclusion in hr {
-                    let end = (exclusion.start() + exclusion.length() - 1) as u64;
-                    let exclusion_start = exclusion.start() as u64;
-                    ranges.remove_range(exclusion_start..=end);
-                }
-
-                for r in ranges.into_smallvec() {
-                    ranges_vec.push(r);
-                }
-                ranges_vec
-            } else {
-                //build final ranges
-                let mut ranges_vec: Vec<RangeInclusive<u64>> = Vec::new();
-                for inclusion in hr {
-                    let end = (inclusion.start() + inclusion.length() - 1) as u64;
-                    let inclusion_start = inclusion.start() as u64;
-
-                    // add inclusion
-                    ranges_vec.push(RangeInclusive::new(inclusion_start, end));
-                }
-                ranges_vec
-            }
-        }
-        _ => {
-            let mut ranges_vec: Vec<RangeInclusive<u64>> = Vec::new();
-            let data_end = data_len - 1;
-            ranges_vec.push(RangeInclusive::new(0_u64, data_end));
-
-            ranges_vec
-        }
-    };
-
-    // hash the data for ranges
-    for r in ranges {
-        let start = r.start();
-        let end = r.end();
-        let mut chunk_left = end - start + 1;
-
-        // move to start of range
-        data.seek(SeekFrom::Start(*start))?;
-
-        loop {
-            let mut chunk = vec![0u8; std::cmp::min(chunk_left as usize, MAX_HASH_BUF)];
-
-            data.read_exact(&mut chunk)?;
-
-            hasher_enum.update(&chunk);
-
-            chunk_left -= chunk.len() as u64;
-            if chunk_left == 0 {
-                break;
-            }
-        }
+        data_len -= chunk.len() as u64;
     }
 
     // return the hash
@@ -294,47 +185,10 @@ where
 }
 
 // verify the hash using the specified algorithm
-pub(crate) fn verify_by_alg(
-    alg: &str,
-    hash: &[u8],
-    data: &[u8],
-    exclusions: Option<Vec<HashRange>>,
-) -> bool {
+pub(crate) fn verify_by_alg(alg: &str, hash: &[u8], data: &[u8]) -> bool {
     // hash with the same algorithm as target
-    let data_hash = hash_by_alg(alg, data, exclusions);
+    let data_hash = hash_by_alg(alg, data);
     vec_compare(hash, &data_hash)
-}
-
-// verify the hash using the specified algorithm
-pub(crate) fn verify_asset_by_alg(
-    alg: &str,
-    hash: &[u8],
-    asset_path: &Path,
-    exclusions: Option<Vec<HashRange>>,
-) -> bool {
-    // hash with the same algorithm as target
-    if let Ok(data_hash) = hash_asset_by_alg(alg, asset_path, exclusions) {
-        vec_compare(hash, &data_hash)
-    } else {
-        false
-    }
-}
-
-pub(crate) fn verify_stream_by_alg<R>(
-    alg: &str,
-    hash: &[u8],
-    reader: &mut R,
-    hash_range: Option<Vec<HashRange>>,
-    is_exclusion: bool,
-) -> bool
-where
-    R: Read + Seek + ?Sized,
-{
-    if let Ok(data_hash) = hash_stream_by_alg(alg, reader, hash_range, is_exclusion) {
-        vec_compare(hash, &data_hash)
-    } else {
-        false
-    }
 }
 
 /// Return a Sha256 hash of array of bytes
@@ -420,5 +274,5 @@ pub(crate) fn concat_and_hash(alg: &str, left: &[u8], right: Option<&[u8]>) -> V
         temp.append(&mut r.to_vec())
     }
 
-    hash_by_alg(alg, &temp, None)
+    hash_by_alg(alg, &temp)
 }
