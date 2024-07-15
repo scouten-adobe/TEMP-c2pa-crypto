@@ -23,7 +23,8 @@ use web_sys::{CryptoKey, SubtleCrypto};
 use x509_parser::der_parser::ber::{parse_ber_sequence, BerObject};
 
 use crate::{
-    utils::hash_utils::hash_by_alg, wasm::context::WindowOrWorker, Error, Result, SigningAlg,
+    wasm::{context::WindowOrWorker, hash_by_alg::hash_by_alg},
+    Error, Result, SigningAlg,
 };
 
 pub struct RsaHashedImportParams {

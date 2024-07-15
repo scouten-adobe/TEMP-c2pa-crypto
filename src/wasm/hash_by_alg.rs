@@ -13,9 +13,7 @@
 
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
-use multibase::{decode, encode};
-use multihash::{wrap, Code, Multihash, Sha1, Sha2_256, Sha2_512, Sha3_256, Sha3_384, Sha3_512};
-use serde::{Deserialize, Serialize};
+use log::warn;
 use sha2::{Digest, Sha256, Sha384, Sha512};
 
 use crate::Result;
