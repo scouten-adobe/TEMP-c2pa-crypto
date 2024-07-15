@@ -130,7 +130,7 @@ fn test_cert_algorithms() {
     let ps256_cert = ps256_signer
         .certs()
         .ok()
-        .and_then(|certs| certs.iter().next().map(|s| s.to_owned()));
+        .and_then(|certs| certs.first().map(|s| s.to_owned()));
 
     if let Some(ps256_cert) = ps256_cert {
         if let Ok(signcert) = openssl::x509::X509::from_pem(&ps256_cert) {
