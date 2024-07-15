@@ -20,7 +20,8 @@ pub unsafe extern "C" fn capture_coverage() {
     const BINARY_NAME: &str = env!("CARGO_PKG_NAME");
     let mut coverage = vec![];
     wasmcov::minicov::capture_coverage(&mut coverage).unwrap();
-    // Invoke a function to preserve the coverage data or use `println!` for debugging.
+    // Invoke a function to preserve the coverage data or use `println!` for
+    // debugging.
 }
 
 #[test]
