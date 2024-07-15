@@ -11,15 +11,11 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(target_arch = "wasm32")]
 pub(crate) mod context;
-#[cfg(target_arch = "wasm32")]
+mod hash_by_alg;
 pub(crate) mod webcrypto_validator;
-#[cfg(target_arch = "wasm32")]
 pub use webcrypto_validator::validate_async;
-#[cfg(target_arch = "wasm32")]
 pub(crate) mod webpki_trust_handler;
 
-#[cfg(target_arch = "wasm32")]
 #[allow(unused_imports)] // TEMPORARY: Figure this out later.
 pub(crate) use webpki_trust_handler::WebTrustHandlerConfig;

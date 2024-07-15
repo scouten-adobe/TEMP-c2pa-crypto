@@ -11,18 +11,12 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use std::io::{Cursor, Read, Seek, SeekFrom};
-
-//use conv::ValueFrom;
-use log::warn;
 // multihash versions
 use multibase::{decode, encode};
 use multihash::{wrap, Code, Multihash, Sha1, Sha2_256, Sha2_512, Sha3_256, Sha3_384, Sha3_512};
 use serde::{Deserialize, Serialize};
 // direct sha functions
 use sha2::{Digest, Sha256, Sha384, Sha512};
-
-use crate::Result;
 
 const MAX_HASH_BUF: usize = 256 * 1024 * 1024; // cap memory usage to 256MB
 
@@ -112,52 +106,6 @@ impl Hasher {
     }
 }
 
-// Return hash bytes for desired hashing algorithm.
-pub(crate) fn hash_by_alg(alg: &str, data: &[u8]) -> Vec<u8> {
-    hash_stream_internal(alg, data).unwrap_or_default()
-}
-
-fn hash_stream_internal(alg: &str, data: &[u8]) -> Result<Vec<u8>> {
-    let mut data = Cursor::new(data);
-
-    use Hasher::*;
-    let mut hasher_enum = match alg {
-        "sha256" => SHA256(Sha256::new()),
-        "sha384" => SHA384(Sha384::new()),
-        "sha512" => SHA512(Sha512::new()),
-        _ => {
-            warn!(
-                "Unsupported hashing algorithm: {}, substituting sha256",
-                alg
-            );
-            SHA256(Sha256::new())
-        }
-    };
-
-    let mut data_len = data.seek(SeekFrom::End(0))?;
-    data.rewind()?;
-
-    while data_len > 0 {
-        let mut chunk = vec![0u8; std::cmp::min(data_len as usize, MAX_HASH_BUF)];
-
-        data.read_exact(&mut chunk)?;
-
-        hasher_enum.update(&chunk);
-
-        data_len -= chunk.len() as u64;
-    }
-
-    // return the hash
-    Ok(Hasher::finalize(hasher_enum))
-}
-
-// verify the hash using the specified algorithm
-pub(crate) fn verify_by_alg(alg: &str, hash: &[u8], data: &[u8]) -> bool {
-    // hash with the same algorithm as target
-    let data_hash = hash_by_alg(alg, data);
-    vec_compare(hash, &data_hash)
-}
-
 /// Return a Sha256 hash of array of bytes
 #[allow(dead_code)]
 pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
@@ -231,15 +179,4 @@ pub(crate) fn hash_as_source(in_hash: &str, data: &[u8]) -> Option<String> {
         }
         Err(_) => None,
     }
-}
-
-// Used by Merkle tree calculations to generate the pair wise hash
-pub(crate) fn concat_and_hash(alg: &str, left: &[u8], right: Option<&[u8]>) -> Vec<u8> {
-    let mut temp = left.to_vec();
-
-    if let Some(r) = right {
-        temp.append(&mut r.to_vec())
-    }
-
-    hash_by_alg(alg, &temp)
 }
