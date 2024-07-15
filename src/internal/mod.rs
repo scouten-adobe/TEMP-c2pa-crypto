@@ -1,4 +1,4 @@
-// Copyright 2022 Adobe. All rights reserved.
+// Copyright 2024 Adobe. All rights reserved.
 // This file is licensed to you under the Apache License,
 // Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 // or the MIT license (http://opensource.org/licenses/MIT),
@@ -11,9 +11,4 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[allow(dead_code)]
-pub(crate) mod hash_utils;
-// shared unit testing utilities
-#[cfg(test)]
-#[allow(dead_code)] // for wasm build
-pub mod test;
+pub(crate) mod base64;

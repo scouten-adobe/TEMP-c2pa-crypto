@@ -60,5 +60,7 @@ pub mod validator; // [scouten 2024-06-27]: Hacking to make public.
 
 pub use cose_validator::{VerifyOcspFetch, VerifyTrustChain};
 
+pub(crate) mod internal;
+
 #[cfg(test)]
 pub(crate) mod tests;

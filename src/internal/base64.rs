@@ -11,9 +11,12 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[allow(dead_code)]
-pub(crate) mod hash_utils;
-// shared unit testing utilities
-#[cfg(test)]
-#[allow(dead_code)] // for wasm build
-pub mod test;
+use base64::{engine::general_purpose, Engine as _};
+
+pub(crate) fn encode(data: &[u8]) -> String {
+    general_purpose::STANDARD.encode(data)
+}
+
+pub(crate) fn decode(data: &str) -> Result<Vec<u8>, base64::DecodeError> {
+    general_purpose::STANDARD.decode(data)
+}

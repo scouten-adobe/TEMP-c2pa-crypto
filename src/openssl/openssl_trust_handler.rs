@@ -21,8 +21,8 @@ use asn1_rs::Oid;
 
 use crate::{
     hash_utils::hash_sha256,
+    internal::base64,
     trust_handler::{load_eku_configuration, TrustHandlerConfig},
-    utils::base64,
     Error, Result,
 };
 

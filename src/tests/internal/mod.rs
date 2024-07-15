@@ -1,4 +1,4 @@
-// Copyright 2022 Adobe. All rights reserved.
+// Copyright 2024 Adobe. All rights reserved.
 // This file is licensed to you under the Apache License,
 // Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 // or the MIT license (http://opensource.org/licenses/MIT),
@@ -11,13 +11,4 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use base64::{engine::general_purpose, Engine as _};
-
-pub(crate) fn encode(data: &[u8]) -> String {
-    general_purpose::STANDARD.encode(data)
-}
-
-#[allow(dead_code)] // TEMPORARY figure this out later
-pub(crate) fn decode(data: &str) -> Result<Vec<u8>, base64::DecodeError> {
-    general_purpose::STANDARD.decode(data)
-}
+mod base64;
