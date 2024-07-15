@@ -99,3 +99,8 @@ web-sys = { version = "0.3.58", features = [
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.31"
+
+[package.metadata.cargo-udeps.ignore]
+normal = [
+	"sha2" # cargo-udeps fails to detect usage in WASM builds
+]
