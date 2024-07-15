@@ -21,6 +21,58 @@ use crate::{
 };
 use crate::{RemoteSigner, Result, Signer, SigningAlg};
 
+pub(crate) struct TestGoodSigner {}
+impl crate::Signer for TestGoodSigner {
+    fn sign(&self, _data: &[u8]) -> Result<Vec<u8>> {
+        Ok(b"not a valid signature".to_vec())
+    }
+
+    fn alg(&self) -> SigningAlg {
+        SigningAlg::Ps256
+    }
+
+    fn certs(&self) -> Result<Vec<Vec<u8>>> {
+        Ok(Vec::new())
+    }
+
+    fn reserve_size(&self) -> usize {
+        1024
+    }
+
+    fn send_timestamp_request(&self, _message: &[u8]) -> Option<crate::error::Result<Vec<u8>>> {
+        Some(Ok(Vec::new()))
+    }
+}
+
+pub(crate) struct AsyncTestGoodSigner {}
+
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+impl crate::AsyncSigner for AsyncTestGoodSigner {
+    async fn sign(&self, _data: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(b"not a valid signature".to_vec())
+    }
+
+    fn alg(&self) -> SigningAlg {
+        SigningAlg::Ps256
+    }
+
+    fn certs(&self) -> Result<Vec<Vec<u8>>> {
+        Ok(Vec::new())
+    }
+
+    fn reserve_size(&self) -> usize {
+        1024
+    }
+
+    async fn send_timestamp_request(
+        &self,
+        _message: &[u8],
+    ) -> Option<crate::error::Result<Vec<u8>>> {
+        Some(Ok(Vec::new()))
+    }
+}
+
 /// Create a [`Signer`] instance that can be used for testing purposes using
 /// ps256 alg.
 ///
