@@ -13,8 +13,6 @@
 
 #![allow(clippy::unwrap_used)]
 
-use std::path::PathBuf;
-
 #[cfg(feature = "openssl_sign")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
@@ -22,93 +20,6 @@ use crate::{
     trust_handler::{TrustHandlerConfig, TrustPassThrough},
 };
 use crate::{RemoteSigner, Result, Signer, SigningAlg};
-
-pub const TEST_WEBP: &str = "mars.webp";
-
-pub const TEST_VC: &str = r#"{
-    "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "http://schema.org"
-    ],
-    "type": [
-    "VerifiableCredential",
-    "NPPACredential"
-    ],
-    "issuer": "https://nppa.org/",
-    "credentialSubject": {
-        "id": "did:nppa:eb1bb9934d9896a374c384521410c7f14",
-        "name": "Bob Ross",
-        "memberOf": "https://nppa.org/"
-    },
-    "proof": {
-        "type": "RsaSignature2018",
-        "created": "2021-06-18T21:19:10Z",
-        "proofPurpose": "assertionMethod",
-        "verificationMethod":
-        "did:nppa:eb1bb9934d9896a374c384521410c7f14#_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A",
-        "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19DJBMvvFAIC00nSGB6Tn0XKbbF9XrsaJZREWvR2aONYTQQxnyXirtXnlewJMBBn2h9hfcGZrvnC1b6PgWmukzFJ1IiH1dWgnDIS81BH-IxXnPkbuYDeySorc4QU9MJxdVkY5EL4HYbcIfwKj6X4LBQ2_ZHZIu1jdqLcRZqHcsDF5KKylKc1THn5VRWy5WhYg_gBnyWny8E6Qkrze53MR7OuAmmNJ1m1nN8SxDrG6a08L78J0-Fbas5OjAQz3c17GY8mVuDPOBIOVjMEghBlgl3nOi1ysxbRGhHLEK4s0KKbeRogZdgt1DkQxDFxxn41QWDw_mmMCjs9qxg0zcZzqEJw"
-    }
-}"#;
-
-/// returns a path to a file in the fixtures folder
-pub fn fixture_path(file_name: &str) -> PathBuf {
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("src/tests/fixtures");
-    path.push(file_name);
-    path
-}
-
-pub(crate) struct TestGoodSigner {}
-impl crate::Signer for TestGoodSigner {
-    fn sign(&self, _data: &[u8]) -> Result<Vec<u8>> {
-        Ok(b"not a valid signature".to_vec())
-    }
-
-    fn alg(&self) -> SigningAlg {
-        SigningAlg::Ps256
-    }
-
-    fn certs(&self) -> Result<Vec<Vec<u8>>> {
-        Ok(Vec::new())
-    }
-
-    fn reserve_size(&self) -> usize {
-        1024
-    }
-
-    fn send_timestamp_request(&self, _message: &[u8]) -> Option<crate::error::Result<Vec<u8>>> {
-        Some(Ok(Vec::new()))
-    }
-}
-
-pub(crate) struct AsyncTestGoodSigner {}
-
-#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
-impl crate::AsyncSigner for AsyncTestGoodSigner {
-    async fn sign(&self, _data: Vec<u8>) -> Result<Vec<u8>> {
-        Ok(b"not a valid signature".to_vec())
-    }
-
-    fn alg(&self) -> SigningAlg {
-        SigningAlg::Ps256
-    }
-
-    fn certs(&self) -> Result<Vec<Vec<u8>>> {
-        Ok(Vec::new())
-    }
-
-    fn reserve_size(&self) -> usize {
-        1024
-    }
-
-    async fn send_timestamp_request(
-        &self,
-        _message: &[u8],
-    ) -> Option<crate::error::Result<Vec<u8>>> {
-        Some(Ok(Vec::new()))
-    }
-}
 
 /// Create a [`Signer`] instance that can be used for testing purposes using
 /// ps256 alg.
