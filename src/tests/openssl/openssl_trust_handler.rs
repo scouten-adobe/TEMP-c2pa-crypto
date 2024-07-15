@@ -97,12 +97,10 @@ fn test_allowed_list() {
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
 
-    let mut allowed_list_path = crate::utils::test::fixture_path("allow_list");
-    allowed_list_path = allowed_list_path.join("allowed_list.pem");
+    let allowed_list = include_bytes!("../fixtures/allow_list/allowed_list.pem").to_vec();
 
-    let mut allowed_list = std::fs::File::open(&allowed_list_path).unwrap();
-
-    th.load_allowed_list(&mut allowed_list).unwrap();
+    let mut cursor = Cursor::new(&allowed_list);
+    th.load_allowed_list(&mut cursor).unwrap();
 
     // test all the certs
     let ps256 = temp_signer::get_rsa_signer(SigningAlg::Ps256, None);
@@ -135,12 +133,12 @@ fn test_allowed_list_hashes() {
     let mut th = OpenSSLTrustHandlerConfig::new();
     th.clear();
 
-    let mut allowed_list_path = crate::utils::test::fixture_path("allow_list");
-    allowed_list_path = allowed_list_path.join("allowed_list.hash");
+    let allowed_list = include_bytes!("../fixtures/allow_list/allowed_list.hash").to_vec();
 
-    let mut allowed_list = std::fs::File::open(&allowed_list_path).unwrap();
+    let mut cursor = Cursor::new(&allowed_list);
+    th.load_allowed_list(&mut cursor).unwrap();
 
-    th.load_allowed_list(&mut allowed_list).unwrap();
+    th.load_allowed_list(&mut cursor).unwrap();
 
     // test all the certs
     let ps256 = temp_signer::get_rsa_signer(SigningAlg::Ps256, None);
