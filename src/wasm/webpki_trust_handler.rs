@@ -28,10 +28,10 @@ use crate::{
     cose_validator::*,
     error::{Error, Result},
     hash_utils::{hash_sha256, vec_compare},
+    internal::base64,
     trust_handler::{
         has_allowed_oid, load_eku_configuration, load_trust_from_data, TrustHandlerConfig,
     },
-    utils::base64,
     wasm::webcrypto_validator::async_validate,
     SigningAlg,
 };

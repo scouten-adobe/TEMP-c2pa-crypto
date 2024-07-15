@@ -13,6 +13,8 @@
 
 #![allow(clippy::unwrap_used)]
 
+#[cfg(target_arch = "wasm32")]
+use crate::internal::base64;
 #[cfg(feature = "openssl_sign")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
@@ -176,13 +178,13 @@ impl WebCryptoSigner {
             .replace("\n", "")
             .replace(START_KEY, "")
             .replace(END_KEY, "");
-        let key = crate::utils::base64::decode(&key).unwrap();
+        let key = base64::decode(&key).unwrap();
 
         let certs = cert
             .replace("\n", "")
             .replace(START_CERTIFICATE, "")
             .split(END_CERTIFICATE)
-            .map(|x| crate::utils::base64::decode(x).unwrap())
+            .map(|x| base64::decode(x).unwrap())
             .collect();
 
         Self {
