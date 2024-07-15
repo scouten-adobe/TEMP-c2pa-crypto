@@ -114,45 +114,12 @@ impl Hasher {
 
 // Return hash bytes for desired hashing algorithm.
 pub(crate) fn hash_by_alg(alg: &str, data: &[u8]) -> Vec<u8> {
-    let mut reader = Cursor::new(data);
-
-    hash_stream_by_alg(alg, &mut reader).unwrap_or_default()
+    hash_stream_internal(alg, data).unwrap_or_default()
 }
 
-/*  Returns hash bytes for a stream using desired hashing algorithm.  The function handles the many
-    possible hash requirements of C2PA.  The function accepts a source stream 'data', an optional
-    set of hash ranges 'hash_range' and a boolean to indicate whether the hash range is an exclusion
-    or inclusion set of hash ranges.
+fn hash_stream_internal(alg: &str, data: &[u8]) -> Result<Vec<u8>> {
+    let mut data = Cursor::new(data);
 
-    The basic case is to hash a stream without hash ranges:
-    The data represents a single contiguous stream of bytes to be hash where D are data bytes
-
-    to_be_hashed: [DDDDDDDDD...DDDDDDDDDD]
-
-    The data is then chunked and hashed in groups to reduce memory
-    footprint and increase performance.
-
-    The most common case for C2PA is the use of an exclusion hash.  In this case the 'hash_range' indicate
-    which byte ranges should be excluded shown here depicted with I for included bytes and  X for excluded bytes
-
-    to_be_hashed: [IIIIXXXIIIIXXXXXIIIXXIII...IIII]
-
-    In this case the data is split into a set of ranges covering the included bytes.  The set of ranged bytes
-    are then chunked and hashed just like the default case.
-
-    The opposite of this is when 'is_exclusion' is set to false indicating the 'hash_ranges' represent the bytes
-    to include in the hash. Here are the bytes in 'data' are excluded except those explicitly referenced.
-
-    to_be_hashed: [XXXXXXIIIIXXXXXIIXXXX...XXXX]
-
-    Again a set of ranged bytes are created and hashed as described above.
-
-    The data is again split into range sets breaking at the exclusion points and now also the markers.
-*/
-pub(crate) fn hash_stream_by_alg<R>(alg: &str, data: &mut R) -> Result<Vec<u8>>
-where
-    R: Read + Seek + ?Sized,
-{
     use Hasher::*;
     let mut hasher_enum = match alg {
         "sha256" => SHA256(Sha256::new()),
