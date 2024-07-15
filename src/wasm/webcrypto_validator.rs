@@ -238,7 +238,7 @@ pub(crate) async fn async_validate(
             // We need to normalize this from SHA-256 (the format WebCrypto uses) to sha256
             // (the format the util function expects) so that it maps correctly
             let normalized_hash = hash.clone().replace("-", "").to_lowercase();
-            let hashed_data = hash_by_alg(&normalized_hash, &data, None);
+            let hashed_data = hash_by_alg(&normalized_hash, &data);
             let modulus = biguint_val(&seq[0]);
             let exp = biguint_val(&seq[1]);
             let public_key = RsaPublicKey::new(modulus, exp)
