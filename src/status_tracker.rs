@@ -195,6 +195,7 @@ impl StatusTracker for OneShotStatusTracker {
     }
 }
 
+#[cfg(test)] // TO DO: Delete or move to test code
 pub(crate) fn report_split_errors(report: &mut Vec<LogItem>) -> Vec<LogItem> {
     let mut output: Vec<LogItem> = Vec::new();
 
