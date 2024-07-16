@@ -24,21 +24,6 @@ pub(crate) fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
        .all(|(a,b)| a == b)
 }
 
-/// Generate hash of type hash_type for supplied data array.  The
-/// hash_type are those specified in the multihash specification.  Currently
-/// we only support Sha2-256/512 or Sha2-256/512.
-/// Returns hash or None if incompatible type
-pub(crate) fn hash_by_type(hash_type: u8, data: &[u8]) -> Option<Multihash> {
-    match hash_type {
-        0x12 => Some(Sha2_256::digest(data)),
-        0x13 => Some(Sha2_512::digest(data)),
-        0x14 => Some(Sha3_512::digest(data)),
-        0x15 => Some(Sha3_384::digest(data)),
-        0x16 => Some(Sha3_256::digest(data)),
-        _ => None,
-    }
-}
-
 /// Return a Sha256 hash of array of bytes
 #[allow(dead_code)]
 pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
