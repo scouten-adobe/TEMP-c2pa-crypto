@@ -91,27 +91,8 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Install WASM target
-        run: rustup +nightly target add wasm32-unknown-unknown
-
-      - name: Install wasmcov
-        run: cargo install wasmcov
-
-      - name: Build for coverrage
-        run: cargo wasmcov build -- --all --target wasm32-unknown-unknown --release
-
       - name: Run Wasm tests
-        run: cargo wasmcov test
-
-      - name: Generate coverage report
-        run: cargo wasmcov report
-
-      - name: Upload code coverage results
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          verbose: true
+        run: wasm-pack test --chrome --headless
 
   test-direct-minimal-versions:
     name: Unit tests with minimum versions of direct dependencies

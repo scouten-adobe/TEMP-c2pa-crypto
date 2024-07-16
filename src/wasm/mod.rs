@@ -18,5 +18,4 @@ pub use webcrypto_validator::validate_async;
 pub(crate) mod webpki_trust_handler;
 
 #[allow(unused_imports)] // TEMPORARY: Figure this out later.
-#[allow(dead_code)] // TEMPORARY: Figure this out later.
 pub(crate) use webpki_trust_handler::WebTrustHandlerConfig;
