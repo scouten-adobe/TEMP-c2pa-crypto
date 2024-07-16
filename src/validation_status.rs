@@ -69,4 +69,3 @@ pub const TIMESTAMP_OUTSIDE_VALIDITY: &str = "timeStamp.outsideValidity";
 ///
 /// `ValidationStatus.url()` will point to a C2PA claim box or C2PA assertion.
 pub const ALGORITHM_UNSUPPORTED: &str = "algorithm.unsupported";
-
