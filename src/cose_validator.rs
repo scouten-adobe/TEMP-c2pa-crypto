@@ -826,10 +826,7 @@ fn get_timestamp_info(sign1: &coset::CoseSign1, data: &[u8]) -> Result<TstInfo> 
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum VerifyTrustChain {
-    Verify,
-    DontVerify,
-}
+pub struct VerifyTrustChain(pub bool);
 
 #[async_generic(async_signature(
     th: &dyn TrustHandlerConfig,
@@ -846,7 +843,7 @@ fn check_trust(
     validation_log: &mut impl StatusTracker,
     verify_trust_chain: VerifyTrustChain,
 ) -> Result<()> {
-    if verify_trust_chain == VerifyTrustChain::DontVerify {
+    if !verify_trust_chain.0 {
         return Ok(());
     }
 
