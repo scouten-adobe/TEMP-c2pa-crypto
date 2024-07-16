@@ -1,23 +1,8 @@
-# C2PA Rust library
+# C2PA Cryptography implementation
 
-[![CI](https://github.com/contentauth/c2pa-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/contentauth/c2pa-rs/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/c2pa.svg)](https://crates.io/crates/c2pa) [![docs.rs](https://img.shields.io/docsrs/c2pa)](https://docs.rs/c2pa/) [![codecov](https://codecov.io/gh/contentauth/c2pa-rs/branch/main/graph/badge.svg?token=YVHWI19EGN)](https://codecov.io/gh/contentauth/c2pa-rs)
+[![CI](https://github.com/contentauth/c2pa-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/contentauth/c2pa-crypto/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/c2pa-crypto.svg)](https://crates.io/crates/c2pa-crypto) [![docs.rs](https://img.shields.io/docsrs/c2pa-crypto)](https://docs.rs/c2pa-crypto/) [![codecov](https://codecov.io/gh/contentauth/c2pa-crypto/branch/main/graph/badge.svg?token=YVHWI19EGN)](https://codecov.io/gh/contentauth/c2pa-crypto)
 
-<div style={{display: 'none'}}>
-
-The **[Coalition for Content Provenance and Authenticity](https://c2pa.org)** (C2PA) addresses the prevalence of misleading information online through the development of technical standards for certifying the source and history (or provenance) of media content. Adobe and other contributors created the C2PA Rust library as part of the [Content Authenticity Initiative](https://contentauthenticity.org) and [released it to open source](https://contentauthenticity.org/blog/cai-releases-suite-of-open-source-tools-to-advance-digital-content-provenance) in June, 2022.
-
-</div>
-
-## Key features
-
-The C2PA Rust library (previously referred to as the "Rust SDK") implements a subset of the [C2PA technical specification](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html).
-
-The library enables a desktop, mobile, or embedded application to:
-* Create and sign C2PA [claims](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html#_claims) and [manifests](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html#_manifests).
-* Embed manifests in certain file formats.
-* Parse and validate manifests found in certain file formats.
-
-The library supports several common C2PA [assertions](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html#_c2pa_standard_assertions) and [hard bindings](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html#_hard_bindings).
+TO DO: New README for c2pa-crypto
 
 ## State of the project
 
@@ -40,50 +25,28 @@ The library has been tested on the following operating systems:
 * Ubuntu Linux (64-bit Intel and ARM v8)
 * WebAssembly (Wasm)
 
-## Supported file formats
-
- | Extensions    | MIME type                                           |
- | ------------- | --------------------------------------------------- |
- | `c2pa`        | `application/x-c2pa-manifest-store`                 |
- | `jpg`, `jpeg` | `image/jpeg`                                        |
- | `mov`         | `video/quicktime`                                   |
-
-## Usage
-
-Add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-c2pa = "0.32.5"
-```
-
 ## Crate features
 
 The Rust library crate provides:
 
-* `psxxx_ocsp_stapling_experimental` this is an demonstration feature that will attempt to fetch the OCSP data from the OCSP responders listed in the manifest signing certificate.  The response becomes part of the manifest and is used to prove the certificate was not revoked at the time of signing.  This is only implemented for PS256, PS384 and PS512 signatures and is intended as a demonstration.
-
-
-## Example code
-
-The [sdk/examples](https://github.com/contentauth/c2pa-rs/tree/main/sdk/examples) directory contains some minimal example code.  The [client/client.rs](https://github.com/contentauth/c2pa-rs/blob/main/sdk/examples/client/client.rs) is the most instructive and provides and example of reading the contents of a manifest store, recursively displaying nested manifests.
+* `psxxx_ocsp_stapling_experimental` this is an demonstration feature that will attempt to fetch the OCSP data from the OCSP responders listed in the manifest signing certificate. The response becomes part of the manifest and is used to prove the certificate was not revoked at the time of signing. This is only implemented for PS256, PS384 and PS512 signatures and is intended as a demonstration.
 
 ## License
 
-The `c2pa` crate is distributed under the terms of both the [MIT license](https://github.com/contentauth/c2pa-rs/blob/main/LICENSE-MIT) and the [Apache License (Version 2.0)](https://github.com/contentauth/c2pa-rs/blob/main/LICENSE-APACHE).
+The `c2pa-crypto` crate is distributed under the terms of both the [MIT license](https://github.com/contentauth/c2pa-rs/blob/main/LICENSE-MIT) and the [Apache License (Version 2.0)](https://github.com/contentauth/c2pa-rs/blob/main/LICENSE-APACHE).
 
 Some components and dependent crates are licensed under different terms; please check the license terms for each crate and component for details.
 
 ## Nightly builds
 
-In most cases, you should depend on this crate as published via [crates.io](https://crates.io/crates/c2pa).
+In most cases, you should depend on this crate as published via [crates.io](https://crates.io/crates/c2pa-crypto).
 
 The Adobe team produces nightly snapshots of this crate via a `nightly` branch, which we use for testing the impact of pending changes to upstream dependencies.
 
 You may wish to use these builds for your own testing ahead of our releases, you may include the library via the following `Cargo.toml` entry:
 
 ```toml
-c2pa = { git = "https://github.com/contentauth/c2pa-rs.git", branch = "nightly", features = [...]}
+c2pa-crypto = { git = "https://github.com/contentauth/c2pa-crypto.git", branch = "nightly", features = [...]}
 ```
 
 Commits in this branch have a modified `sdk/Cargo.toml` entry which includes a version number similar to the following:
@@ -96,5 +59,4 @@ Please note that there is no formal support for code from a nightly release, but
 
 ## Changelog
 
-Refer to the [CHANGELOG](https://github.com/contentauth/c2pa-rs/blob/main/CHANGELOG.md) for detailed changes derived from Git commit history.
-
+Refer to the [CHANGELOG](https://github.com/contentauth/c2pa-crypto/blob/main/CHANGELOG.md) for detailed changes derived from Git commit history.

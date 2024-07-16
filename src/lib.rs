@@ -19,14 +19,6 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg, doc_cfg_hide))]
 
-//! This library supports reading, creating and embedding C2PA data
-//! with a variety of asset types.
-//!
-//! We have a new experimental Builder/Reader API that will eventually replace
-//! the existing methods of reading and writing C2PA data.
-//! The new API focuses on stream support and can do more with fewer methods.
-//! It will be supported in all language bindings and build environments.
-
 // Public modules
 pub mod cose_sign;
 #[cfg(feature = "openssl_sign")]
@@ -34,11 +26,6 @@ pub mod create_signer;
 pub mod validation_status;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-
-// Public exports
-pub use error::{Error, Result};
-pub use signer::{AsyncSigner, RemoteSigner, Signer};
-pub use signing_alg::SigningAlg;
 
 pub mod cose_validator; // [scouten 2024-06-27]: Hacking to make public.
 pub(crate) mod error;
@@ -50,12 +37,16 @@ pub(crate) mod signing_alg;
 pub mod status_tracker; // [scouten 2024-06-27]: Hacking to make this public.
                         // pub(crate) mod store;
 pub(crate) mod time_stamp;
-pub mod trust_handler; // [scouten 2024-06-27]: Hacking to make public.
+pub(crate) mod trust_handler;
 pub mod validator; // [scouten 2024-06-27]: Hacking to make public.
-
-pub use cose_validator::{VerifyOcspFetch, VerifyTrustChain};
 
 pub(crate) mod internal;
 
 #[cfg(test)]
 pub(crate) mod tests;
+
+pub use cose_validator::{VerifyOcspFetch, VerifyTrustChain};
+pub use error::{Error, Result};
+pub use signer::{AsyncSigner, RemoteSigner, Signer};
+pub use signing_alg::SigningAlg;
+pub use trust_handler::{TrustHandlerConfig, TrustPassThrough};
