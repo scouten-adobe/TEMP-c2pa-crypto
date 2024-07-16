@@ -693,10 +693,7 @@ fn get_ocsp_der(sign1: &coset::CoseSign1) -> Option<Vec<u8>> {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum VerifyOcspFetch {
-    VerifyOcspFetch,
-    DontVerifyOcspFetch,
-}
+pub struct VerifyOcspFetch(pub bool);
 
 #[allow(unused_variables)] // verify_ocsp_fetch not used in WASM builds
 pub(crate) fn check_ocsp_status(
@@ -734,7 +731,7 @@ pub(crate) fn check_ocsp_status(
     } else {
         #[cfg(not(target_arch = "wasm32"))]
         {
-            if verify_ocsp_fetch == VerifyOcspFetch::VerifyOcspFetch {
+            if verify_ocsp_fetch.0 {
                 // get the cert chain
                 let certs = get_sign_certs(&sign1)?;
 
