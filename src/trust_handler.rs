@@ -107,9 +107,13 @@ pub(crate) fn has_allowed_oid<'a>(
     None
 }
 
-// load set of validation EKUs, ignoring unrecognized Oid lines
-#[allow(dead_code)]
-pub(crate) fn load_eku_configuration(config_data: &mut dyn Read) -> Result<Vec<String>> {
+/// Load set of validation EKUs.
+///
+/// This function will read an input source that contains lines of text
+/// and extract those lines that contain valid OIDs.
+pub(crate) fn load_eku_configuration(
+    config_data: &mut dyn Read,
+) -> std::result::Result<Vec<String>, std::io::Error> {
     let mut oid_vec = Vec::new();
 
     for line in read_to_string(config_data)?.lines() {
