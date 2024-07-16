@@ -287,7 +287,6 @@ pub fn default_rfc3161_request(
     data: &[u8],
     message: &[u8],
 ) -> Result<Vec<u8>> {
-    use crate::internal::asn1::rfc3161::TimeStampReq;
     let request = Constructed::decode(
         bcder::decode::SliceSource::new(data),
         bcder::Mode::Der,
