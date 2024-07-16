@@ -11,6 +11,8 @@
 // specific language governing permissions and limitations under
 // each license.
 
+#![allow(dead_code)] // TEMPORARY: figure this out later
+
 // multihash versions
 use multihash::{Sha1, Sha2_256};
 

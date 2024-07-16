@@ -27,8 +27,10 @@ use x509_parser::{
 use crate::{
     cose_validator::*,
     error::{Error, Result},
-    hash_utils::{hash_sha256, vec_compare},
-    internal::base64,
+    internal::{
+        base64,
+        hash_utils::{hash_sha256, vec_compare},
+    },
     trust_handler::{
         has_allowed_oid, load_eku_configuration, load_trust_from_data, TrustHandlerConfig,
     },

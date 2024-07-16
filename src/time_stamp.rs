@@ -21,12 +21,14 @@ use x509_certificate::DigestAlgorithm::{self};
 /// using the specified Time Authority
 use crate::error::{Error, Result};
 use crate::{
-    hash_utils::vec_compare,
-    internal::asn1::{
-        rfc3161::{
-            MessageImprint, TimeStampReq, TimeStampResp, TstInfo, OID_CONTENT_TYPE_TST_INFO,
+    internal::{
+        asn1::{
+            rfc3161::{
+                MessageImprint, TimeStampReq, TimeStampResp, TstInfo, OID_CONTENT_TYPE_TST_INFO,
+            },
+            rfc5652::{CertificateChoices::Certificate, SignedData, OID_ID_SIGNED_DATA},
         },
-        rfc5652::{CertificateChoices::Certificate, SignedData, OID_ID_SIGNED_DATA},
+        hash_utils::vec_compare,
     },
     AsyncSigner, Signer,
 };

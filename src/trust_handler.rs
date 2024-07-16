@@ -20,7 +20,10 @@ use std::{
 
 use asn1_rs::{oid, Oid};
 
-use crate::{hash_utils::hash_sha256, internal::base64, Error, Result};
+use crate::{
+    internal::{base64, hash_utils::hash_sha256},
+    Error, Result,
+};
 
 pub(crate) static EMAIL_PROTECTION_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .4);
 pub(crate) static TIMESTAMPING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .8);

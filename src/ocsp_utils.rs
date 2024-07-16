@@ -124,8 +124,9 @@ pub(crate) fn fetch_ocsp_response(certs: &[Vec<u8>]) -> Option<Vec<u8>> {
                 .as_raw_slice();
 
             let issuer_name_hash =
-                OctetString::from(crate::hash_utils::hash_sha1(&issuer_name_raw));
-            let issuer_key_hash = OctetString::from(crate::hash_utils::hash_sha1(issuer_key_raw));
+                OctetString::from(crate::internal::hash_utils::hash_sha1(&issuer_name_raw));
+            let issuer_key_hash =
+                OctetString::from(crate::internal::hash_utils::hash_sha1(issuer_key_raw));
             let serial_number = subject.tbs_certificate.serial_number;
 
             // build request structures

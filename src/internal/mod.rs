@@ -13,3 +13,4 @@
 
 pub(crate) mod asn1;
 pub(crate) mod base64;
+pub(crate) mod hash_utils;
