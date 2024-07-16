@@ -107,10 +107,11 @@ pub(crate) fn has_allowed_oid<'a>(
     None
 }
 
-/// Load set of validation EKUs.
+/// Load validation EKUs from an input source.
 ///
-/// This function will read an input source that contains lines of text
-/// and extract those lines that contain valid OIDs.
+/// The input source should contain lines of text with one OID per line.
+///
+/// This function will ignore any lines that do not contain valid OIDs.
 pub(crate) fn load_eku_configuration(
     config_data: &mut dyn Read,
 ) -> std::result::Result<Vec<String>, std::io::Error> {
@@ -121,6 +122,16 @@ pub(crate) fn load_eku_configuration(
         .collect())
 }
 
+/// Load trust anchors from a byte slice.
+///
+/// The byte slice should be a UTF-8 text file containing zero or more valid
+/// certificates in PEM format.
+///
+/// This function will ignore all text outside of the `---- BEGIN CERTIFICATE
+/// ----` / `---- END CERTIFICATE ----` line pairs.
+///
+/// This function will return [`Error::CoseInvalidCert`] if any certificate can
+/// not be parsed.
 pub(crate) fn load_trust_from_data(trust_data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut certs = Vec::new();
 
