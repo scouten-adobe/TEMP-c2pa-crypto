@@ -4,6 +4,8 @@
 
 /*! Holds Rust struct definitions for various ASN.1 primitives. */
 
+#![allow(dead_code, clippy::enum_variant_names)]
+
 // This code is copied from a subset of version 0.22.0 of the
 // cryptographic-message-syntax crate located at:
 // https://github.com/indygreg/cryptography-rs/tree/main/cryptographic-message-syntax/src/asn1

@@ -15,17 +15,12 @@ use x509_certificate::{
     rfc5280::{AlgorithmIdentifier, Extensions},
 };
 
-use crate::asn1::{rfc4210::PkiFreeText, rfc5652::ContentInfo};
+use crate::internal::asn1::{rfc4210::PkiFreeText, rfc5652::ContentInfo};
 
 /// Content-Type for Time-Stamp Token Info.
 ///
 /// 1.2.840.113549.1.9.16.1.4
 pub const OID_CONTENT_TYPE_TST_INFO: ConstOid = Oid(&[42, 134, 72, 134, 247, 13, 1, 9, 16, 1, 4]);
-
-/// id-aa-timeStampToken
-///
-/// 1.2.840.113549.1.9.16.2.14
-pub const OID_TIME_STAMP_TOKEN: ConstOid = Oid(&[42, 134, 72, 134, 247, 13, 1, 9, 16, 2, 14]);
 
 /// A time-stamp request.
 ///

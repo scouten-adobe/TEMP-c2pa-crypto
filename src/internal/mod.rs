@@ -11,4 +11,5 @@
 // specific language governing permissions and limitations under
 // each license.
 
+pub(crate) mod asn1;
 pub(crate) mod base64;

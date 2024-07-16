@@ -26,7 +26,7 @@ use bcder::{
 };
 use x509_certificate::{asn1time::*, rfc3280::*, rfc5280::*, rfc5652::*};
 
-use crate::asn1::rfc3281::AttributeCertificate;
+use crate::internal::asn1::rfc3281::AttributeCertificate;
 
 /// The data content type.
 ///

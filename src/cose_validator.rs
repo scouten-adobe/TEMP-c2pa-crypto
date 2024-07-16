@@ -35,8 +35,8 @@ use crate::openssl::verify_trust;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::validator::{get_validator, CoseValidator};
 use crate::{
-    asn1::rfc3161::TstInfo,
     error::{Error, Result},
+    internal::asn1::rfc3161::TstInfo,
     ocsp_utils::{check_ocsp_response, OcspData},
     status_tracker::{log_item, StatusTracker},
     time_stamp::gt_to_datetime,
