@@ -21,7 +21,7 @@
 
 // Public modules
 pub mod cose_sign;
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 pub mod create_signer;
 pub mod validation_status;
 #[cfg(target_arch = "wasm32")]

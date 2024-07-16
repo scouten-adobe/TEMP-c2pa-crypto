@@ -51,7 +51,7 @@ mod load_eku_configuration {
     }
 }
 
-#[cfg(feature = "openssl_sign")] // TEMPORARY until temp_signer is generic
+#[cfg(feature = "openssl")] // TEMPORARY until temp_signer is generic
 mod load_trust_from_data {
     use crate::{
         openssl::temp_signer, trust_handler::load_trust_from_data, Error, Signer, SigningAlg,

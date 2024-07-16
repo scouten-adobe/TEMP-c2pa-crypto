@@ -15,7 +15,7 @@
 
 #[cfg(target_arch = "wasm32")]
 use crate::internal::base64;
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
     signer::ConfigurableSigner,
@@ -83,7 +83,7 @@ impl crate::AsyncSigner for AsyncTestGoodSigner {
 /// Returns a boxed [`Signer`] instance.
 #[cfg(test)]
 pub(crate) fn temp_signer() -> Box<dyn Signer> {
-    #[cfg(feature = "openssl_sign")]
+    #[cfg(feature = "openssl")]
     {
         #![allow(clippy::expect_used)]
         let sign_cert = include_bytes!("../tests/fixtures/test_certs/ps256.pub").to_vec();
@@ -97,15 +97,15 @@ pub(crate) fn temp_signer() -> Box<dyn Signer> {
     }
 
     // todo: the will be a RustTLS signer shortly
-    #[cfg(not(feature = "openssl_sign"))]
+    #[cfg(not(feature = "openssl"))]
     {
         Box::new(TestGoodSigner {})
     }
 }
 
-#[cfg(any(target_arch = "wasm32", feature = "openssl_sign"))]
+#[cfg(any(target_arch = "wasm32", feature = "openssl"))]
 pub fn temp_async_signer() -> Box<dyn crate::signer::AsyncSigner> {
-    #[cfg(feature = "openssl_sign")]
+    #[cfg(feature = "openssl")]
     {
         Box::new(AsyncSignerAdapter::new(SigningAlg::Es256))
     }
@@ -125,7 +125,7 @@ struct TempRemoteSigner {}
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 impl crate::signer::RemoteSigner for TempRemoteSigner {
     async fn sign_remote(&self, claim_bytes: &[u8]) -> crate::error::Result<Vec<u8>> {
-        #[cfg(feature = "openssl_sign")]
+        #[cfg(feature = "openssl")]
         {
             let signer =
                 crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
@@ -136,7 +136,7 @@ impl crate::signer::RemoteSigner for TempRemoteSigner {
             crate::cose_sign::cose_sign_async(&signer, claim_bytes, Some(self.reserve_size()), &tp)
                 .await
         }
-        #[cfg(not(feature = "openssl_sign"))]
+        #[cfg(not(feature = "openssl"))]
         {
             use std::io::{Seek, Write};
 
@@ -274,7 +274,7 @@ struct TempAsyncRemoteSigner {
 impl crate::signer::AsyncSigner for TempAsyncRemoteSigner {
     // this will not be called but requires an implementation
     async fn sign(&self, claim_bytes: Vec<u8>) -> Result<Vec<u8>> {
-        #[cfg(feature = "openssl_sign")]
+        #[cfg(feature = "openssl")]
         {
             let signer =
                 crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
@@ -285,7 +285,7 @@ impl crate::signer::AsyncSigner for TempAsyncRemoteSigner {
             crate::cose_sign::cose_sign_async(&signer, &claim_bytes, Some(self.reserve_size()), &tp)
                 .await
         }
-        #[cfg(not(feature = "openssl_sign"))]
+        #[cfg(not(feature = "openssl"))]
         {
             use std::io::{Seek, Write};
 

@@ -19,10 +19,10 @@
 //! the asynchronous signing of claims.
 //! This module should be used only for testing purposes.
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 use crate::SigningAlg;
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 fn get_local_signer(alg: SigningAlg) -> Box<dyn crate::Signer> {
     match alg {
         SigningAlg::Ps256 | SigningAlg::Ps384 | SigningAlg::Ps512 => {
@@ -40,7 +40,7 @@ fn get_local_signer(alg: SigningAlg) -> Box<dyn crate::Signer> {
     }
 }
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 pub struct AsyncSignerAdapter {
     alg: SigningAlg,
     certs: Vec<Vec<u8>>,
@@ -49,7 +49,7 @@ pub struct AsyncSignerAdapter {
     ocsp_val: Option<Vec<u8>>,
 }
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 impl AsyncSignerAdapter {
     pub fn new(alg: SigningAlg) -> Self {
         let signer = get_local_signer(alg);
@@ -65,7 +65,7 @@ impl AsyncSignerAdapter {
 }
 
 #[cfg(test)]
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 #[async_trait::async_trait]
 impl crate::AsyncSigner for AsyncSignerAdapter {
     async fn sign(&self, data: Vec<u8>) -> crate::error::Result<Vec<u8>> {

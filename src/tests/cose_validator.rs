@@ -11,7 +11,7 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#![cfg(feature = "openssl_sign")] // TO DO: Can we remove this?
+#![cfg(feature = "openssl")] // TO DO: Can we remove this?
 
 use crate::{
     cose_validator::check_cert,
@@ -100,7 +100,7 @@ fn test_verify_cose_bad() {
 }
 
 #[test]
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 fn test_cert_algorithms() {
     let th = crate::openssl::OpenSSLTrustHandlerConfig::new();
 
@@ -167,7 +167,7 @@ fn test_no_timestamp() {
 
 /* TODO [scouten 2024-07-13]: Restore this w/o Claim.
 #[test]
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 fn test_stapled_ocsp() {
     let mut validation_log = DetailedStatusTracker::new();
 

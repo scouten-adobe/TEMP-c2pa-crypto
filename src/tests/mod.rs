@@ -22,7 +22,7 @@ mod cose_sign;
 mod cose_validator;
 mod ocsp_utils;
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 mod openssl;
 
 mod signing_alg;

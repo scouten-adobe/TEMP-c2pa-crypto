@@ -11,9 +11,9 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 mod rsa_signer;
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 pub(crate) use rsa_signer::RsaSigner;
 
 #[cfg(feature = "openssl")]
@@ -21,9 +21,9 @@ mod rsa_validator;
 #[cfg(feature = "openssl")]
 pub(crate) use rsa_validator::RsaValidator;
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 mod ec_signer;
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 pub(crate) use ec_signer::EcSigner;
 
 #[cfg(feature = "openssl")]
@@ -31,9 +31,9 @@ mod ec_validator;
 #[cfg(feature = "openssl")]
 pub(crate) use ec_validator::EcValidator;
 
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 mod ed_signer;
-#[cfg(feature = "openssl_sign")]
+#[cfg(feature = "openssl")]
 pub(crate) use ed_signer::EdSigner;
 
 #[cfg(feature = "openssl")]
