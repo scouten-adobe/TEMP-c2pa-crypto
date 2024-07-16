@@ -401,7 +401,7 @@ pub(crate) fn check_cert(
                 return Err(Error::CoseInvalidCert);
             }
 
-            if has_allowed_oid(eku, &th.get_auxillary_ekus()).is_none() {
+            if has_allowed_oid(eku, &th.get_auxiliary_ekus()).is_none() {
                 let log_item = log_item!(
                     "Cose_Sign1",
                     "certificate missing required EKU",

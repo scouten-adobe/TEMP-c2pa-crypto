@@ -73,8 +73,8 @@ pub trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
     // load EKU configuration
     fn load_configuration(&mut self, config_data: &mut dyn Read) -> Result<()>;
 
-    // list off auxillary allowed EKU Oid
-    fn get_auxillary_ekus(&self) -> Vec<Oid>;
+    // list off auxiliary allowed EKU Oid
+    fn get_auxiliary_ekus(&self) -> Vec<Oid>;
 
     // list of all anchors
     fn get_anchors(&self) -> Vec<Vec<u8>>;
@@ -194,8 +194,8 @@ impl TrustHandlerConfig for TrustPassThrough {
         Ok(())
     }
 
-    // list off auxillary allowed EKU Oid
-    fn get_auxillary_ekus(&self) -> Vec<Oid> {
+    // list off auxiliary allowed EKU Oid
+    fn get_auxiliary_ekus(&self) -> Vec<Oid> {
         let mut oids = Vec::new();
         if let Ok(oid_strings) = load_eku_configuration(&mut Cursor::new(&self.config_store)) {
             for oid_str in &oid_strings {

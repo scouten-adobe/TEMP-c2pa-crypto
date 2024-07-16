@@ -124,8 +124,8 @@ impl TrustHandlerConfig for WebTrustHandlerConfig {
         Ok(())
     }
 
-    // list off auxillary allowed EKU Oid
-    fn get_auxillary_ekus(&self) -> Vec<Oid> {
+    // list off auxiliary allowed EKU Oid
+    fn get_auxiliary_ekus(&self) -> Vec<Oid> {
         let mut oids = Vec::new();
         if let Ok(oid_strings) = load_eku_configuration(&mut Cursor::new(&self.config_store)) {
             for oid_str in &oid_strings {
@@ -539,7 +539,7 @@ pub(crate) async fn verify_trust_async(
     cert_der: &[u8],
 ) -> Result<bool> {
     // check configured EKUs against end-entity cert
-    find_allowed_eku(cert_der, &th.get_auxillary_ekus()).ok_or(Error::CoseCertUntrusted)?;
+    find_allowed_eku(cert_der, &th.get_auxiliary_ekus()).ok_or(Error::CoseCertUntrusted)?;
 
     on_trust_list(th, chain_der, cert_der).await
 }

@@ -199,8 +199,8 @@ impl TrustHandlerConfig for OpenSSLTrustHandlerConfig {
         Ok(())
     }
 
-    // list off auxillary allowed EKU Oid
-    fn get_auxillary_ekus(&self) -> Vec<Oid> {
+    // list off auxiliary allowed EKU Oid
+    fn get_auxiliary_ekus(&self) -> Vec<Oid> {
         let mut oids = Vec::new();
         if let Ok(oid_strings) = load_eku_configuration(&mut Cursor::new(&self.config_store)) {
             for oid_str in &oid_strings {
