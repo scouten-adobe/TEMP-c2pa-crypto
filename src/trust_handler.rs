@@ -114,14 +114,11 @@ pub(crate) fn has_allowed_oid<'a>(
 pub(crate) fn load_eku_configuration(
     config_data: &mut dyn Read,
 ) -> std::result::Result<Vec<String>, std::io::Error> {
-    let mut oid_vec = Vec::new();
-
-    for line in read_to_string(config_data)?.lines() {
-        if Oid::from_str(line).is_ok() {
-            oid_vec.push(line.to_owned());
-        }
-    }
-    Ok(oid_vec)
+    Ok(read_to_string(config_data)?
+        .lines()
+        .filter(|line| Oid::from_str(line).is_ok())
+        .map(|line| line.to_owned())
+        .collect())
 }
 
 pub(crate) fn load_trust_from_data(trust_data: &[u8]) -> Result<Vec<Vec<u8>>> {
