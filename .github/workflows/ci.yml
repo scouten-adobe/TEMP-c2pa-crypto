@@ -92,7 +92,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Install WASM target
-        run: rustup target add wasm32-unknown-unknown
+        run: rustup +nightly target add wasm32-unknown-unknown
 
       - name: Install wasmcov
         run: cargo install wasmcov
