@@ -12,7 +12,8 @@
 // each license.
 
 use crate::{
-    openssl::RsaSigner, signer::ConfigurableSigner, utils::test::temp_signer, Signer, SigningAlg,
+    openssl::RsaSigner, signer::ConfigurableSigner, tests::test_utils::temp_signer, Signer,
+    SigningAlg,
 };
 
 #[test]

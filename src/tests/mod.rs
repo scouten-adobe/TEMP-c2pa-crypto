@@ -28,5 +28,7 @@ mod openssl;
 mod signing_alg;
 mod status_tracker;
 
+mod test_utils;
+
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;

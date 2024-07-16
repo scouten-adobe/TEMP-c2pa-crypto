@@ -11,7 +11,7 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#![allow(clippy::unwrap_used)]
+#![allow(dead_code)] // TEMPORARY: figure this out later
 
 #[cfg(target_arch = "wasm32")]
 use crate::internal::base64;
