@@ -14,41 +14,8 @@
 // multihash versions
 use multibase::{decode, encode};
 use multihash::{wrap, Code, Multihash, Sha1, Sha2_256, Sha2_512, Sha3_256, Sha3_384, Sha3_512};
-use serde::{Deserialize, Serialize};
 
 const MAX_HASH_BUF: usize = 256 * 1024 * 1024; // cap memory usage to 256MB
-
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub(crate) struct HashRange {
-    start: usize,
-    length: usize,
-}
-
-impl HashRange {
-    pub(crate) fn new(start: usize, length: usize) -> Self {
-        HashRange { start, length }
-    }
-
-    /// update the start value
-    #[allow(dead_code)]
-    pub(crate) fn set_start(&mut self, start: usize) {
-        self.start = start;
-    }
-
-    /// return start as usize
-    pub(crate) fn start(&self) -> usize {
-        self.start
-    }
-
-    /// return length as usize
-    pub(crate) fn length(&self) -> usize {
-        self.length
-    }
-
-    pub(crate) fn set_length(&mut self, length: usize) {
-        self.length = length;
-    }
-}
 
 /// Compare two byte vectors return true if match, false otherwise
 pub(crate) fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
