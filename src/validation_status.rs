@@ -27,6 +27,12 @@ pub const CLAIM_SIGNATURE_VALIDATED: &str = "claimSignature.validated";
 /// `ValidationStatus.url()` will point to a C2PA claim signature box.
 pub const SIGNING_CREDENTIAL_TRUSTED: &str = "signingCredential.trusted";
 
+/// The claim signature referenced in the ingredient's claim
+/// failed to validate.
+///
+/// `ValidationStatus.url()` will point to a C2PA claim signature box.
+pub const CLAIM_SIGNATURE_MISMATCH: &str = "claimSignature.mismatch";
+
 /// The signing credential is not listed on the validator's trust list.
 ///
 /// `ValidationStatus.url()` will point to a C2PA claim signature box.
@@ -57,3 +63,10 @@ pub const TIMESTAMP_MISMATCH: &str = "timeStamp.mismatch";
 ///
 /// `ValidationStatus.url()` will point to a C2PA claim signature box.
 pub const TIMESTAMP_OUTSIDE_VALIDITY: &str = "timeStamp.outsideValidity";
+/// The value of an `alg` header, or other header that specifies an
+/// algorithm used to compute the value of another field, is unknown
+/// or unsupported.
+///
+/// `ValidationStatus.url()` will point to a C2PA claim box or C2PA assertion.
+pub const ALGORITHM_UNSUPPORTED: &str = "algorithm.unsupported";
+
