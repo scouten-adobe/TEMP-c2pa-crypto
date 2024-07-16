@@ -11,6 +11,8 @@
 // specific language governing permissions and limitations under
 // each license.
 
+// #[deny(missing_docs)] // soon ...
+
 use std::{
     collections::HashSet,
     io::{read_to_string, Cursor, Read},
@@ -30,28 +32,42 @@ pub(crate) static TIMESTAMPING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .8)
 pub(crate) static OCSP_SIGNING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .9);
 pub(crate) static DOCUMENT_SIGNING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .36);
 
-// Trait for supply configuration and handling of trust lists and EKU
-// configuration store
-//
-// `RefUnwindSafe` + `UnwindSafe` were added to ensure `Store` is unwind safe
-// and to preserve backwards compatbility.
-
-// [scouten 2024-06-27]: Hacking to make public
+/// An implementation of `TrustHandlerConfig` provides a trust list (known
+/// certificate authorities) and allowed EKUs for a given context.
 pub trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
+    /// Create a new instance of [`TrustHandlerConfig`].
     fn new() -> Self
     where
         Self: Sized;
 
-    // add trust anchors
+    /// Load trust anchors from an input source.
+    ///
+    /// The input source should contain a UTF-8 text file containing zero or
+    /// more valid certificates in PEM format.
+    ///
+    /// This function will ignore all text outside of the `---- BEGIN
+    /// CERTIFICATE ----` / `---- END CERTIFICATE ----` line pairs.
+    ///
+    /// This function will return [`Error::CoseInvalidCert`] if any certificate
+    /// can not be parsed.
     fn load_trust_anchors_from_data(&mut self, trust_data: &mut dyn Read) -> Result<()>;
 
-    // add allowed list
+    /// Load a set of explicitly trusted certificates from an input source.
+    ///
+    /// The input source should contain a UTF-8 text file containing zero or
+    /// more valid certificates in PEM format.
+    ///
+    /// This function will ignore all text outside of the `---- BEGIN
+    /// CERTIFICATE ----` / `---- END CERTIFICATE ----` line pairs.
+    ///
+    /// This function will return [`Error::CoseInvalidCert`] if any certificate
+    /// can not be parsed.
     fn load_allowed_list(&mut self, allowed_list: &mut dyn Read) -> Result<()>;
 
-    // append private trust anchors
+    // TO DO: I don't understand what "private" means in this context.
     fn append_private_trust_data(&mut self, private_anchors_data: &mut dyn Read) -> Result<()>;
 
-    // clear all entries in trust handler list
+    /// Clear all entries in the trust handler list.
     fn clear(&mut self);
 
     // load EKU configuration
@@ -61,11 +77,9 @@ pub trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
     fn get_auxillary_ekus(&self) -> Vec<Oid>;
 
     // list of all anchors
-    #[allow(dead_code)] // Only used in calls with allow dead_code
     fn get_anchors(&self) -> Vec<Vec<u8>>;
 
     // set of allowed cert hashes
-    #[allow(dead_code)] // Only used in calls with allow dead_code
     fn get_allowed_list(&self) -> &HashSet<String>;
 }
 
