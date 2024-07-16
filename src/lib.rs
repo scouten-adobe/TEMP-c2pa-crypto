@@ -45,7 +45,6 @@ pub(crate) mod internal;
 #[cfg(test)]
 pub(crate) mod tests;
 
-pub use cose_validator::{VerifyOcspFetch, VerifyTrustChain};
 pub use error::{Error, Result};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
