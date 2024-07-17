@@ -11,5 +11,7 @@
 // specific language governing permissions and limitations under
 // each license.
 
+#![deny(missing_docs)]
+
 pub(crate) mod trust_handler_config;
 pub(crate) mod trust_pass_through;

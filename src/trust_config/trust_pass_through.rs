@@ -11,8 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-// #[deny(missing_docs)] // soon ...
-
 use std::{
     collections::HashSet,
     io::{Cursor, Read},
@@ -27,9 +25,8 @@ use crate::{
     Result, TrustHandlerConfig,
 };
 
-// Pass through trust for the case of claim signer usage since it has known
-// trust with context configured to all email protection, timestamping, ocsp
-// signing and document signing
+/// Trust handler configuration instance for use cases where the signer has
+/// known trust relationships with specific providers.
 #[derive(Debug)]
 pub struct TrustPassThrough {
     allowed_cert_set: HashSet<String>,
@@ -48,14 +45,14 @@ impl TrustHandlerConfig for TrustPassThrough {
     }
 
     fn load_trust_anchors_from_data(&mut self, _trust_data: &mut dyn std::io::Read) -> Result<()> {
-        Ok(())
+        unimplemented!();
     }
 
     fn append_private_trust_data(
         &mut self,
         _private_anchors_data: &mut dyn std::io::Read,
     ) -> Result<()> {
-        Ok(())
+        unimplemented!();
     }
 
     fn clear(&mut self) {}
@@ -65,7 +62,6 @@ impl TrustHandlerConfig for TrustPassThrough {
         Ok(())
     }
 
-    // list off auxiliary allowed EKU Oid
     fn get_auxiliary_ekus(&self) -> Vec<Oid> {
         let mut oids = Vec::new();
         if let Ok(oid_strings) = load_eku_configuration(&mut Cursor::new(&self.config_store)) {
