@@ -12,3 +12,4 @@
 // each license.
 
 mod trust_config_handler;
+mod trust_pass_through;
