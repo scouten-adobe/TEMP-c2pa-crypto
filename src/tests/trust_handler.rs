@@ -11,6 +11,63 @@
 // specific language governing permissions and limitations under
 // each license.
 
+mod trait_trust_handler_config {
+    use std::{collections::HashSet, io::Read};
+
+    use asn1_rs::Oid;
+
+    use crate::{Result, TrustHandlerConfig};
+
+    pub struct BoringTrustHandler {}
+
+    impl TrustHandlerConfig for BoringTrustHandler {
+        fn new() -> Self {
+            unimplemented!();
+        }
+
+        fn load_trust_anchors_from_data(&mut self, _trust_data: &mut dyn Read) -> Result<()> {
+            unimplemented!();
+        }
+
+        fn load_allowed_list(&mut self, _allowed_list: &mut dyn Read) -> Result<()> {
+            unimplemented!();
+        }
+
+        fn append_private_trust_data(
+            &mut self,
+            _private_anchors_data: &mut dyn Read,
+        ) -> Result<()> {
+            unimplemented!();
+        }
+
+        fn clear(&mut self) {
+            unimplemented!();
+        }
+
+        fn load_configuration(&mut self, _config_data: &mut dyn Read) -> Result<()> {
+            unimplemented!();
+        }
+
+        fn get_auxiliary_ekus(&self) -> Vec<Oid> {
+            unimplemented!();
+        }
+
+        fn get_anchors(&self) -> Vec<Vec<u8>> {
+            unimplemented!();
+        }
+
+        fn get_allowed_list(&self) -> &HashSet<String> {
+            unimplemented!();
+        }
+    }
+
+    #[test]
+    fn debug() {
+        let bth: Box<dyn TrustHandlerConfig> = Box::new(BoringTrustHandler {});
+        assert_eq!(format!("{bth:?}"), "TrustHandler Installed");
+    }
+}
+
 mod load_eku_configuration {
     use std::io::Cursor;
 

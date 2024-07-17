@@ -64,22 +64,31 @@ pub trait TrustHandlerConfig: RefUnwindSafe + UnwindSafe + Sync + Send {
     /// can not be parsed.
     fn load_allowed_list(&mut self, allowed_list: &mut dyn Read) -> Result<()>;
 
-    // TO DO: I don't understand what "private" means in this context.
+    /// TO DO: I don't understand what "private" means in this context.
     fn append_private_trust_data(&mut self, private_anchors_data: &mut dyn Read) -> Result<()>;
 
     /// Clear all entries in the trust handler list.
     fn clear(&mut self);
 
-    // load EKU configuration
+    /// Load validation EKUs from an input source.
+    ///
+    /// The input source should contain lines of text with one OID per line.
+    ///
+    /// This function will ignore any lines that do not contain valid OIDs.
     fn load_configuration(&mut self, config_data: &mut dyn Read) -> Result<()>;
 
-    // list off auxiliary allowed EKU Oid
+    /// Return the list of EKUs that should be accepted.
     fn get_auxiliary_ekus(&self) -> Vec<Oid>;
 
-    // list of all anchors
+    /// Return the list of accepted trust anchors.
+    ///
+    /// This will be a list of DER-encoded certificates for the approved trust
+    /// roots.
     fn get_anchors(&self) -> Vec<Vec<u8>>;
 
-    // set of allowed cert hashes
+    /// Return the list of specifically-allowed certificates.
+    ///
+    /// This will be a [`HashSet`] of Base64-encoded DER certificates.
     fn get_allowed_list(&self) -> &HashSet<String>;
 }
 
