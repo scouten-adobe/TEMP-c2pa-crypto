@@ -62,7 +62,7 @@ mod trait_trust_handler_config {
     }
 
     #[test]
-    fn debug() {
+    fn impl_debug() {
         let bth: Box<dyn TrustHandlerConfig> = Box::new(BoringTrustHandler {});
         assert_eq!(format!("{bth:?}"), "TrustHandler Installed");
     }
@@ -116,6 +116,7 @@ mod has_allowed_oid {
     }
 
     pub(crate) static BOGUS_OID: Oid<'static> = oid!(1.2.3 .4);
+    pub(crate) static BOGUS_OID_2: Oid<'static> = oid!(1.2.3 .5);
 
     #[test]
     fn other_oid() {
@@ -137,6 +138,17 @@ mod has_allowed_oid {
         let additional_ekus: Vec<Oid> = vec![BOGUS_OID.clone()];
 
         assert_eq!(has_allowed_oid(&eku, &additional_ekus), Some(&BOGUS_OID));
+    }
+
+    #[test]
+    fn other_oid_not_on_allow_list() {
+        let oid_vec = vec![BOGUS_OID_2.clone()];
+        let oid_der = oid_vec.to_der_vec().unwrap();
+        let (_, eku) = x509_parser::extensions::ExtendedKeyUsage::from_der(&oid_der).unwrap();
+
+        let additional_ekus: Vec<Oid> = vec![BOGUS_OID.clone()];
+
+        assert!(has_allowed_oid(&eku, &additional_ekus).is_none());
     }
 }
 
