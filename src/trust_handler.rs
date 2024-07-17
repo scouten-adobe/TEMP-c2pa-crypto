@@ -98,6 +98,12 @@ impl std::fmt::Debug for dyn TrustHandlerConfig {
     }
 }
 
+/// Verifies that the given OID is among the EKUs approved for use in C2PA claim
+/// generator signatures or in an outside list of allowed EKUs.
+///
+/// Returns `Some(oid)` if the OID is approved.
+///
+/// Returns `None` if not approved.
 pub(crate) fn has_allowed_oid<'a>(
     eku: &x509_parser::extensions::ExtendedKeyUsage,
     allowed_ekus: &'a [Oid],

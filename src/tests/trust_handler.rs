@@ -68,17 +68,89 @@ mod trait_trust_handler_config {
     }
 }
 
+mod has_allowed_oid {
+    use asn1_rs::{oid, FromDer, Oid, ToDer};
+
+    use crate::trust_handler::*;
+
+    #[test]
+    fn email_protection() {
+        let oid_vec = vec![EMAIL_PROTECTION_OID.clone()];
+        let oid_der = oid_vec.to_der_vec().unwrap();
+        let (_, eku) = x509_parser::extensions::ExtendedKeyUsage::from_der(&oid_der).unwrap();
+
+        let additional_ekus: Vec<Oid> = vec![];
+
+        assert_eq!(
+            has_allowed_oid(&eku, &additional_ekus),
+            Some(&EMAIL_PROTECTION_OID)
+        );
+    }
+
+    #[test]
+    fn time_stamping() {
+        let oid_vec = vec![TIMESTAMPING_OID.clone()];
+        let oid_der = oid_vec.to_der_vec().unwrap();
+        let (_, eku) = x509_parser::extensions::ExtendedKeyUsage::from_der(&oid_der).unwrap();
+
+        let additional_ekus: Vec<Oid> = vec![];
+
+        assert_eq!(
+            has_allowed_oid(&eku, &additional_ekus),
+            Some(&TIMESTAMPING_OID)
+        );
+    }
+
+    #[test]
+    fn ocsp_signing() {
+        let oid_vec = vec![OCSP_SIGNING_OID.clone()];
+        let oid_der = oid_vec.to_der_vec().unwrap();
+        let (_, eku) = x509_parser::extensions::ExtendedKeyUsage::from_der(&oid_der).unwrap();
+
+        let additional_ekus: Vec<Oid> = vec![];
+
+        assert_eq!(
+            has_allowed_oid(&eku, &additional_ekus),
+            Some(&OCSP_SIGNING_OID)
+        );
+    }
+
+    pub(crate) static BOGUS_OID: Oid<'static> = oid!(1.2.3 .4);
+
+    #[test]
+    fn other_oid() {
+        let oid_vec = vec![BOGUS_OID.clone()];
+        let oid_der = oid_vec.to_der_vec().unwrap();
+        let (_, eku) = x509_parser::extensions::ExtendedKeyUsage::from_der(&oid_der).unwrap();
+
+        let additional_ekus: Vec<Oid> = vec![];
+
+        assert!(has_allowed_oid(&eku, &additional_ekus).is_none());
+    }
+
+    #[test]
+    fn other_oid_allow_listed() {
+        let oid_vec = vec![BOGUS_OID.clone()];
+        let oid_der = oid_vec.to_der_vec().unwrap();
+        let (_, eku) = x509_parser::extensions::ExtendedKeyUsage::from_der(&oid_der).unwrap();
+
+        let additional_ekus: Vec<Oid> = vec![BOGUS_OID.clone()];
+
+        assert_eq!(has_allowed_oid(&eku, &additional_ekus), Some(&BOGUS_OID));
+    }
+}
+
 mod load_eku_configuration {
     use std::io::Cursor;
 
-    use crate::trust_handler;
+    use crate::trust_handler::load_eku_configuration;
 
     #[test]
     fn openssl_store_cfg() {
         let oids = include_bytes!("../openssl/store.cfg");
         let mut cursor = Cursor::new(oids);
 
-        let ekus = trust_handler::load_eku_configuration(&mut cursor).unwrap();
+        let ekus = load_eku_configuration(&mut cursor).unwrap();
 
         let mut eku_iter = ekus.iter();
 
@@ -99,7 +171,7 @@ mod load_eku_configuration {
         let oids = "1.3.6.1.5.5.7.3.4\nbogus\n1.3.6.1.5.5.7.3.36";
         let mut cursor = Cursor::new(oids);
 
-        let ekus = trust_handler::load_eku_configuration(&mut cursor).unwrap();
+        let ekus = load_eku_configuration(&mut cursor).unwrap();
 
         let mut eku_iter = ekus.iter();
         assert_eq!(eku_iter.next().unwrap().as_str(), "1.3.6.1.5.5.7.3.4");
