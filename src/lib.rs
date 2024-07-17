@@ -37,7 +37,7 @@ pub(crate) mod signing_alg;
 pub mod status_tracker; // [scouten 2024-06-27]: Hacking to make this public.
                         // pub(crate) mod store;
 pub(crate) mod time_stamp;
-pub(crate) mod trust_handler;
+pub(crate) mod trust_config;
 pub mod validator; // [scouten 2024-06-27]: Hacking to make public.
 
 pub(crate) mod internal;
@@ -48,4 +48,6 @@ pub(crate) mod tests;
 pub use error::{Error, Result};
 pub use signer::{AsyncSigner, RemoteSigner, Signer};
 pub use signing_alg::SigningAlg;
-pub use trust_handler::{TrustHandlerConfig, TrustPassThrough};
+pub use trust_config::{
+    trust_handler_config::TrustHandlerConfig, trust_pass_through::TrustPassThrough,
+};

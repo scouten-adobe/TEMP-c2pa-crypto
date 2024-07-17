@@ -7,29 +7,8 @@
 // Unless required by applicable law or agreed to in writing,
 // this software is distributed on an "AS IS" BASIS, WITHOUT
 // WARRANTIES OR REPRESENTATIONS OF ANY KIND, either express or
-// implied. See the LICENSE-MIT and LICENSE-APACHE files for the
+// implied. See the LICENSE-MIT and LICENSE-APACHE files for thema
 // specific language governing permissions and limitations under
 // each license.
 
-// Tests are grouped under this module so as to avoid
-// having the test code itself included in coverage numbers.
-
-#![allow(clippy::expect_used)]
-#![allow(clippy::panic)]
-#![allow(clippy::unwrap_used)]
-
-mod cose_sign;
-mod cose_validator;
-mod ocsp_utils;
-
-#[cfg(feature = "openssl")]
-mod openssl;
-
-mod signing_alg;
-mod status_tracker;
-
-mod test_utils;
-mod trust_config;
-
-#[cfg(target_arch = "wasm32")]
-pub mod wasm;
+mod trust_config_handler;

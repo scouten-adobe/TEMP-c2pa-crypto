@@ -11,21 +11,16 @@
 // specific language governing permissions and limitations under
 // each license.
 
-// #[deny(missing_docs)] // soon ...
-
 use std::{
     collections::HashSet,
-    io::{read_to_string, Cursor, Read},
+    io::{read_to_string, Read},
     panic::{RefUnwindSafe, UnwindSafe},
     str::FromStr,
 };
 
 use asn1_rs::{oid, Oid};
 
-use crate::{
-    internal::{base64, hash_utils::hash_sha256},
-    Error, Result,
-};
+use crate::{Error, Result};
 
 pub(crate) static EMAIL_PROTECTION_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .4);
 pub(crate) static TIMESTAMPING_OID: Oid<'static> = oid!(1.3.6 .1 .5 .5 .7 .3 .8);
@@ -169,89 +164,4 @@ pub(crate) fn load_trust_from_data(trust_data: &[u8]) -> Result<Vec<Vec<u8>>> {
         certs.push(pem.contents);
     }
     Ok(certs)
-}
-
-// Pass through trust for the case of claim signer usage since it has known
-// trust with context configured to all email protection, timestamping, ocsp
-// signing and document signing
-#[derive(Debug)]
-pub struct TrustPassThrough {
-    allowed_cert_set: HashSet<String>,
-    config_store: Vec<u8>,
-}
-
-impl TrustHandlerConfig for TrustPassThrough {
-    fn new() -> Self
-    where
-        Self: Sized,
-    {
-        TrustPassThrough {
-            allowed_cert_set: HashSet::new(),
-            config_store: Vec::new(),
-        }
-    }
-
-    fn load_trust_anchors_from_data(&mut self, _trust_data: &mut dyn std::io::Read) -> Result<()> {
-        Ok(())
-    }
-
-    fn append_private_trust_data(
-        &mut self,
-        _private_anchors_data: &mut dyn std::io::Read,
-    ) -> Result<()> {
-        Ok(())
-    }
-
-    fn clear(&mut self) {}
-
-    fn load_configuration(&mut self, config_data: &mut dyn Read) -> Result<()> {
-        config_data.read_to_end(&mut self.config_store)?;
-        Ok(())
-    }
-
-    // list off auxiliary allowed EKU Oid
-    fn get_auxiliary_ekus(&self) -> Vec<Oid> {
-        let mut oids = Vec::new();
-        if let Ok(oid_strings) = load_eku_configuration(&mut Cursor::new(&self.config_store)) {
-            for oid_str in &oid_strings {
-                if let Ok(oid) = Oid::from_str(oid_str) {
-                    oids.push(oid);
-                }
-            }
-        }
-        if oids.is_empty() {
-            // return default
-            vec![
-                EMAIL_PROTECTION_OID.to_owned(),
-                TIMESTAMPING_OID.to_owned(),
-                OCSP_SIGNING_OID.to_owned(),
-                DOCUMENT_SIGNING_OID.to_owned(),
-            ]
-        } else {
-            oids
-        }
-    }
-
-    fn get_anchors(&self) -> Vec<Vec<u8>> {
-        Vec::new()
-    }
-
-    fn load_allowed_list(&mut self, allowed_list: &mut dyn std::io::prelude::Read) -> Result<()> {
-        let mut buffer = Vec::new();
-        allowed_list.read_to_end(&mut buffer)?;
-
-        if let Ok(cert_list) = load_trust_from_data(&buffer) {
-            for cert_der in &cert_list {
-                let cert_sha256 = hash_sha256(cert_der);
-                let cert_hash_base64 = base64::encode(&cert_sha256);
-
-                self.allowed_cert_set.insert(cert_hash_base64);
-            }
-        }
-        Ok(())
-    }
-
-    fn get_allowed_list(&self) -> &std::collections::HashSet<String> {
-        &self.allowed_cert_set
-    }
 }

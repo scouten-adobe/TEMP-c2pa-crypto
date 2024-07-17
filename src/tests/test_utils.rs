@@ -19,7 +19,7 @@ use crate::internal::base64;
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
     signer::ConfigurableSigner,
-    trust_handler::{TrustHandlerConfig, TrustPassThrough},
+    TrustHandlerConfig, TrustPassThrough,
 };
 use crate::{RemoteSigner, Result, Signer, SigningAlg};
 

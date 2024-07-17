@@ -18,8 +18,7 @@ use crate::{
         temp_signer::{self},
         verify_trust, OpenSSLTrustHandlerConfig,
     },
-    trust_handler::TrustHandlerConfig,
-    Signer, SigningAlg,
+    Signer, SigningAlg, TrustHandlerConfig,
 };
 
 #[test]

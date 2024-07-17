@@ -17,10 +17,9 @@ use crate::{
     cose_validator::check_cert,
     openssl::temp_signer,
     status_tracker::{DetailedStatusTracker, StatusTracker},
-    trust_handler::TrustHandlerConfig,
     validation_status,
     validator::get_validator,
-    Signer, SigningAlg,
+    Signer, SigningAlg, TrustHandlerConfig,
 };
 
 #[test]

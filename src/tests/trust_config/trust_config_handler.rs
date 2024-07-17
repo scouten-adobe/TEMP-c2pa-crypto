@@ -71,7 +71,7 @@ mod trait_trust_handler_config {
 mod has_allowed_oid {
     use asn1_rs::{oid, FromDer, Oid, ToDer};
 
-    use crate::trust_handler::*;
+    use crate::trust_config::trust_handler_config::*;
 
     #[test]
     fn email_protection() {
@@ -155,11 +155,11 @@ mod has_allowed_oid {
 mod load_eku_configuration {
     use std::io::Cursor;
 
-    use crate::trust_handler::load_eku_configuration;
+    use crate::trust_config::trust_handler_config::load_eku_configuration;
 
     #[test]
     fn openssl_store_cfg() {
-        let oids = include_bytes!("../openssl/store.cfg");
+        let oids = include_bytes!("../../openssl/store.cfg");
         let mut cursor = Cursor::new(oids);
 
         let ekus = load_eku_configuration(&mut cursor).unwrap();
@@ -195,12 +195,13 @@ mod load_eku_configuration {
 #[cfg(feature = "openssl")] // TEMPORARY until temp_signer is generic
 mod load_trust_from_data {
     use crate::{
-        openssl::temp_signer, trust_handler::load_trust_from_data, Error, Signer, SigningAlg,
+        openssl::temp_signer, trust_config::trust_handler_config::load_trust_from_data, Error,
+        Signer, SigningAlg,
     };
 
     #[test]
     fn allowed_list_pem() {
-        let allowed_list = include_bytes!("fixtures/allow_list/allowed_list.pem").to_vec();
+        let allowed_list = include_bytes!("../fixtures/allow_list/allowed_list.pem").to_vec();
         let allowed_list = load_trust_from_data(&allowed_list).unwrap();
 
         let not_a_cert = b"bogus".to_vec();

@@ -29,8 +29,7 @@ use crate::{
     time_stamp::{
         cose_timestamp_countersign, cose_timestamp_countersign_async, make_cose_timestamp,
     },
-    trust_handler::{TrustHandlerConfig, TrustPassThrough},
-    AsyncSigner, Error, Result, Signer, SigningAlg,
+    AsyncSigner, Error, Result, Signer, SigningAlg, TrustHandlerConfig, TrustPassThrough,
 };
 
 /// Generate a COSE signature for a block of bytes which must be a valid C2PA
@@ -80,7 +79,7 @@ pub fn sign_claim(
         Ok(signed_bytes) => {
             // Sanity check: Ensure that this signature is valid.
             let mut cose_log = OneShotStatusTracker::new();
-            let passthrough_tb = crate::trust_handler::TrustPassThrough::new();
+            let passthrough_tb = TrustPassThrough::new();
 
             match verify_cose(
                 &signed_bytes,

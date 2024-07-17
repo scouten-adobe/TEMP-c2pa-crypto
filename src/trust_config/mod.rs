@@ -11,25 +11,5 @@
 // specific language governing permissions and limitations under
 // each license.
 
-// Tests are grouped under this module so as to avoid
-// having the test code itself included in coverage numbers.
-
-#![allow(clippy::expect_used)]
-#![allow(clippy::panic)]
-#![allow(clippy::unwrap_used)]
-
-mod cose_sign;
-mod cose_validator;
-mod ocsp_utils;
-
-#[cfg(feature = "openssl")]
-mod openssl;
-
-mod signing_alg;
-mod status_tracker;
-
-mod test_utils;
-mod trust_config;
-
-#[cfg(target_arch = "wasm32")]
-pub mod wasm;
+pub(crate) mod trust_handler_config;
+pub(crate) mod trust_pass_through;

@@ -40,7 +40,7 @@ use crate::{
     ocsp_utils::{check_ocsp_response, OcspData},
     status_tracker::{log_item, StatusTracker},
     time_stamp::gt_to_datetime,
-    trust_handler::{has_allowed_oid, TrustHandlerConfig},
+    trust_config::trust_handler_config::{has_allowed_oid, TrustHandlerConfig},
     validation_status,
     validator::ValidationInfo,
     SigningAlg,
