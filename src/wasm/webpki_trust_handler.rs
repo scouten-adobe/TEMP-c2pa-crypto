@@ -31,7 +31,7 @@ use crate::{
         base64,
         hash_utils::{hash_sha256, vec_compare},
     },
-    trust_handler::{
+    trust_config::trust_handler_config::{
         has_allowed_oid, load_eku_configuration, load_trust_from_data, TrustHandlerConfig,
     },
     wasm::webcrypto_validator::async_validate,

@@ -15,7 +15,7 @@
 use wasm_bindgen_test::*;
 
 use crate::{
-    trust_handler::{load_trust_from_data, TrustHandlerConfig},
+    trust_config::trust_handler_config::{load_trust_from_data, TrustHandlerConfig},
     wasm::{webpki_trust_handler::verify_trust_async, WebTrustHandlerConfig},
 };
 
