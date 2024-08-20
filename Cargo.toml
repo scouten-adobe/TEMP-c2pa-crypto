@@ -25,6 +25,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 default = []
 openssl = ["dep:openssl"]
+openssl_ffi_mutex = []
 psxxx_ocsp_stapling_experimental = []
 
 # The diagnostics feature is unsupported and might be removed.

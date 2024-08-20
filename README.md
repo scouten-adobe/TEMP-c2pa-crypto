@@ -30,7 +30,7 @@ The library has been tested on the following operating systems:
 The Rust library crate provides:
 
 * `psxxx_ocsp_stapling_experimental` this is an demonstration feature that will attempt to fetch the OCSP data from the OCSP responders listed in the manifest signing certificate. The response becomes part of the manifest and is used to prove the certificate was not revoked at the time of signing. This is only implemented for PS256, PS384 and PS512 signatures and is intended as a demonstration.
-
+* `openssl_ffi_mutex` prevents multiple threads from accessing the C OpenSSL library simultaneously. (This library is not re-entrant.) In a multi-threaded process (such as Cargo's test runner), this can lead to unpredictable behavior.
 ## License
 
 The `c2pa-crypto` crate is distributed under the terms of both the [MIT license](https://github.com/contentauth/c2pa-rs/blob/main/LICENSE-MIT) and the [Apache License (Version 2.0)](https://github.com/contentauth/c2pa-rs/blob/main/LICENSE-APACHE).

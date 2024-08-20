@@ -15,6 +15,8 @@
 use std::sync::{Mutex, MutexGuard};
 
 use crate::{Error, Result};
+
+#[cfg(feature = "openssl_ffi_mutex")]
 static FFI_MUTEX: Mutex<()> = Mutex::new(());
 
 pub(crate) struct OpenSslMutex<'a> {
@@ -22,7 +24,12 @@ pub(crate) struct OpenSslMutex<'a> {
     // of this guard. We only need to ensure that the guard is dropped when
     // this struct is dropped.
     #[allow(dead_code)]
+    #[cfg(feature = "openssl_ffi_mutex")]
     guard: MutexGuard<'a, ()>,
+
+    #[allow(dead_code)]
+    #[cfg(not(feature = "openssl_ffi_mutex"))]
+    guard: &'a str,
 }
 
 impl<'a> OpenSslMutex<'a> {
@@ -38,10 +45,14 @@ impl<'a> OpenSslMutex<'a> {
         //     std::backtrace::Backtrace::force_capture()
         // );
 
+        #[cfg(feature = "openssl_ffi_mutex")]
         match FFI_MUTEX.lock() {
             Ok(guard) => Ok(Self { guard }),
             Err(_) => Err(Error::OpenSslMutexError),
         }
+
+        #[cfg(not(feature = "openssl_ffi_mutex"))]
+        Ok(Self { guard: &"foo" })
     }
 }
 
