@@ -828,18 +828,14 @@ fn get_timestamp_info(sign1: &coset::CoseSign1, data: &[u8]) -> Result<TstInfo> 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VerifyTrustChain(pub bool);
 
-#[async_generic(async_signature(
-    th: &dyn TrustHandlerConfig,
-    chain_der: &[Vec<u8>],
-    cert_der: &[u8],
-    validation_log: &mut impl StatusTracker,
-    verify_trust_chain: VerifyTrustChain,
-))]
+#[async_generic(async_signature( th: &dyn TrustHandlerConfig, chain_der: &[Vec<u8>], cert_der: &[u8], signing_time_epoch: Option<i64>, validation_log: &mut impl StatusTracker,
+    verify_trust_chain: VerifyTrustChain,))]
 #[allow(unused)]
 fn check_trust(
     th: &dyn TrustHandlerConfig,
     chain_der: &[Vec<u8>],
     cert_der: &[u8],
+    signing_time_epoch: Option<i64>,
     validation_log: &mut impl StatusTracker,
     verify_trust_chain: VerifyTrustChain,
 ) -> Result<()> {
@@ -859,17 +855,17 @@ fn check_trust(
 
         #[cfg(feature = "openssl")]
         {
-            verify_trust(th, chain_der, cert_der)
+            verify_trust(th, chain_der, cert_der, signing_time_epoch)
         }
     } else {
         #[cfg(target_arch = "wasm32")]
         {
-            verify_trust_async(th, chain_der, cert_der).await
+            verify_trust_async(th, chain_der, cert_der, signing_time_epoch).await
         }
 
         #[cfg(feature = "openssl")]
         {
-            verify_trust(th, chain_der, cert_der)
+            verify_trust(th, chain_der, cert_der, signing_time_epoch)
         }
 
         #[cfg(all(not(feature = "openssl"), not(target_arch = "wasm32")))]
@@ -932,6 +928,16 @@ fn extract_serial_from_cert(cert: &X509Certificate) -> BigUint {
     cert.serial.clone()
 }
 
+fn tst_info_result_to_timestamp(tst_info_res: &Result<TstInfo>) -> Option<i64> {
+    match &tst_info_res {
+        Ok(tst_info) => {
+            let dt: chrono::DateTime<chrono::Utc> = tst_info.gen_time.clone().into();
+            Some(dt.timestamp())
+        }
+        Err(_) => None,
+    }
+}
+
 /// Asynchronously validate a COSE_SIGN1 byte vector and verify against expected
 /// data cose_bytes - byte array containing the raw COSE_SIGN1 data
 /// data:  data that was used to create the cose_bytes, these must match
@@ -976,6 +982,8 @@ pub async fn verify_cose_async(
 
     // get the public key der
     let der_bytes = &certs[0];
+
+    let tst_info_res = get_timestamp_info(&sign1, &data);
 
     // verify cert matches requested algorithm
     if !signature_only {
@@ -1022,6 +1030,7 @@ pub async fn verify_cose_async(
             &certs[1..],
             der_bytes,
             validation_log,
+            tst_info_result_to_timestamp(&tst_info_res),
             verify_trust_chain,
         )
         .await?;
@@ -1031,6 +1040,7 @@ pub async fn verify_cose_async(
             th,
             &certs[1..],
             der_bytes,
+            tst_info_result_to_timestamp(&tst_info_res),
             validation_log,
             verify_trust_chain,
         )?;
@@ -1172,11 +1182,11 @@ pub fn verify_cose(
     // get the public key der
     let der_bytes = &certs[0];
 
-    let time_stamp_info = get_timestamp_info(&sign1, data);
+    let tst_info_res = get_timestamp_info(&sign1, data);
 
     if !signature_only {
         // verify certs
-        match &time_stamp_info {
+        match &tst_info_res {
             Ok(tst_info) => check_cert(der_bytes, th, validation_log, Some(tst_info))?,
             Err(e) => {
                 // log timestamp errors
@@ -1214,6 +1224,7 @@ pub fn verify_cose(
             th,
             &certs[1..],
             der_bytes,
+            tst_info_result_to_timestamp(&tst_info_res),
             validation_log,
             verify_trust_chain,
         )?;

@@ -537,6 +537,7 @@ pub(crate) async fn verify_trust_async(
     th: &dyn TrustHandlerConfig,
     chain_der: &[Vec<u8>],
     cert_der: &[u8],
+    _signing_time_epoc: Option<i64>,
 ) -> Result<bool> {
     // check configured EKUs against end-entity cert
     find_allowed_eku(cert_der, &th.get_auxiliary_ekus()).ok_or(Error::CoseCertUntrusted)?;

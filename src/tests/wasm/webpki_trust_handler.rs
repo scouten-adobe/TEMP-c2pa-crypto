@@ -45,28 +45,40 @@ async fn test_trust_store() {
     let es512_certs = load_trust_from_data(es512).unwrap();
     let ed25519_certs = load_trust_from_data(ed25519).unwrap();
 
-    assert!(verify_trust_async(&th, &ps256_certs[1..], &ps256_certs[0])
-        .await
-        .unwrap());
-    assert!(verify_trust_async(&th, &ps384_certs[1..], &ps384_certs[0])
-        .await
-        .unwrap());
-    assert!(verify_trust_async(&th, &ps512_certs[1..], &ps512_certs[0])
-        .await
-        .unwrap());
-    assert!(verify_trust_async(&th, &es256_certs[1..], &es256_certs[0])
-        .await
-        .unwrap());
-
-    assert!(verify_trust_async(&th, &es384_certs[1..], &es384_certs[0])
-        .await
-        .unwrap());
-    assert!(verify_trust_async(&th, &es512_certs[1..], &es512_certs[0])
-        .await
-        .unwrap());
+    assert!(
+        verify_trust_async(&th, &ps256_certs[1..], &ps256_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        verify_trust_async(&th, &ps384_certs[1..], &ps384_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        verify_trust_async(&th, &ps512_certs[1..], &ps512_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        verify_trust_async(&th, &es256_certs[1..], &es256_certs[0], None)
+            .await
+            .unwrap()
+    );
 
     assert!(
-        verify_trust_async(&th, &ed25519_certs[1..], &ed25519_certs[0])
+        verify_trust_async(&th, &es384_certs[1..], &es384_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        verify_trust_async(&th, &es512_certs[1..], &es512_certs[0], None)
+            .await
+            .unwrap()
+    );
+
+    assert!(
+        verify_trust_async(&th, &ed25519_certs[1..], &ed25519_certs[0], None)
             .await
             .unwrap()
     );
@@ -98,26 +110,38 @@ async fn test_broken_trust_chain() {
     let es512_certs = load_trust_from_data(es512).unwrap();
     let ed25519_certs = load_trust_from_data(ed25519).unwrap();
 
-    assert!(!verify_trust_async(&th, &ps256_certs[2..], &ps256_certs[0])
-        .await
-        .unwrap());
-    assert!(!verify_trust_async(&th, &ps384_certs[2..], &ps384_certs[0])
-        .await
-        .unwrap());
-    assert!(!verify_trust_async(&th, &ps512_certs[2..], &ps512_certs[0])
-        .await
-        .unwrap());
-    assert!(!verify_trust_async(&th, &es256_certs[2..], &es256_certs[0])
-        .await
-        .unwrap());
-    assert!(!verify_trust_async(&th, &es384_certs[2..], &es384_certs[0])
-        .await
-        .unwrap());
-    assert!(!verify_trust_async(&th, &es512_certs[2..], &es512_certs[0])
-        .await
-        .unwrap());
     assert!(
-        !verify_trust_async(&th, &ed25519_certs[2..], &ed25519_certs[0])
+        !verify_trust_async(&th, &ps256_certs[2..], &ps256_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !verify_trust_async(&th, &ps384_certs[2..], &ps384_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !verify_trust_async(&th, &ps512_certs[2..], &ps512_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !verify_trust_async(&th, &es256_certs[2..], &es256_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !verify_trust_async(&th, &es384_certs[2..], &es384_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !verify_trust_async(&th, &es512_certs[2..], &es512_certs[0], None)
+            .await
+            .unwrap()
+    );
+    assert!(
+        !verify_trust_async(&th, &ed25519_certs[2..], &ed25519_certs[0], None)
             .await
             .unwrap()
     );
