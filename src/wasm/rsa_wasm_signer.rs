@@ -22,16 +22,14 @@ use rsa::{
     RsaPrivateKey,
 };
 
-use crate::{
-    signer::ConfigurableSigner, wasm::RsaWasmSigner, AsyncSigner, Error, Result, Signer, SigningAlg,
-};
+use crate::{signer::ConfigurableSigner, AsyncSigner, Error, Result, Signer, SigningAlg};
 
 // Implements `Signer` trait using rsa crate implementation of
 // SHA256 + RSA encryption.  This implementation is only used for cross
 // target compatible signer used in testing both sync and WASM async unit tests.
 pub struct RsaWasmSigner {
     signcerts: Vec<Vec<u8>>,
-    pkey: RsaPrivateKey,
+    pub(crate) pkey: RsaPrivateKey,
 
     certs_size: usize,
     timestamp_size: usize,

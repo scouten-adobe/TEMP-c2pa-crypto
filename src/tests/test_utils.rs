@@ -14,7 +14,7 @@
 #![allow(dead_code)] // TEMPORARY: figure this out later
 
 #[cfg(target_arch = "wasm32")]
-use crate::internal::base64;
+use crate::{internal::base64, TrustHandlerConfig, TrustPassThrough};
 #[cfg(feature = "openssl")]
 use crate::{
     openssl::{AsyncSignerAdapter, RsaSigner},
@@ -154,7 +154,10 @@ impl crate::signer::RemoteSigner for TempRemoteSigner {
         {
             let signer = crate::wasm::RsaWasmSignerAsync::new();
 
-            crate::cose_sign::cose_sign_async(&signer, claim_bytes, self.reserve_size()).await
+            let tp = TrustPassThrough::new();
+
+            crate::cose_sign::cose_sign_async(&signer, claim_bytes, Some(self.reserve_size()), &tp)
+                .await
         }
     }
 
@@ -297,7 +300,10 @@ impl crate::signer::AsyncSigner for TempAsyncRemoteSigner {
         #[cfg(target_arch = "wasm32")]
         {
             let signer = crate::wasm::rsa_wasm_signer::RsaWasmSignerAsync::new();
-            crate::cose_sign::cose_sign_async(&signer, &claim_bytes, self.reserve_size()).await
+            let tp = TrustPassThrough::new();
+
+            crate::cose_sign::cose_sign_async(&signer, &claim_bytes, Some(self.reserve_size()), &tp)
+                .await
         }
 
         #[cfg(all(not(feature = "openssl"), not(target_arch = "wasm32")))]

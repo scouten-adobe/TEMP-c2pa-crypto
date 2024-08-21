@@ -1050,8 +1050,8 @@ pub async fn verify_cose_async(
             th,
             &certs[1..],
             der_bytes,
-            validation_log,
             tst_info_result_to_timestamp(&tst_info_res),
+            validation_log,
             verify_trust_chain,
         )
         .await?;

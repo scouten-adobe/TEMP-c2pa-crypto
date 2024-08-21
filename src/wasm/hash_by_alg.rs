@@ -11,6 +11,8 @@
 // specific language governing permissions and limitations under
 // each license.
 
+#![allow(unused)] // TEMPORARY while refactoring
+
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
 use log::warn;
