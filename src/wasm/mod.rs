@@ -15,7 +15,7 @@ pub(crate) mod context;
 
 pub(crate) mod rsa_wasm_signer;
 #[allow(unused)]
-pub(crate) use rsa_wasm_signer::RsaWasmSignerAsync;
+pub(crate) use rsa_wasm_signer::{RsaWasmSigner, RsaWasmSignerAsync};
 
 mod hash_by_alg;
 pub(crate) mod webcrypto_validator;

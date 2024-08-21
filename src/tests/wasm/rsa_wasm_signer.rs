@@ -11,18 +11,15 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use asn1_rs::FromDer;
 use rsa::{
-    pss::{Signature, VerifyingKey},
+    pss::{Signature},
     sha2::{Digest, Sha256},
     signature::{Keypair, Verifier},
-    RsaPrivateKey,
 };
 
-use super::*;
 use crate::{
-    utils::test::{fixture_path, temp_signer},
-    Signer, SigningAlg,
+    tests::{fixture_path, temp_signer},
+    Signer, SigningAlg, 
 };
 
 // If "../../tests/fixtures/certs/rs256.pub" or

@@ -1300,7 +1300,6 @@ pub(crate) fn verify_cose(
     _cert_check: bool,
     _th: &dyn TrustHandlerConfig,
     _validation_log: &mut impl StatusTracker,
-    _verify_ocsp_fetch: VerifyOcspFetch,
     _verify_trust_chain: VerifyTrustChain,
 ) -> Result<ValidationInfo> {
     Err(Error::CoseVerifier)

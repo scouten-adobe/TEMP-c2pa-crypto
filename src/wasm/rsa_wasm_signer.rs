@@ -22,7 +22,7 @@ use rsa::{
     RsaPrivateKey,
 };
 
-use crate::{signer::ConfigurableSigner, AsyncSigner, Error, Result, Signer, SigningAlg};
+use crate::{signer::ConfigurableSigner, AsyncSigner, Error, Result, Signer, SigningAlg, wasm::RsaWasmSigner};
 
 // Implements `Signer` trait using rsa crate implementation of
 // SHA256 + RSA encryption.  This implementation is only used for cross
