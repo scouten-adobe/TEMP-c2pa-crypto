@@ -27,8 +27,10 @@ use crate::{
 
 #[test]
 fn sign_ps256() {
-    let cert_bytes = include_bytes!("../../tests/fixtures/certs/rs256.pub");
-    let key_bytes = include_bytes!("../../tests/fixtures/certs/rs256.pem");
+    // If this fails, look at c2pa-rs#564.
+    
+    let cert_bytes = include_bytes!("../fixtures/certs/rs256.pub");
+    let key_bytes = include_bytes!("../fixtures/certs/rs256.pem");
 
     let signer =
         RsaWasmSigner::from_signcert_and_pkey(cert_bytes, key_bytes, SigningAlg::Ps256, None)
