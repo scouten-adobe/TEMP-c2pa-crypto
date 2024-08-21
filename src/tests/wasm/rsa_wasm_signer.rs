@@ -12,14 +12,14 @@
 // each license.
 
 use rsa::{
-    pss::{Signature},
+    pss::Signature,
     sha2::{Digest, Sha256},
     signature::{Keypair, Verifier},
 };
 
 use crate::{
     tests::{fixture_path, temp_signer},
-    Signer, SigningAlg, 
+    Signer, SigningAlg,
 };
 
 // If "../../tests/fixtures/certs/rs256.pub" or
