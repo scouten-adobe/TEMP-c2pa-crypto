@@ -25,9 +25,10 @@ use crate::{
     Signer, SigningAlg,
 };
 
-// If "../../tests/fixtures/certs/rs256.pub" or "../../tests/fixtures/certs/rs256.pem") change
-// CHAIN_BYTES and KEY_BYTES should be updated here.
-// We embed the certs here because WASM cannot read the fixtures.
+// If "../../tests/fixtures/certs/rs256.pub" or
+// "../../tests/fixtures/certs/rs256.pem") change CHAIN_BYTES and KEY_BYTES
+// should be updated here. We embed the certs here because WASM cannot read the
+// fixtures.
 
 const KEY_BYTES: &str = r#"-----BEGIN PRIVATE KEY-----
 MIIJQgIBADANBgkqhkiG9w0BAQEFAASCCSwwggkoAgEAAoICAQCq/rU2E/3y72c2
