@@ -78,6 +78,9 @@ pub enum Error {
     #[error("could not generate a trusted time stamp")]
     CoseTimeStampGeneration,
 
+    #[error("COSE TimeStamp Authority failure")]
+    CoseTimeStampAuthority,
+
     #[error("COSE Signature too big for JUMBF box")]
     CoseSigboxTooSmall,
 

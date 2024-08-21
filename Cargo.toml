@@ -38,11 +38,12 @@ crate-type = ["lib"]
 [dependencies]
 asn1-rs = "0.5.2"
 async-generic = "1.1"
+async-recursion = "1.1.1"
 async-trait = { version = "0.1.77" }
 base64 = "0.21.2"
 bcder = "0.7.3"
 bytes = "1.4.0"
-chrono = { version = "0.4.27", default-features = false, features = [
+chrono = { version = "0.4.28", default-features = false, features = [
 	"serde",
 	"wasmbind",
 ] }
@@ -65,7 +66,7 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_bytes = "0.11.5"
 serde_cbor = "0.11.1"
 serde_derive = "1.0.197"
-sha2 = "0.10.2"
+sha2 = "0.10.6"
 thiserror = "1.0.61"
 url = "2.2.2, <2.5.1"  # Can't use 2.5.1 or newer until new license is reviewed.
 x509-parser = "0.15.1"
@@ -84,7 +85,8 @@ getrandom = { version = "0.2.7", features = ["js"] }
 # to handle certificate timestamp checking correctly.
 instant = { version = "0.1.12", features = ["wasm-bindgen", "inaccurate"] }
 js-sys = "0.3.58"
-rsa = "0.6.1"
+rand_core = "0.9.0-alpha.2"
+rsa = { version = "0.9.6", features = ["sha2"] }
 serde-wasm-bindgen = "0.5.0"
 spki = "0.6.0"
 wasm-bindgen = "0.2.83"

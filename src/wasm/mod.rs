@@ -12,10 +12,17 @@
 // each license.
 
 pub(crate) mod context;
+
+pub(crate) mod rsa_wasm_signer;
+#[allow(unused)]
+pub(crate) use rsa_wasm_signer::RsaWasmSignerAsync;
+
 mod hash_by_alg;
 pub(crate) mod webcrypto_validator;
 pub use webcrypto_validator::validate_async;
 pub(crate) mod webpki_trust_handler;
 
+#[allow(unused_imports)] // TEMPORARY: Figure this out later.
+pub(crate) use webpki_trust_handler::verify_data;
 #[allow(unused_imports)] // TEMPORARY: Figure this out later.
 pub(crate) use webpki_trust_handler::WebTrustHandlerConfig;
