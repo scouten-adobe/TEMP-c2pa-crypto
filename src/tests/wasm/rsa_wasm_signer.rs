@@ -28,7 +28,7 @@ use crate::{
 #[test]
 fn sign_ps256() {
     // If this fails, look at c2pa-rs#564.
-    
+
     let cert_bytes = include_bytes!("../fixtures/certs/rs256.pub");
     let key_bytes = include_bytes!("../fixtures/certs/rs256.pem");
 
