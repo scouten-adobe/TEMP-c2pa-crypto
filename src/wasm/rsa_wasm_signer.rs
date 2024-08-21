@@ -131,8 +131,8 @@ pub struct RsaWasmSignerAsync {
 impl RsaWasmSignerAsync {
     #[allow(dead_code)]
     pub fn new() -> Self {
-        let cert_bytes = include_bytes!("../../tests/fixtures/certs/rs256.pub");
-        let key_bytes = include_bytes!("../../tests/fixtures/certs/rs256.pem");
+        let cert_bytes = include_bytes!("../tests/fixtures/certs/rs256.pub");
+        let key_bytes = include_bytes!("../tests/fixtures/certs/rs256.pem");
 
         Self {
             signer: Box::new(
