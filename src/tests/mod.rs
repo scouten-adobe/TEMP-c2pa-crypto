@@ -20,6 +20,7 @@
 
 mod cose_sign;
 mod cose_validator;
+mod internal;
 mod ocsp_utils;
 
 #[cfg(feature = "openssl")]
