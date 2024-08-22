@@ -94,7 +94,7 @@ jobs:
       - name: Run Wasm tests
         run: wasm-pack test --chrome --headless
 
-  tests-wasm:
+  wasmcov:
     name: Unit tests (WASM, nightly, code coverage)
     runs-on: ubuntu-latest
 
