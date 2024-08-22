@@ -121,9 +121,7 @@ jobs:
         run: ls -lR wasmcov
 
       - name: Generate coverage report
-        run: RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime" \
-          cargo +nightly wasmcov report -- \
-          --ignore-filename-regex tests --output-path lcov.info
+        run: RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime" cargo +nightly wasmcov report -- --ignore-filename-regex tests --output-path lcov.info
       
       - name: Upload code coverage results
         uses: codecov/codecov-action@v3
