@@ -51,3 +51,14 @@ pub use signing_alg::SigningAlg;
 pub use trust_config::{
     trust_handler_config::TrustHandlerConfig, trust_pass_through::TrustPassThrough,
 };
+
+
+#[cfg(all(test, target_family = "wasm"))]
+#[no_mangle]
+pub unsafe extern "C" fn capture_coverage() {
+    const BINARY_NAME: &str = env!("CARGO_PKG_NAME");
+    let mut coverage = vec![];
+    wasmcov::minicov::capture_coverage(&mut coverage).unwrap();
+    std::fs::write("output.profraw", coverage).unwrap();
+    println!("Hello? Hello? Anybody home?");
+}

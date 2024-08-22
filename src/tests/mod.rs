@@ -34,13 +34,3 @@ mod trust_config;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-
-#[cfg(target_family = "wasm")]
-#[no_mangle]
-pub unsafe extern "C" fn capture_coverage() {
-    const BINARY_NAME: &str = env!("CARGO_PKG_NAME");
-    let mut coverage = vec![];
-    wasmcov::minicov::capture_coverage(&mut coverage).unwrap();
-    std::fs::write("output.profraw", coverage).unwrap();
-    println!("Hello? Hello? Anybody home?");
-}
