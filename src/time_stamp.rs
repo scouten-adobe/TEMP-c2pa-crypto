@@ -48,9 +48,7 @@ use crate::{
 
 // Generate TimeStamp signature according to https://datatracker.ietf.org/doc/html/rfc3161
 // using the specified Time Authority
-
-#[allow(dead_code)]
-pub(crate) fn cose_countersign_data(data: &[u8], p_header: &ProtectedHeader) -> Vec<u8> {
+fn cose_countersign_data(data: &[u8], p_header: &ProtectedHeader) -> Vec<u8> {
     let aad: Vec<u8> = Vec::new();
 
     // create sig_structure_data to be signed

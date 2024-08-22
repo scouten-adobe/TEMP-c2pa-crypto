@@ -29,6 +29,7 @@ mod signing_alg;
 mod status_tracker;
 
 mod test_utils;
+mod time_stamp;
 mod trust_config;
 
 #[cfg(target_arch = "wasm32")]
