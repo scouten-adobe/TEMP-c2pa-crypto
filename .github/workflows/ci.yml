@@ -99,6 +99,9 @@ jobs:
 
       - name: Generate coverage report
         run: cargo wasmcov report -- --ignore-filename-regex tests --output-path lcov.info
+      
+      - name: "[DEBUG]: Where are reports?"
+        run: find . -name "*lcov*"
 
       - name: Upload code coverage results
         uses: codecov/codecov-action@v3
