@@ -91,8 +91,21 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Run Wasm tests
-        run: wasm-pack test --chrome --headless
+      - name: Install wasmcov
+        run: cargo install wasmcov
+
+      - name: Run tests with coverage
+        run: cargo wasmcov test -- --all-features
+
+      - name: Generate coverage report
+        run: cargo wasmcov report -- --ignore-filename-regex tests --output-path lcov.info
+
+      - name: Upload code coverage results
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
 
   test-direct-minimal-versions:
     name: Unit tests with minimum versions of direct dependencies
