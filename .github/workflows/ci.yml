@@ -114,8 +114,11 @@ jobs:
       - name: Run tests with coverage
         run: cargo +nightly wasmcov test -- --all-features
 
-      - name: "[DEBUG]: What was saved?"
-        run: ls -al wasmcov/target
+      - name: "[DEBUG]: ls -lR target"
+        run: ls -lR target
+
+      - name: "[DEBUG]: ls -lR wasmcov"
+        run: ls -lR wasmcov
 
       - name: Generate coverage report
         run: RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime" \
