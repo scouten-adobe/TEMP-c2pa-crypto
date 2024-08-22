@@ -15,7 +15,9 @@ use bcder::{Integer, OctetString, Oid};
 use bytes::Bytes;
 use x509_certificate::rfc5280::AlgorithmIdentifier;
 
-use crate::internal::asn1::rfc3161::{MessageImprint, TimeStampReq};
+use crate::internal::asn1::rfc3161::{
+    MessageImprint, PkiStatus, PkiStatusInfo, TimeStampReq, TimeStampResp,
+};
 
 #[test]
 fn impl_clone() {
@@ -36,4 +38,14 @@ fn impl_clone() {
         extensions: None,
     };
     assert_eq!(req, req.clone());
+
+    let resp = TimeStampResp {
+        status: PkiStatusInfo {
+            status: PkiStatus::GrantedWithMods,
+            status_string: None,
+            fail_info: None,
+        },
+        time_stamp_token: None,
+    };
+    assert_eq!(resp, resp.clone());
 }
