@@ -78,7 +78,24 @@ jobs:
         run: cross test --all-targets --all-features --target ${{ matrix.target }}
 
   tests-wasm:
-    name: Unit tests (WASM)
+    name: Unit tests (WASM, stable)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Run Wasm tests
+        run: wasm-pack test --chrome --headless
+
+  tests-wasm:
+    name: Unit tests (WASM, nightly, code coverage)
     runs-on: ubuntu-latest
 
     steps:
@@ -101,7 +118,9 @@ jobs:
         run: ls -al wasmcov/target
 
       - name: Generate coverage report
-        run: cargo +nightly wasmcov report -- --ignore-filename-regex tests --output-path lcov.info
+        run: RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime" \
+          cargo +nightly wasmcov report -- \
+          --ignore-filename-regex tests --output-path lcov.info
       
       - name: Upload code coverage results
         uses: codecov/codecov-action@v3
