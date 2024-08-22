@@ -31,17 +31,14 @@ use crate::cose_validator::{
 };
 use crate::{
     error::{Error, Result},
-    internal::{
-        asn1::{
-            rfc3161::{
-                MessageImprint, TimeStampReq, TimeStampResp, TstInfo, OID_CONTENT_TYPE_TST_INFO,
-            },
-            rfc5652::{
-                CertificateChoices::Certificate, SignedData, OID_ID_SIGNED_DATA,
-                OID_MESSAGE_DIGEST, OID_SIGNING_TIME,
-            },
+    internal::asn1::{
+        rfc3161::{
+            MessageImprint, TimeStampReq, TimeStampResp, TstInfo, OID_CONTENT_TYPE_TST_INFO,
         },
-        hash_utils::vec_compare,
+        rfc5652::{
+            CertificateChoices::Certificate, SignedData, OID_ID_SIGNED_DATA, OID_MESSAGE_DIGEST,
+            OID_SIGNING_TIME,
+        },
     },
     AsyncSigner, Signer,
 };
@@ -592,7 +589,7 @@ pub(crate) fn verify_timestamp(ts: &[u8], data: &[u8]) -> Result<TstInfo> {
 
                         let digest = h.finish();
 
-                        if !vec_compare(&signed_message_digest, digest.as_ref()) {
+                        if signed_message_digest != digest.as_ref() {
                             last_err = Error::CoseTimeStampMismatch;
                             continue;
                         }
@@ -703,7 +700,7 @@ pub(crate) fn verify_timestamp(ts: &[u8], data: &[u8]) -> Result<TstInfo> {
                         h.update(data);
                         let digest = h.finish();
 
-                        if !vec_compare(digest.as_ref(), &mi.hashed_message.to_bytes()) {
+                        if digest.as_ref() != &mi.hashed_message.to_bytes() {
                             last_err = Error::CoseTimeStampMismatch;
                             continue;
                         }
