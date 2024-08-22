@@ -52,7 +52,6 @@ pub use trust_config::{
     trust_handler_config::TrustHandlerConfig, trust_pass_through::TrustPassThrough,
 };
 
-
 #[cfg(all(test, target_family = "wasm"))]
 #[no_mangle]
 pub unsafe extern "C" fn capture_coverage() {
