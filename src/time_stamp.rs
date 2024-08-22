@@ -700,7 +700,7 @@ pub(crate) fn verify_timestamp(ts: &[u8], data: &[u8]) -> Result<TstInfo> {
                         h.update(data);
                         let digest = h.finish();
 
-                        if digest.as_ref() != &mi.hashed_message.to_bytes() {
+                        if digest.as_ref() != mi.hashed_message.to_bytes() {
                             last_err = Error::CoseTimeStampMismatch;
                             continue;
                         }
