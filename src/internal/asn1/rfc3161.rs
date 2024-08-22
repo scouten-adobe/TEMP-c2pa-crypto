@@ -142,17 +142,6 @@ impl TimeStampResp {
             })
         })
     }
-
-    pub fn encode_ref(&self) -> impl Values + '_ {
-        encode::sequence((
-            self.status.encode_ref(),
-            if let Some(time_stamp_token) = &self.time_stamp_token {
-                Some(time_stamp_token)
-            } else {
-                None
-            },
-        ))
-    }
 }
 
 /// PKI status info
@@ -183,16 +172,6 @@ impl PkiStatusInfo {
                 fail_info,
             })
         })
-    }
-
-    pub fn encode_ref(&self) -> impl Values + '_ {
-        encode::sequence((
-            self.status.encode(),
-            self.status_string
-                .as_ref()
-                .map(|status_string| status_string.encode_ref()),
-            self.fail_info.as_ref().map(|fail_info| fail_info.encode()),
-        ))
     }
 }
 
