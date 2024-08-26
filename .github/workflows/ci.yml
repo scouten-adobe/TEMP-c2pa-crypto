@@ -115,6 +115,9 @@ jobs:
           rustup toolchain install nightly --profile minimal --target wasm32-unknown-unknown
           rustup default nightly
 
+      - name: Install wasmcov
+        run: cargo +nightly install wasmcov
+
       - name: Test
         env:
           CHROMEDRIVER: chromedriver
