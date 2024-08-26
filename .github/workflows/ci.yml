@@ -165,11 +165,25 @@ jobs:
             clang-19 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
           done
 
+      - name: Merge all generated raw profiling data
+        run: llvm-profdata-19 merge -sparse *.profraw -o coverage.profdata
+
       - name: "[DEBUG]: ls -lR target"
         run: ls -lR target
 
       - name: "[DEBUG]: ls -lR coverage-output"
         run: ls -lR coverage-output
+
+      - name: Produce test coverage data in .lcov format
+        run: llvm-cov-19 export -format=lcov -ignore-filename-regex=tests         -Xdemangler=rustfilt -output-dir coverage-output -format=html ${objects[@]} -sources src
+
+      - name: "[DEBUG]: ls -lR target"
+        run: ls -lR target
+
+      - name: "[DEBUG]: ls -lR coverage-output"
+        run: ls -lR coverage-output
+
+
 
       # - name: Generate coverage report
       #   run: RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime" cargo +nightly wasmcov report -- --ignore-filename-regex tests --output-path lcov.info
