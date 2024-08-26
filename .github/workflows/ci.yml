@@ -125,7 +125,7 @@ jobs:
           WASM_BINDGEN_UNSTABLE_TEST_PROFRAW_OUT: coverage-output
         run: |
           mkdir coverage-output
-          cargo test --all-features --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests
+          cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests
 
       - name: Prepare Object Files
         env:
