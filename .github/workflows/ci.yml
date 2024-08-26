@@ -96,7 +96,7 @@ jobs:
 
   wasm-coverage:
     name: Unit tests (WASM, nightly, code coverage)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -104,8 +104,7 @@ jobs:
 
       - name: Install Rust nightly
         run: |
-          rustup toolchain install nightly --profile minimal --target wasm32-unknown-unknown ${{ matrix.mt.component }}
-          rustup default nightly
+          rustup toolchain install nightly --profile minimal --target wasm32-unknown-unknown rustup default nightly
 
       - name: Install `wasm-bindgen-cli`
         uses: taiki-e/install-action@v2
