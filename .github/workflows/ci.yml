@@ -172,7 +172,7 @@ jobs:
         run: ls -lR coverage-output
 
       - name: Merge all generated raw profiling data
-        run: llvm-profdata-18 merge -sparse *.profraw -o coverage.profdata
+        run: llvm-profdata-18 merge -sparse coverage-output/*.profraw -o coverage.profdata
 
       - name: Produce test coverage data in .lcov format
         run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests         -Xdemangler=rustfilt -output-dir coverage-output -format=html ${objects[@]} -sources src
