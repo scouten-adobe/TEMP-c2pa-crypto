@@ -107,8 +107,8 @@ jobs:
         with:
           tool: wasm-bindgen-cli
 
-      - name: Install Clang v19
-        run: sudo apt-get install clang-19
+      - name: Install Clang v18
+        run: sudo apt-get install clang-18
 
       - name: Install Rust nightly
         run: |
@@ -162,11 +162,11 @@ jobs:
                 counter=$(perl -i -p0e '$c+= s/(^(define|declare)(,? [^\n ]+)*),? range\(.*?\)/$1/gm; END{print "$c"}' $input)
             done
 
-            clang-19 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
+            clang-18 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
           done
 
       - name: Merge all generated raw profiling data
-        run: llvm-profdata-19 merge -sparse *.profraw -o coverage.profdata
+        run: llvm-profdata-18 merge -sparse *.profraw -o coverage.profdata
 
       - name: "[DEBUG]: ls -lR target"
         run: ls -lR target
@@ -175,7 +175,7 @@ jobs:
         run: ls -lR coverage-output
 
       - name: Produce test coverage data in .lcov format
-        run: llvm-cov-19 export -format=lcov -ignore-filename-regex=tests         -Xdemangler=rustfilt -output-dir coverage-output -format=html ${objects[@]} -sources src
+        run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests         -Xdemangler=rustfilt -output-dir coverage-output -format=html ${objects[@]} -sources src
 
       - name: "[DEBUG]: ls -lR target"
         run: ls -lR target
