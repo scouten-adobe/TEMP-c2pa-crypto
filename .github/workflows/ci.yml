@@ -150,6 +150,9 @@ jobs:
                 file=$(dirname $file)/$(basename $file .wasm).ll
             fi
 
+            # debug
+            echo $file
+
             input=coverage-input/$(basename $file)
             cp $file $input
 
@@ -161,6 +164,9 @@ jobs:
 
             clang-18 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
           done
+
+      - name: "[DEBUG]: ls -lR coverage-input"
+        run: ls -lR coverage-input
 
       - name: Merge profile data
         run:
