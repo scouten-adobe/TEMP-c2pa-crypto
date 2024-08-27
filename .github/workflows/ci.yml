@@ -145,8 +145,7 @@ jobs:
           crate_name=c2pa-crypto
           IFS=$'\n'
           for file in $(
-            cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
-            /usr/bin/jq -r "select(.reason == \"compiler-artifact\") | select(.target.name == \"$crate_name\")) | .filenames[0]"
+            cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | jq -r "select(.reason == \"compiler-artifact\") | select(.target.name == \"$crate_name\")) | .filenames[0]"
           )
           do
             if [[ ${file##*.} == "rlib" ]]; then
