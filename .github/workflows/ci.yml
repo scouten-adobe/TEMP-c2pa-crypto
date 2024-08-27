@@ -178,12 +178,12 @@ jobs:
       - name: Export Code Coverage Report
         run: |
           objects=()
-          for file in $(ls coverage-input/*/*.o)
+          for file in $(ls coverage-output/*.o)
           do
               objects+=(-object $file)
           done
-          llvm-cov-18 show -show-instantiations=false -output-dir coverage-output -format=html -instr-profile=coverage-input/coverage.profdata ${objects[@]} -sources src
-          llvm-cov-18 export -format=text -summary-only -instr-profile=coverage-input/coverage.profdata ${objects[@]} -sources src | \
+          llvm-cov-18 show -show-instantiations=false -output-dir coverage-output -format=html -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src
+          llvm-cov-18 export -format=text -summary-only -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src | \
           printf '{ "coverage": "%.2f%%" }' $(jq '.data[0].totals.functions.percent') > coverage-output/coverage.json
           sed 's/<!doctype html>//' coverage-output/index.html | perl -p0e 's/<a[^>]*>((?!here).*?)<\/a>/$1/g' >> $GITHUB_STEP_SUMMARY
 
