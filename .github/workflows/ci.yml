@@ -180,7 +180,8 @@ jobs:
           objects=()
           for file in $(ls coverage-output/*.o)
           do
-              objects+=(-object $file)
+            echo OF:$file
+            objects+=(-object $file)
           done
           llvm-cov-18 show -show-instantiations=false -output-dir coverage-output -format=html -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src
           llvm-cov-18 export -format=lcov -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src > lcov.info
