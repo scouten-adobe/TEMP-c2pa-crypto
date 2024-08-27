@@ -184,7 +184,7 @@ jobs:
             objects+=(-object $file)
           done
           llvm-cov-18 show -show-instantiations=false -output-dir coverage-output -format=html -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src
-          llvm-cov-18 export -format=lcov -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src > lcov.info
+          llvm-cov-18 export -format=lcov -instr-profile=coverage-output/coverage.profdata -ignore-filename-regex='\/tests\/' ${objects[@]} -sources src > lcov.info
 
       - name: "[DEBUG]: cat lcov.info"
         run: cat lcov.info
@@ -193,7 +193,6 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          gcov_ignore: "src/tests/**"
           fail_ci_if_error: true
           verbose: true
 
