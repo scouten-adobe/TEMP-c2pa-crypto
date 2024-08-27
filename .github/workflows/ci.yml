@@ -108,7 +108,9 @@ jobs:
           tool: wasm-bindgen-cli
 
       - name: Install Clang v18 & jq
-        run: sudo apt-get install clang-18 jq
+        run: |
+          sudo apt-get install clang-18 jq
+          which jq
 
       - name: Install Rust nightly
         run: |
