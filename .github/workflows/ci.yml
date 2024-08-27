@@ -145,7 +145,7 @@ jobs:
           IFS=$'\n'
           for file in $(
             cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
-            jq -r "select(.reason == \"compiler-artifact\") | (select(.target.name == \"$crate_name\")) | .filenames[0]"
+            jq -r "select(.reason == \"compiler-artifact\") | (select(.target.kind == [\"lib\"])) | .filenames[0]"
           )
           do
             if [[ ${file##*.} == "rlib" ]]; then
@@ -170,8 +170,8 @@ jobs:
             clang-18 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
           done
 
-      - name: "[DEBUG]: ls -lR coverage-input"
-        run: ls -lR coverage-input
+      - name: "[DEBUG]: ls -lR coverage-output"
+        run: ls -lR coverage-output
 
       - name: Merge profile data
         run:
