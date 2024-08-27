@@ -175,7 +175,7 @@ jobs:
         run: llvm-profdata-18 merge -sparse coverage-output/*.profraw -o coverage.profdata
 
       - name: Produce test coverage data in .lcov format
-        run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests         -Xdemangler=rustfilt ${objects[@]} -sources src
+        run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests -Xdemangler=rustfilt -sources src -instr-profile=coverage-output/wasm.lcov ${objects[@]}
 
       - name: "[DEBUG]: ls -lR target"
         run: ls -lR target
