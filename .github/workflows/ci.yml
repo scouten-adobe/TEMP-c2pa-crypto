@@ -131,8 +131,7 @@ jobs:
           cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests
 
       - name: "[DEBUG] Where are the objects?"
-        run: cargo +nightly test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
-          /usr/bin/jq -r "select(.reason == \"compiler-artifact\") | .filenames[0]"
+        run: cargo +nightly test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json
 
       - name: Prepare object files
         env:
