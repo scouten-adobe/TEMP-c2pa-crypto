@@ -175,7 +175,7 @@ jobs:
           llvm-profdata-18 merge -sparse coverage-output/*.profraw -o
           coverage-output/coverage.profdata
 
-      - name: Export Code Coverage Report
+      - name: Generate coverage report
         run: |
           objects=()
           for file in $(ls coverage-output/*.o)
@@ -183,13 +183,10 @@ jobs:
               objects+=(-object $file)
           done
           llvm-cov-18 show -show-instantiations=false -output-dir coverage-output -format=html -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src
-          llvm-cov-18 export -format=text -summary-only -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src | \
-          printf '{ "coverage": "%.2f%%" }' $(jq '.data[0].totals.functions.percent') > coverage-output/coverage.json
-          sed 's/<!doctype html>//' coverage-output/index.html | perl -p0e 's/<a[^>]*>((?!here).*?)<\/a>/$1/g' >> $GITHUB_STEP_SUMMARY
+          llvm-cov-18 export -format=lcov -instr-profile=coverage-output/coverage.profdata ${objects[@]} -sources src > lcov.info
 
-      - name: "[DEBUG]: ls -lR coverage-output"
-        run: ls -lR coverage-output
-  
+      - name: "[DEBUG]: ls -al ."
+        run: ls -al .
 
 
       # - name: Produce test coverage data in .lcov format
