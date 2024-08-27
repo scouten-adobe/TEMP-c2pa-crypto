@@ -141,12 +141,11 @@ jobs:
             --cfg=wasm_bindgen_unstable_test_coverage
         run: |
           mkdir coverage-input
-          crate_name=c2pa-crypto
+          crate_name=c2pa_crypto
           IFS=$'\n'
           for file in $(
             cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
-            jq -r "select(.reason == \"compiler-artifact\") | (select(.target.kind == [\"lib\"])) | .filenames[0]" | \
-            grep $crate-name
+            jq -r "select(.reason == \"compiler-artifact\") | (select(.target.kind == [\"lib\"] and .target.name == \"$crate_name\")) | .filenames[0]"
           )
           do
             if [[ ${file##*.} == "rlib" ]]; then
