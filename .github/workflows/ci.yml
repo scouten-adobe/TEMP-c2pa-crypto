@@ -116,10 +116,7 @@ jobs:
           rustup default nightly
           rustc --version --verbose
 
-      # - name: Install wasmcov
-      #   run: cargo +nightly install wasmcov
-
-      - name: Test
+      - name: Run tests
         env:
           CHROMEDRIVER: chromedriver
           CARGO_HOST_RUSTFLAGS: --cfg=wasm_bindgen_unstable_test_coverage
@@ -131,7 +128,7 @@ jobs:
           mkdir coverage-output
           cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests
 
-      - name: Prepare Object Files
+      - name: Prepare object files
         env:
           CARGO_HOST_RUSTFLAGS: --cfg=wasm_bindgen_unstable_test_coverage
           RUSTFLAGS:
@@ -139,10 +136,10 @@ jobs:
             --cfg=wasm_bindgen_unstable_test_coverage
         run: |
           mkdir coverage-input
-          crate_name=web_time
+          crate_name=c2pa-crypto
           IFS=$'\n'
           for file in $(
-            cargo test --all-features --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
+            cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
             jq -r "select(.reason == \"compiler-artifact\") | (select(.target.kind == [\"test\"]) // select(.target.name == \"$crate_name\")) | .filenames[0]"
           )
           do
@@ -165,23 +162,37 @@ jobs:
             clang-18 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
           done
 
+      - name: Merge profile data
+        run:
+          llvm-profdata-18 merge -sparse coverage-input/*/*.profraw -o
+          coverage-input/coverage.profdata
+
+      - name: Export Code Coverage Report
+        run: |
+          mkdir coverage-output
+          objects=()
+          for file in $(ls coverage-input/*/*.o)
+          do
+              objects+=(-object $file)
+          done
+          llvm-cov-18 show -show-instantiations=false -output-dir coverage-output -format=html -instr-profile=coverage-input/coverage.profdata ${objects[@]} -sources src
+          llvm-cov-18 export -format=text -summary-only -instr-profile=coverage-input/coverage.profdata ${objects[@]} -sources src | \
+          printf '{ "coverage": "%.2f%%" }' $(jq '.data[0].totals.functions.percent') > coverage-output/coverage.json
+          sed 's/<!doctype html>//' coverage-output/index.html | perl -p0e 's/<a[^>]*>((?!here).*?)<\/a>/$1/g' >> $GITHUB_STEP_SUMMARY
+
       - name: "[DEBUG]: ls -lR coverage-output"
         run: ls -lR coverage-output
+  
 
-      - name: Merge all generated raw profiling data
-        run: llvm-profdata-18 merge -sparse coverage-output/*.profraw -o coverage-output/coverage.profdata
 
-      - name: "[DEBUG]: ls -lR coverage-output"
-        run: ls -lR coverage-output
+      # - name: Produce test coverage data in .lcov format
+      #   run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests -Xdemangler=rustfilt -sources src -instr-profile=coverage-output/wasm.lcov ${objects[@]}
 
-      - name: Produce test coverage data in .lcov format
-        run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests -Xdemangler=rustfilt -sources src -instr-profile=coverage-output/wasm.lcov ${objects[@]}
+      # - name: "[DEBUG]: ls -lR target"
+      #   run: ls -lR target
 
-      - name: "[DEBUG]: ls -lR target"
-        run: ls -lR target
-
-      - name: "[DEBUG]: ls -lR coverage-output"
-        run: ls -lR coverage-output
+      # - name: "[DEBUG]: ls -lR coverage-output"
+      #   run: ls -lR coverage-output
 
 
 
