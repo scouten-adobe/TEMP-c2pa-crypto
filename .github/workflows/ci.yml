@@ -143,7 +143,7 @@ jobs:
           IFS=$'\n'
           for file in $(
             cargo test --target wasm32-unknown-unknown -Ztarget-applies-to-host -Zhost-config --tests --no-run --message-format=json | \
-            jq -r "select(.reason == \"compiler-artifact\") | (select(.target.kind == [\"test\"]) // select(.target.name == \"$crate_name\")) | .filenames[0]"
+            jq -r "select(.reason == \"compiler-artifact\") | select(.target.name == \"$crate_name\")) | .filenames[0]"
           )
           do
             if [[ ${file##*.} == "rlib" ]]; then
