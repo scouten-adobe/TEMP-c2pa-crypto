@@ -185,27 +185,12 @@ jobs:
       - name: "[DEBUG]: ls -al ."
         run: ls -al .
 
-
-      # - name: Produce test coverage data in .lcov format
-      #   run: llvm-cov-18 export -format=lcov -ignore-filename-regex=tests -Xdemangler=rustfilt -sources src -instr-profile=coverage-output/wasm.lcov ${objects[@]}
-
-      # - name: "[DEBUG]: ls -lR target"
-      #   run: ls -lR target
-
-      # - name: "[DEBUG]: ls -lR coverage-output"
-      #   run: ls -lR coverage-output
-
-
-
-      # - name: Generate coverage report
-      #   run: RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime" cargo +nightly wasmcov report -- --ignore-filename-regex tests --output-path lcov.info
-      
-      # - name: Upload code coverage results
-      #   uses: codecov/codecov-action@v3
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     fail_ci_if_error: true
-      #     verbose: true
+      - name: Upload code coverage results
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
 
   # test-direct-minimal-versions:
   #   name: Unit tests with minimum versions of direct dependencies
