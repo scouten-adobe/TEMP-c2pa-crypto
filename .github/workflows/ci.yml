@@ -177,7 +177,6 @@ jobs:
 
       - name: Export Code Coverage Report
         run: |
-          mkdir coverage-output
           objects=()
           for file in $(ls coverage-input/*/*.o)
           do
