@@ -167,9 +167,6 @@ jobs:
             clang-18 $input -Wno-override-module -c -o coverage-output/$(basename $input .ll).o
           done
 
-      - name: "[DEBUG]: ls -lR coverage-output"
-        run: ls -lR coverage-output
-
       - name: Merge profile data
         run:
           llvm-profdata-18 merge -sparse coverage-output/*.profraw -o
