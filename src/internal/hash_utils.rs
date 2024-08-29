@@ -18,14 +18,6 @@ use multihash::{Sha1, Sha2_256};
 
 const MAX_HASH_BUF: usize = 256 * 1024 * 1024; // cap memory usage to 256MB
 
-/// Compare two byte vectors return true if match, false otherwise
-pub(crate) fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
-    (va.len() == vb.len()) &&  // zip stops at the shortest
-     va.iter()
-       .zip(vb)
-       .all(|(a,b)| a == b)
-}
-
 /// Return a Sha256 hash of array of bytes
 #[allow(dead_code)]
 pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {

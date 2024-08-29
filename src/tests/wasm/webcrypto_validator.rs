@@ -11,16 +11,12 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 
 use crate::{wasm::validate_async, SigningAlg};
 
-#[cfg(target_arch = "wasm32")]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[wasm_bindgen_test]
 async fn test_async_verify_rsa_pss() {
     // PS signatures
@@ -35,8 +31,6 @@ async fn test_async_verify_rsa_pss() {
     assert_eq!(validated, true);
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[wasm_bindgen_test]
 async fn test_async_verify_ecdsa() {
     // EC signatures
@@ -86,8 +80,6 @@ async fn test_async_verify_ecdsa() {
     assert_eq!(validated, true);
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[wasm_bindgen_test]
 #[ignore]
 async fn test_async_verify_bad() {

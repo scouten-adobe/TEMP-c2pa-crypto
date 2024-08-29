@@ -11,7 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 
 use crate::{
@@ -19,8 +18,6 @@ use crate::{
     wasm::{webpki_trust_handler::verify_trust_async, WebTrustHandlerConfig},
 };
 
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[wasm_bindgen_test]
 async fn test_trust_store() {
     let mut th = WebTrustHandlerConfig::new();
@@ -84,8 +81,24 @@ async fn test_trust_store() {
     );
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+#[wasm_bindgen_test]
+async fn test_trust_list_with_ee_cert() {
+    // Coverage for case where verify_trust_async gets called
+    // with end entity cert as part of the chain.
+    let mut th = WebTrustHandlerConfig::new();
+    th.clear();
+
+    th.load_default_trust().unwrap();
+
+    // Testing only one cert; this isn't about sig algorityms.
+    let ps256 = include_bytes!("../fixtures/test_certs/ps256.pub");
+    let ps256_certs = load_trust_from_data(ps256).unwrap();
+
+    assert!(verify_trust_async(&th, &ps256_certs, &ps256_certs[0], None)
+        .await
+        .unwrap());
+}
+
 #[wasm_bindgen_test]
 async fn test_broken_trust_chain() {
     let mut th = WebTrustHandlerConfig::new();

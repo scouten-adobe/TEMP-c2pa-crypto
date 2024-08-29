@@ -27,10 +27,7 @@ use x509_parser::{
 use crate::{
     cose_validator::*,
     error::{Error, Result},
-    internal::{
-        base64,
-        hash_utils::{hash_sha256, vec_compare},
-    },
+    internal::{base64, hash_utils::hash_sha256},
     trust_config::trust_handler_config::{
         has_allowed_oid, load_eku_configuration, load_trust_from_data, TrustHandlerConfig,
     },
@@ -468,8 +465,8 @@ async fn on_trust_list(
         return Ok(true);
     }
 
-    // add ee cert if needed to the chain
-    let full_chain = if !certs.is_empty() && vec_compare(ee_der, &certs[0]) {
+    // Add the end-entity cert to the chain if it wasn't already there.
+    let full_chain = if !certs.is_empty() && ee_der == certs[0] {
         certs.to_vec()
     } else {
         let mut full_chain: Vec<Vec<u8>> = Vec::new();
