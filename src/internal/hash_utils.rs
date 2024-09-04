@@ -11,15 +11,9 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#![allow(dead_code)] // TEMPORARY: figure this out later
-
-// multihash versions
 use multihash::{Sha1, Sha2_256};
 
-const MAX_HASH_BUF: usize = 256 * 1024 * 1024; // cap memory usage to 256MB
-
-/// Return a Sha256 hash of array of bytes
-#[allow(dead_code)]
+/// Return a SHA-256 hash of array of bytes.
 pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
     let mh = Sha2_256::digest(data);
     let digest = mh.digest();
@@ -27,6 +21,7 @@ pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
     digest.to_vec()
 }
 
+/// Return a SHA-1 hash of array of bytes.
 pub(crate) fn hash_sha1(data: &[u8]) -> Vec<u8> {
     let mh = Sha1::digest(data);
     let digest = mh.digest();
