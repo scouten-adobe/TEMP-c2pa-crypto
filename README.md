@@ -1,6 +1,6 @@
 # C2PA Cryptography implementation
 
-[![CI](https://github.com/contentauth/c2pa-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/contentauth/c2pa-crypto/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/c2pa-crypto.svg)](https://crates.io/crates/c2pa-crypto) [![docs.rs](https://img.shields.io/docsrs/c2pa-crypto)](https://docs.rs/c2pa-crypto/) [![codecov](https://codecov.io/gh/contentauth/c2pa-crypto/branch/main/graph/badge.svg?token=YVHWI19EGN)](https://codecov.io/gh/contentauth/c2pa-crypto)
+[![CI](https://github.com/scouten-adobe/TEMP-c2pa-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/scouten-adobe/TEMP-c2pa-crypto/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/c2pa-crypto.svg)](https://crates.io/crates/c2pa-crypto) [![docs.rs](https://img.shields.io/docsrs/c2pa-crypto)](https://docs.rs/c2pa-crypto/) [![codecov](https://codecov.io/github/scouten-adobe/TEMP-c2pa-crypto/graph/badge.svg?token=NxwUjwv0j5)](https://codecov.io/github/scouten-adobe/TEMP-c2pa-crypto)
 
 TO DO: New README for c2pa-crypto
 
