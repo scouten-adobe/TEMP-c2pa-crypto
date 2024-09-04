@@ -73,20 +73,3 @@ fn check_chain_order(certs: &[X509]) -> bool {
         true
     }
 }
-
-fn check_chain_order_der(cert_ders: &[Vec<u8>]) -> bool {
-    // IMPORTANT: ffi_mutex::acquire() should have been called by calling fn. Please
-    // don't make this pub or pub(crate) without finding a way to ensure that
-    // precondition.
-
-    let mut certs: Vec<X509> = Vec::new();
-    for cert_der in cert_ders {
-        if let Ok(cert) = X509::from_der(cert_der) {
-            certs.push(cert);
-        } else {
-            return false;
-        }
-    }
-
-    check_chain_order(&certs)
-}
