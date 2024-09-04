@@ -11,7 +11,7 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use multihash::{Sha1, Sha2_256};
+use multihash::Sha2_256;
 
 /// Return a SHA-256 hash of array of bytes.
 pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
@@ -24,7 +24,7 @@ pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
 /// Return a SHA-1 hash of array of bytes.
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn hash_sha1(data: &[u8]) -> Vec<u8> {
-    let mh = Sha1::digest(data);
+    let mh = multihash::Sha1::digest(data);
     let digest = mh.digest();
     digest.to_vec()
 }
