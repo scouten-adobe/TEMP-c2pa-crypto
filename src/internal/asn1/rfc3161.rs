@@ -220,23 +220,6 @@ impl PkiStatus {
             _ => Err(cons.content_err("unknown PKIStatus value")),
         }
     }
-
-    pub fn encode(self) -> impl Values {
-        u8::from(self).encode()
-    }
-}
-
-impl From<PkiStatus> for u8 {
-    fn from(v: PkiStatus) -> u8 {
-        match v {
-            PkiStatus::Granted => 0,
-            PkiStatus::GrantedWithMods => 1,
-            PkiStatus::Rejection => 2,
-            PkiStatus::Waiting => 3,
-            PkiStatus::RevocationWarning => 4,
-            PkiStatus::RevocationNotification => 5,
-        }
-    }
 }
 
 /// PKI failure info.
