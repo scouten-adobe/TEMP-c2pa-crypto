@@ -11,62 +11,33 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#[cfg(feature = "openssl")]
 mod rsa_signer;
-#[cfg(feature = "openssl")]
 pub(crate) use rsa_signer::RsaSigner;
 
-#[cfg(feature = "openssl")]
 mod rsa_validator;
-#[cfg(feature = "openssl")]
-pub(crate) use rsa_validator::RsaLegacyValidator;
-#[cfg(feature = "openssl")]
-pub(crate) use rsa_validator::RsaValidator;
+pub(crate) use rsa_validator::{RsaLegacyValidator, RsaValidator};
 
-#[cfg(feature = "openssl")]
 mod ec_signer;
-#[cfg(feature = "openssl")]
 pub(crate) use ec_signer::EcSigner;
 
-#[cfg(feature = "openssl")]
 mod ec_validator;
-#[cfg(feature = "openssl")]
 pub(crate) use ec_validator::EcValidator;
 
-#[cfg(feature = "openssl")]
 mod ed_signer;
-#[cfg(feature = "openssl")]
 pub(crate) use ed_signer::EdSigner;
 
-#[cfg(feature = "openssl")]
 mod ed_validator;
-#[cfg(feature = "openssl")]
 pub(crate) use ed_validator::EdValidator;
 
-#[cfg(feature = "openssl")]
 mod openssl_trust_handler;
-#[cfg(test)]
-pub(crate) mod temp_signer;
 
-#[cfg(feature = "openssl")]
 pub(crate) use openssl_trust_handler::verify_trust;
-#[cfg(feature = "openssl")]
 pub use openssl_trust_handler::OpenSSLTrustHandlerConfig; // [scouten 2024-06-27: Hacking to make public.]
 
 mod ffi_mutex;
 pub(crate) use ffi_mutex::OpenSslMutex;
-
-#[cfg(test)]
-pub(crate) mod temp_signer_async;
-
-#[cfg(feature = "openssl")]
 use openssl::x509::X509;
-#[cfg(test)]
-#[allow(unused_imports)]
-#[cfg(feature = "openssl")]
-pub(crate) use temp_signer_async::AsyncSignerAdapter;
 
-#[cfg(feature = "openssl")]
 fn check_chain_order(certs: &[X509]) -> bool {
     // IMPORTANT: ffi_mutex::acquire() should have been called by calling fn. Please
     // don't make this pub or pub(crate) without finding a way to ensure that
@@ -92,33 +63,4 @@ fn check_chain_order(certs: &[X509]) -> bool {
         }
         true
     }
-}
-
-#[cfg(not(feature = "openssl"))]
-fn check_chain_order(certs: &[X509]) -> bool {
-    true
-}
-
-#[cfg(feature = "openssl")]
-#[allow(dead_code)]
-fn check_chain_order_der(cert_ders: &[Vec<u8>]) -> bool {
-    // IMPORTANT: ffi_mutex::acquire() should have been called by calling fn. Please
-    // don't make this pub or pub(crate) without finding a way to ensure that
-    // precondition.
-
-    let mut certs: Vec<X509> = Vec::new();
-    for cert_der in cert_ders {
-        if let Ok(cert) = X509::from_der(cert_der) {
-            certs.push(cert);
-        } else {
-            return false;
-        }
-    }
-
-    check_chain_order(&certs)
-}
-
-#[cfg(not(feature = "openssl"))]
-fn check_chain_order_der(cert_ders: &[Vec<u8>]) -> bool {
-    true
 }

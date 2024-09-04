@@ -11,7 +11,7 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use crate::{openssl::temp_signer, Signer, SigningAlg};
+use crate::{tests::openssl::temp_signer, Signer, SigningAlg};
 
 #[test]
 fn ed25519_signer() {

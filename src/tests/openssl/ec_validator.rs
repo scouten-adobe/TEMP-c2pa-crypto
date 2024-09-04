@@ -12,9 +12,7 @@
 // each license.
 
 use crate::{
-    openssl::{temp_signer, EcValidator},
-    validator::CoseValidator,
-    Signer, SigningAlg,
+    openssl::EcValidator, tests::openssl::temp_signer, validator::CoseValidator, Signer, SigningAlg,
 };
 
 #[test]

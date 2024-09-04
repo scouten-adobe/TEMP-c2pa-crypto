@@ -17,9 +17,8 @@
 use crate::{internal::base64, TrustHandlerConfig, TrustPassThrough};
 #[cfg(feature = "openssl")]
 use crate::{
-    openssl::{AsyncSignerAdapter, RsaSigner},
-    signer::ConfigurableSigner,
-    TrustHandlerConfig, TrustPassThrough,
+    openssl::RsaSigner, signer::ConfigurableSigner,
+    tests::openssl::temp_signer_async::AsyncSignerAdapter, TrustHandlerConfig, TrustPassThrough,
 };
 use crate::{RemoteSigner, Result, Signer, SigningAlg};
 
@@ -127,8 +126,9 @@ impl crate::signer::RemoteSigner for TempRemoteSigner {
     async fn sign_remote(&self, claim_bytes: &[u8]) -> crate::error::Result<Vec<u8>> {
         #[cfg(feature = "openssl")]
         {
-            let signer =
-                crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
+            let signer = crate::tests::openssl::temp_signer_async::AsyncSignerAdapter::new(
+                SigningAlg::Ps256,
+            );
 
             let tp = TrustPassThrough::new();
 
@@ -287,8 +287,9 @@ impl crate::signer::AsyncSigner for TempAsyncRemoteSigner {
     async fn sign(&self, claim_bytes: Vec<u8>) -> Result<Vec<u8>> {
         #[cfg(feature = "openssl")]
         {
-            let signer =
-                crate::openssl::temp_signer_async::AsyncSignerAdapter::new(SigningAlg::Ps256);
+            let signer = crate::tests::openssl::temp_signer_async::AsyncSignerAdapter::new(
+                SigningAlg::Ps256,
+            );
 
             let tp = TrustPassThrough::new();
 

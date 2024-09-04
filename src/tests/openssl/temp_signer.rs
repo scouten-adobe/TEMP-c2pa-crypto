@@ -11,26 +11,6 @@
 // specific language governing permissions and limitations under
 // each license.
 
-#![deny(missing_docs)]
-
-//! Temporary signing instances for testing purposes.
-//!
-//! This module contains functions to create self-signed certificates
-//! and provision [`Signer`] instances for each of the supported signature
-//! formats.
-//!
-//! Private-key and signing certificate pairs are created in a directory
-//! provided by the caller. It is recommended to use a temporary directory
-//! that is deleted upon completion of the test. (We recommend using
-//! the [tempfile](https://crates.io/crates/tempfile) crate.)
-//!
-//! This module should be used only for testing purposes.
-
-// Since this module is intended for testing purposes, all of
-// its functions are allowed to panic.
-#![allow(clippy::panic)]
-#![allow(clippy::unwrap_used)]
-
 use crate::{
     openssl::{EcSigner, EdSigner, RsaSigner},
     signer::ConfigurableSigner,
@@ -54,19 +34,19 @@ use crate::{
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-pub fn get_ec_signer(alg: SigningAlg, tsa_url: Option<String>) -> EcSigner {
+pub(crate) fn get_ec_signer(alg: SigningAlg, tsa_url: Option<String>) -> EcSigner {
     let (sign_cert, pem_key) = match alg {
         SigningAlg::Es256 => (
-            include_bytes!("../tests/fixtures/test_certs/es256.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/es256.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/es256.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/es256.pem").to_vec(),
         ),
         SigningAlg::Es384 => (
-            include_bytes!("../tests/fixtures/test_certs/es384.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/es384.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/es384.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/es384.pem").to_vec(),
         ),
         SigningAlg::Es512 => (
-            include_bytes!("../tests/fixtures/test_certs/es512.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/es512.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/es512.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/es512.pem").to_vec(),
         ),
         _ => {
             panic!("Unknown EC signer alg {alg:#?}");
@@ -92,11 +72,11 @@ pub fn get_ec_signer(alg: SigningAlg, tsa_url: Option<String>) -> EcSigner {
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-pub fn get_ed_signer(alg: SigningAlg, tsa_url: Option<String>) -> EdSigner {
+pub(crate) fn get_ed_signer(alg: SigningAlg, tsa_url: Option<String>) -> EdSigner {
     let (sign_cert, pem_key) = match alg {
         SigningAlg::Ed25519 => (
-            include_bytes!("../tests/fixtures/test_certs/ed25519.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/ed25519.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/ed25519.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/ed25519.pem").to_vec(),
         ),
         _ => {
             panic!("Unknown ED signer alg {alg:#?}");
@@ -122,19 +102,19 @@ pub fn get_ed_signer(alg: SigningAlg, tsa_url: Option<String>) -> EdSigner {
 /// # Panics
 ///
 /// Can panic if unable to invoke OpenSSL executable properly.
-pub fn get_rsa_signer(alg: SigningAlg, tsa_url: Option<String>) -> RsaSigner {
+pub(crate) fn get_rsa_signer(alg: SigningAlg, tsa_url: Option<String>) -> RsaSigner {
     let (sign_cert, pem_key) = match alg {
         SigningAlg::Ps256 => (
-            include_bytes!("../tests/fixtures/test_certs/ps256.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/ps256.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/ps256.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/ps256.pem").to_vec(),
         ),
         SigningAlg::Ps384 => (
-            include_bytes!("../tests/fixtures/test_certs/ps384.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/ps384.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/ps384.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/ps384.pem").to_vec(),
         ),
         SigningAlg::Ps512 => (
-            include_bytes!("../tests/fixtures/test_certs/ps512.pub").to_vec(),
-            include_bytes!("../tests/fixtures/test_certs/ps512.pem").to_vec(),
+            include_bytes!("../fixtures/test_certs/ps512.pub").to_vec(),
+            include_bytes!("../fixtures/test_certs/ps512.pem").to_vec(),
         ),
         _ => {
             panic!("Unknown RSA signer alg {alg:#?}");
