@@ -15,8 +15,7 @@ mod rsa_signer;
 pub(crate) use rsa_signer::RsaSigner;
 
 mod rsa_validator;
-pub(crate) use rsa_validator::RsaLegacyValidator;
-pub(crate) use rsa_validator::RsaValidator;
+pub(crate) use rsa_validator::{RsaLegacyValidator, RsaValidator};
 
 mod ec_signer;
 pub(crate) use ec_signer::EcSigner;
@@ -31,21 +30,13 @@ mod ed_validator;
 pub(crate) use ed_validator::EdValidator;
 
 mod openssl_trust_handler;
-pub(crate) mod temp_signer;
 
 pub(crate) use openssl_trust_handler::verify_trust;
 pub use openssl_trust_handler::OpenSSLTrustHandlerConfig; // [scouten 2024-06-27: Hacking to make public.]
 
 mod ffi_mutex;
 pub(crate) use ffi_mutex::OpenSslMutex;
-
-#[cfg(test)]
-pub(crate) mod temp_signer_async;
-
 use openssl::x509::X509;
-#[cfg(test)]
-#[allow(unused_imports)]
-pub(crate) use temp_signer_async::AsyncSignerAdapter;
 
 fn check_chain_order(certs: &[X509]) -> bool {
     // IMPORTANT: ffi_mutex::acquire() should have been called by calling fn. Please

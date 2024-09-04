@@ -18,3 +18,6 @@ mod ed_validator;
 mod openssl_trust_handler;
 mod rsa_signer;
 mod rsa_validator;
+
+pub(crate) mod temp_signer;
+pub(crate) mod temp_signer_async;

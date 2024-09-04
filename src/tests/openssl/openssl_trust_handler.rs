@@ -14,10 +14,8 @@
 use std::io::Cursor;
 
 use crate::{
-    openssl::{
-        temp_signer::{self},
-        verify_trust, OpenSSLTrustHandlerConfig,
-    },
+    openssl::{verify_trust, OpenSSLTrustHandlerConfig},
+    tests::openssl::temp_signer,
     Signer, SigningAlg, TrustHandlerConfig,
 };
 
