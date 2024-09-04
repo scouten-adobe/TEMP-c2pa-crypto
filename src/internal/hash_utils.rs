@@ -22,6 +22,7 @@ pub(crate) fn hash_sha256(data: &[u8]) -> Vec<u8> {
 }
 
 /// Return a SHA-1 hash of array of bytes.
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn hash_sha1(data: &[u8]) -> Vec<u8> {
     let mh = Sha1::digest(data);
     let digest = mh.digest();
